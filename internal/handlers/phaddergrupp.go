@@ -32,9 +32,10 @@ type phaddergruppPageData struct {
 
 func mumsPurchaseQuantities(mumsAvailable, mumsCapacityPerUser int64) []int {
 	remainingMumsCapacity := mumsCapacityPerUser - mumsAvailable
+	maxQty := min(config.MumsMaxPurchaseQuantity, int(remainingMumsCapacity))
 
 	var purchaseQuantities []int
-	for qty := 1; qty <= min(config.MumsMaxPurchaseQuantity, int(remainingMumsCapacity)); qty++ {
+	for qty := maxQty; qty >= 1; qty-- {
 		purchaseQuantities = append(purchaseQuantities, qty)
 	}
 

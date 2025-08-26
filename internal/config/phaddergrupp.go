@@ -8,6 +8,6 @@ const (
 	DefaultMumsCurrecy                = "SEK"
 	DefaultMumsCapacityPerUser        = 10
 
-	MumsMaxPurchaseQuantity           = 5
+	MumsMaxPurchaseQuantity           = DefaultMumsCapacityPerUser
 	SwishRecipientNumberPattern       = `^(\+46 ?(\(0\))?|0) ?7[02369]-?\d{3} ?\d{2} ?\d{2}$`
 )
