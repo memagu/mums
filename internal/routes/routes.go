@@ -33,18 +33,18 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 	protected.GET("/invite/:token", handlers.GetInvite)
 
 	phaddergrupp := protected.Group(
-		"/phaddergrupp",
+		"/phaddergrupp/:id",
 		auth.PhaddergruppRBACMiddleware(),
 		context.InjectPhaddergrupp(),
 	)
 
-	phaddergrupp.GET("/:id", handlers.GetPhaddergrupp)
-	phaddergrupp.DELETE("/:id", handlers.DeletePhaddergrupp)
-	phaddergrupp.GET("/:id/event-stream", handlers.GetPhaddergruppEventStream)
-	phaddergrupp.POST("/:id/purchase-mums", handlers.PostPhaddergruppPurchaseMums)
-	phaddergrupp.POST("/:id/mumsa", handlers.PostPhaddergruppMumsa)
-	phaddergrupp.POST("/:id/kick", handlers.PostPhaddergruppKick, auth.RequirePhaddergruppRole(roles.Phadder))
-	phaddergrupp.POST("/:id/mums/adjust", handlers.PostPhaddergruppMumsAdjust, auth.RequirePhaddergruppRole(roles.Phadder))
-	phaddergrupp.GET("/:id/settings", handlers.GetPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
-	phaddergrupp.PATCH("/:id/settings", handlers.PatchPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.GET("", handlers.GetPhaddergrupp)
+	phaddergrupp.DELETE("", handlers.DeletePhaddergrupp)
+	phaddergrupp.GET("/event-stream", handlers.GetPhaddergruppEventStream)
+	phaddergrupp.POST("/purchase-mums", handlers.PostPhaddergruppPurchaseMums)
+	phaddergrupp.POST("/mumsa", handlers.PostPhaddergruppMumsa)
+	phaddergrupp.POST("/kick", handlers.PostPhaddergruppKick, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.POST("/mums/adjust", handlers.PostPhaddergruppMumsAdjust, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.GET("/settings", handlers.GetPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.PATCH("/settings", handlers.PatchPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
 }
