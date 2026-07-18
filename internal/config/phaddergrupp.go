@@ -5,7 +5,7 @@ const (
 	DefaultSecondaryPhaddergruppColor = "#9966CC"
 	DefaultMumsPriceN0lla             = 10.0
 	DefaultMumsPricePhadder           = 10.0
-	DefaultMumsCurrecy                = "SEK"
+	DefaultMumsCurrency               = "SEK"
 	DefaultMumsCapacityPerUser        = 10
 
 	MumsMaxPurchaseQuantity           = DefaultMumsCapacityPerUser

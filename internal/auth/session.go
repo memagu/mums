@@ -128,7 +128,7 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 
 			if s.isExpired() {
 				// Do *NOT* use SessionStore.deleteSession. Deletion is
-				// handeled by CleanupExpiredSessionsSweeper!
+				// handled by CleanupExpiredSessionsSweeper!
 				return setNotLoggedIn()
 			}
 			s.touch()

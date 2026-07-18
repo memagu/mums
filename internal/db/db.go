@@ -128,7 +128,7 @@ func DBMiddleware(db *DB) echo.MiddlewareFunc {
 func GetDB(c echo.Context) *DB {
 	db, ok := c.Get(config.CTXKeyDB).(*DB)
 	if !ok {
-		panic("config.CTXKeyDB is not set in context, was DBMIddleware not applied?")
+		panic("config.CTXKeyDB is not set in context, was DBMiddleware not applied?")
 	}
 	return db
 }

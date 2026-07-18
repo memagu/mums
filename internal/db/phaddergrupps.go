@@ -43,7 +43,7 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 		config.DefaultSecondaryPhaddergruppColor,
 		config.DefaultMumsPriceN0lla,
 		config.DefaultMumsPricePhadder,
-		config.DefaultMumsCurrecy,
+		config.DefaultMumsCurrency,
 		swishRecipientNumber,
 		config.DefaultMumsCapacityPerUser,
 	)
