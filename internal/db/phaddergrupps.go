@@ -62,7 +62,7 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 }
 
 func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppData, error) {
-	const sql = `
+	const sqlQuery = `
 		SELECT
 			created_at,
 			name,
@@ -80,7 +80,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 			id = ?
 	`
 	
-	row := q.QueryRow(sql, phaddergruppID)
+	row := q.QueryRow(sqlQuery, phaddergruppID)
 
 	var pd PhaddergruppData
 	if err := row.Scan(

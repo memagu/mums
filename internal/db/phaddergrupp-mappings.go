@@ -42,7 +42,7 @@ func (db *DB) CreatePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 }
 
 func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, phaddergruppID int64) (bool, error) {
-	const sql = `
+	const sqlQuery = `
 		SELECT
 			EXISTS (
 				SELECT
@@ -54,7 +54,7 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 			);
 	`
 
-	row := q.QueryRow(sql, userAccountID, phaddergruppID)
+	row := q.QueryRow(sqlQuery, userAccountID, phaddergruppID)
 
 	var exists bool
 	if err := row.Scan(&exists); err != nil {
@@ -117,12 +117,12 @@ func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int6
 }
 
 func (db *DB) ReadMumsAvailable(q queryer, userAccountID, phaddergruppID int64) (int64, error) {
-	sql := `
+	sqlQuery := `
 		SELECT mums_available
 		FROM phaddergrupp_mappings
 		WHERE user_account_id = ? AND phaddergrupp_id = ?
 	`
-	row := q.QueryRow(sql, userAccountID, phaddergruppID)
+	row := q.QueryRow(sqlQuery, userAccountID, phaddergruppID)
 
 	var mumsAvailable int64 
 	if err := row.Scan(&mumsAvailable); err != nil {
@@ -151,7 +151,7 @@ type UserPhaddergruppSummary struct {
 }
 
 func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccountID int64) ([]UserPhaddergruppSummary, error) {
-	const sql = `
+	const sqlQuery = `
 		WITH GroupCounts AS (
 			SELECT
 				phaddergrupp_id,
@@ -184,7 +184,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 			pg.created_at DESC;
 	`
 
-	rows, err := q.Query(sql, userAccountID)
+	rows, err := q.Query(sqlQuery, userAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ type PhaddergruppUserSummaries struct {
 }
 
 func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
-    const sql = `
+    const sqlQuery = `
         SELECT
             ua.id,
             up.name,
@@ -259,7 +259,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
             up.name;
     `
 
-    rows, err := q.Query(sql, phaddergruppID)
+    rows, err := q.Query(sqlQuery, phaddergruppID)
     if err != nil {
         return PhaddergruppUserSummaries{}, err
     }
@@ -312,7 +312,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 }
 
 func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccountID int64) (int64, error) {
-	const sql =`
+	const sqlQuery =`
 		SELECT
 			p.id
 		FROM
@@ -325,7 +325,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 			p.created_at DESC;
 	`
 
-	row := q.QueryRow(sql, userAccountID)
+	row := q.QueryRow(sqlQuery, userAccountID)
 
 	var phaddergruppID int64
 	if err := row.Scan(&phaddergruppID); err != nil {
