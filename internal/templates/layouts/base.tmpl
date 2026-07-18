@@ -7,11 +7,11 @@
         <title>{{ block "title" . }}mums{{ end }}</title>
         <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
         <script
-            src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
-            integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
-            crossorigin="anonymous">
-        </script>
-        <script src="https://cdn.tailwindcss.com"></script>
+            src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+            integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+            crossorigin="anonymous"
+        ></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         {{ if .AllowedErrorCodes }}
         <script type="text/javascript">
             document.addEventListener("DOMContentLoaded", (_) => {
