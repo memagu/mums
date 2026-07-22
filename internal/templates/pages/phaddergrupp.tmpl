@@ -21,7 +21,7 @@
 
     <div class="max-w-sm flex flex-col justify-center">
         {{ if .LogoFilePath.Valid }}
-        <img src="/static/icons/mums.svg" alt="Logo" class="w-24 h-24 mb-4" />
+        <img src="{{ .LogoFilePath.String }}" alt="Logo" class="w-24 h-24 mb-4" />
         {{ end }}
 
         <p class="flex-shrink-0 text-center text-5xl break-words text-gray-900">{{ .PhaddergruppData.Name }}</p>
