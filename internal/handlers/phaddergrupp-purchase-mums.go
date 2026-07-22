@@ -25,6 +25,9 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "mums-purchase-quantity must be a valid integer")
 	}
+	if mumsPurchaseQuantity <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "mums-purchase-quantity must be a positive integer")
+	}
 
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
