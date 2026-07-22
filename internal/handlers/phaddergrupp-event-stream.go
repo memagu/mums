@@ -78,7 +78,10 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 		return
 	}
 
-	eventData := event.Data.(db.MumsAvailableUpdate)
+	eventData, ok := event.Data.(db.MumsAvailableUpdate)
+	if !ok {
+		return
+	}
 
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
