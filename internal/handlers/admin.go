@@ -7,9 +7,11 @@ import (
 )
 
 func GetAdmin(c echo.Context) error {
-	return c.Render(http.StatusOK, "admin", map[string]interface{}{})
+	// TODO: implement admin panel
+	return echo.NewHTTPError(http.StatusNotImplemented, "not implemented")
 }
 
 func PostAdmin(c echo.Context) error {
-	return c.Render(http.StatusOK, "admin", map[string]interface{}{})
+	// TODO: implement admin panel
+	return echo.NewHTTPError(http.StatusNotImplemented, "not implemented")
 }
