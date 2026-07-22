@@ -26,7 +26,11 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 		c.Logger().Errorf("Database error during mums available update for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
-	database.CreateMums(tx, userAccountID, phaddergruppID, 1, db.Consumption)
+	_, err = database.CreateMums(tx, userAccountID, phaddergruppID, 1, db.Consumption)
+	if err != nil {
+		c.Logger().Errorf("Database error during mums creation for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+	}
 	err = tx.Commit()
 	if err != nil {
 		c.Logger().Errorf("Database error during mumsning: %v", err)
