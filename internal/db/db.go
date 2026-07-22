@@ -12,19 +12,21 @@ import (
 )
 
 var schemas = []string{
-	SchemaUserAccountRoleMappings,
-	SchemaMums,
-	SchemaPhaddergruppMappings,
-	SchemaPhaddergrupps,
-	SchemaUserAccounts,
 	SchemaUserCredentials,
 	SchemaUserProfiles,
+	SchemaUserAccounts,
+	SchemaUserAccountRoleMappings,
+	SchemaPhaddergrupps,
+	SchemaPhaddergruppMappings,
 	SchemaPhaddergruppInvites,
+	SchemaMums,
 }
 
 var indexes = []string{
 	IndexPhaddergruppMappingsOnPhaddergruppID,
 	IndexPhaddergruppInvitesOnPhaddergruppID,
+	IndexMumsOnPhaddergruppID,
+	IndexMumsOnUserAccountID,
 }
 
 type execer interface {

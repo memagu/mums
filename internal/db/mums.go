@@ -19,6 +19,12 @@ CREATE TABLE IF NOT EXISTS mums (
     FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id)
 );`
 
+const IndexMumsOnPhaddergruppID = `
+CREATE INDEX IF NOT EXISTS idx_mums_phaddergrupp_id ON mums(phaddergrupp_id);`
+
+const IndexMumsOnUserAccountID = `
+CREATE INDEX IF NOT EXISTS idx_mums_user_account_id ON mums(user_account_id);`
+
 func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
 	res, err := exec.Exec(
 		`INSERT INTO mums (user_account_id, phaddergrupp_id, mums_quantity, mums_type) VALUES (?, ?, ?, ?)`,
