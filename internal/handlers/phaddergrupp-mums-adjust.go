@@ -66,7 +66,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 	}
 	err = tx.Commit()
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp invite: %v", err)
+		c.Logger().Errorf("Database error during phaddergrupp mums adjustment: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 

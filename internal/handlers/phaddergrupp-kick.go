@@ -27,7 +27,7 @@ func PostPhaddergruppKick(c echo.Context) error {
 	tx, err := database.Begin()
 	if err != nil {
 		c.Logger().Errorf("Failed to begin transaction during phaddergrupp kick: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %d", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 	defer tx.Rollback()
 	err = database.DeletePhaddergruppMapping(tx, userAccountID, phaddergruppID)
@@ -43,13 +43,13 @@ func PostPhaddergruppKick(c echo.Context) error {
 	if phaddergruppIsEmpty {
 		err := database.DeletePhaddergrupp(tx, phaddergruppID) 
 		if err != nil {
-			c.Logger().Errorf("Database error during phaddergrupp deletion during phaddergrupp kick: %v", phaddergruppID, err)
+			c.Logger().Errorf("Database error during phaddergrupp %d deletion during phaddergrupp kick: %v", phaddergruppID, err)
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp invite: %v", err)
+		c.Logger().Errorf("Database error during phaddergrupp kick: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 

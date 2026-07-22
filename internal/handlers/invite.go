@@ -41,7 +41,7 @@ func GetInvite(c echo.Context) error {
 	}
 	err = database.CreatePhaddergruppMapping(tx, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp mapping creation during phaddergrupp invite", err)
+		c.Logger().Errorf("Database error during phaddergrupp mapping creation during phaddergrupp invite: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 	err = tx.Commit()

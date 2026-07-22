@@ -65,7 +65,7 @@ func GetPhaddergrupp(c echo.Context) error {
 
 	inviteTokens, err := database.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during invite tokens read read: %v", err)
+		c.Logger().Errorf("Database error during invite tokens read: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 

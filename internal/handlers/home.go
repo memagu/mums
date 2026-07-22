@@ -34,7 +34,7 @@ func GetHome(c echo.Context) error {
 
 	userPhaddergruppSummaries, err := database.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
 	if err != nil {
-		c.Logger().Errorf("Database error user phaddergrupp summaries read for user %s: %v", userAccountID, err)
+		c.Logger().Errorf("Database error user phaddergrupp summaries read for user %d: %v", userAccountID, err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 
@@ -92,7 +92,7 @@ func PostHome(c echo.Context) error {
 	}
 	err = tx.Commit()
 	if err != nil {
-		c.Logger().Errorf("Database error during user creation: %v", err)
+		c.Logger().Errorf("Database error during phaddergrupp creation: %v", err)
 		return unexpectedFormError()	
 	}
 
