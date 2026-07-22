@@ -20,13 +20,18 @@ func (db *DB) CreateUserAccount(exec execer, userCredentialsID, userProfileID in
 		return 0, err
 	}
 
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
 	db.Emit(DBEvent{
 		"user_accounts",
 		DBCreate,
 		nil,
 	})
 
-	return res.LastInsertId()
+	return id, nil
 }
 
 func (db *DB) ReadUserAccountIDByUserCredentialsID(q queryer, userCredentialsID int64) (int64, error) {

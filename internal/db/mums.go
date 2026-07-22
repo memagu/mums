@@ -37,6 +37,9 @@ func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantit
 		return 0, err
 	}
 	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
 
 	db.Emit(DBEvent{
 		"mums",
@@ -44,5 +47,5 @@ func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantit
 		nil,
 	})
 
-	return id, err
+	return id, nil
 }

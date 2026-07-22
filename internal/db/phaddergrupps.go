@@ -52,6 +52,9 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 		return 0, err
 	}
 	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
 
 	db.Emit(DBEvent{
 		"phaddergrupps",
@@ -59,7 +62,7 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 		nil,
 	})
 
-	return id, err
+	return id, nil
 }
 
 func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppData, error) {

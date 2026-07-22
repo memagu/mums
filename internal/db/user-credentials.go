@@ -19,6 +19,9 @@ func (db *DB) CreateUserCredentials(exec execer, email string, hashword string) 
 		return 0, err
 	}
 	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
 
 	db.Emit(DBEvent{
 		"user_credentials",
@@ -26,7 +29,7 @@ func (db *DB) CreateUserCredentials(exec execer, email string, hashword string) 
 		nil,
 	})
 
-	return id, err
+	return id, nil
 }
 
 func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (int64, string, error) {

@@ -23,6 +23,9 @@ func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, use
 		return 0, err
 	}
 	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
 
 	db.Emit(DBEvent{
 		"user_account_role_mappings",
@@ -30,7 +33,7 @@ func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, use
 		nil,
 	})
 
-	return id, err
+	return id, nil
 }
 
 func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.UserAccountRole, error) {

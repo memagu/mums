@@ -16,11 +16,16 @@ func (db *DB) CreateUserProfile(exec execer, name string) (int64, error) {
 		return 0, err
 	}
 
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
 	db.Emit(DBEvent{
 		"user_profiles",
 		DBCreate,
 		nil,
 	})
 
-	return res.LastInsertId()
+	return id, nil
 }

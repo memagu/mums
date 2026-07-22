@@ -31,6 +31,9 @@ func (db *DB) CreatePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 		phaddergruppID,
 		string(phaddergruppRole),
 	)
+	if err != nil {
+		return err
+	}
 
 	db.Emit(DBEvent{
 		"phaddergrupp_mappings",
@@ -38,7 +41,7 @@ func (db *DB) CreatePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 		nil,
 	})
 
-	return err
+	return nil
 }
 
 func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, phaddergruppID int64) (bool, error) {
