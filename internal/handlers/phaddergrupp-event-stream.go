@@ -69,6 +69,11 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 }
 
 func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
+	if event.Type == db.DBDelete && event.Table == "phaddergrupps" {
+		httpx.EmitSSE(c, "phaddergrupp-deleted", "")
+		return
+	}
+
 	if event.Type != db.DBUpdate || event.Table != "phaddergrupp_mappings" {
 		return
 	}

@@ -1,8 +1,8 @@
 package db
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 
 	"github.com/memagu/mums/internal/roles"
 )
@@ -48,9 +48,11 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 				SELECT
 					1
 				FROM
-					phaddergrupp_mappings
+					phaddergrupp_mappings AS pm
+				JOIN
+					phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 				WHERE
-					user_account_id = ? AND phaddergrupp_id = ?
+					pm.user_account_id = ? AND pm.phaddergrupp_id = ?
 			);
 	`
 
@@ -74,8 +76,9 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 	const sqlQuery = `
 		SELECT NOT EXISTS (
 			SELECT 1
-			FROM phaddergrupp_mappings
-			WHERE phaddergrupp_id = ?
+			FROM phaddergrupp_mappings AS pm
+			JOIN phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+			WHERE pm.phaddergrupp_id = ?
 		)
 	`
 
@@ -97,9 +100,10 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 
 func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int64) (roles.PhaddergruppRole, error) {
 	row := q.QueryRow(`
-		SELECT phaddergrupp_role
-		FROM phaddergrupp_mappings
-		WHERE user_account_id = ? AND phaddergrupp_id = ?`,
+		SELECT pm.phaddergrupp_role
+		FROM phaddergrupp_mappings AS pm
+		JOIN phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+		WHERE pm.user_account_id = ? AND pm.phaddergrupp_id = ?`,
 		userAccountID, phaddergruppID)
 
 	var phaddergruppRole roles.PhaddergruppRole
@@ -124,7 +128,7 @@ func (db *DB) ReadMumsAvailable(q queryer, userAccountID, phaddergruppID int64) 
 	`
 	row := q.QueryRow(sqlQuery, userAccountID, phaddergruppID)
 
-	var mumsAvailable int64 
+	var mumsAvailable int64
 	if err := row.Scan(&mumsAvailable); err != nil {
 		return 0, err
 	}
@@ -144,10 +148,10 @@ type UserPhaddergruppSummary struct {
 	LogoPath         sql.NullString
 	PrimaryColor     string
 	SecondaryColor   string
-	PhadderCount     int 
-	N0llaCount       int 
+	PhadderCount     int
+	N0llaCount       int
 	PhaddergruppRole roles.PhaddergruppRole
-	MumsAvailable    int 
+	MumsAvailable    int
 }
 
 func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccountID int64) ([]UserPhaddergruppSummary, error) {
@@ -175,7 +179,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
-			phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id
+			phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		JOIN
 			GroupCounts AS gc ON pm.phaddergrupp_id = gc.phaddergrupp_id
 		WHERE
@@ -227,12 +231,11 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 	return summaries, nil
 }
 
-
 type PhaddergruppUserSummary struct {
-    UserAccountID    int64
-    UserProfileName  string
-    PhaddergruppRole roles.PhaddergruppRole
-    MumsAvailable    int
+	UserAccountID    int64
+	UserProfileName  string
+	PhaddergruppRole roles.PhaddergruppRole
+	MumsAvailable    int
 }
 
 type PhaddergruppUserSummaries struct {
@@ -241,7 +244,7 @@ type PhaddergruppUserSummaries struct {
 }
 
 func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
-    const sqlQuery = `
+	const sqlQuery = `
         SELECT
             ua.id,
             up.name,
@@ -250,7 +253,9 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
         FROM
             phaddergrupp_mappings AS pm
         JOIN
-            user_accounts AS ua ON ua.id = pm.user_account_id
+            phaddergrupps AS pg ON pg.id = pm.phaddergrupp_id AND pg.deleted_at IS NULL
+        JOIN
+            user_accounts AS ua ON ua.id = pm.user_account_id AND ua.deleted_at IS NULL
         JOIN
             user_profiles AS up ON up.id = ua.user_profile_id
         WHERE
@@ -259,24 +264,24 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
             up.name;
     `
 
-    rows, err := q.Query(sqlQuery, phaddergruppID)
-    if err != nil {
-        return PhaddergruppUserSummaries{}, err
-    }
-    defer rows.Close()
+	rows, err := q.Query(sqlQuery, phaddergruppID)
+	if err != nil {
+		return PhaddergruppUserSummaries{}, err
+	}
+	defer rows.Close()
 
-    var summaries PhaddergruppUserSummaries
+	var summaries PhaddergruppUserSummaries
 
-    for rows.Next() {
-        var summary PhaddergruppUserSummary
-        if err := rows.Scan(
-            &summary.UserAccountID,
-            &summary.UserProfileName,
-            &summary.PhaddergruppRole,
-            &summary.MumsAvailable,
-        ); err != nil {
-            return PhaddergruppUserSummaries{}, err
-        }
+	for rows.Next() {
+		var summary PhaddergruppUserSummary
+		if err := rows.Scan(
+			&summary.UserAccountID,
+			&summary.UserProfileName,
+			&summary.PhaddergruppRole,
+			&summary.MumsAvailable,
+		); err != nil {
+			return PhaddergruppUserSummaries{}, err
+		}
 
 		switch summary.PhaddergruppRole {
 		case roles.N0lla:
@@ -286,39 +291,39 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 		default:
 			return PhaddergruppUserSummaries{}, fmt.Errorf("unknown phaddergrupp role: %v for user %d", summary.PhaddergruppRole, summary.UserAccountID)
 		}
-    }
+	}
 
-    if err := rows.Err(); err != nil {
-        return PhaddergruppUserSummaries{}, err
-    }
+	if err := rows.Err(); err != nil {
+		return PhaddergruppUserSummaries{}, err
+	}
 
-    db.Emit(DBEvent{
-        "phaddergrupp_mappings",
-        DBRead,
-        nil,
-    })
-    db.Emit(DBEvent{
-        "user_accounts",
-        DBRead,
-        nil,
-    })
-    db.Emit(DBEvent{
-        "user_profiles",
-        DBRead,
-        nil,
-    })
+	db.Emit(DBEvent{
+		"phaddergrupp_mappings",
+		DBRead,
+		nil,
+	})
+	db.Emit(DBEvent{
+		"user_accounts",
+		DBRead,
+		nil,
+	})
+	db.Emit(DBEvent{
+		"user_profiles",
+		DBRead,
+		nil,
+	})
 
-    return summaries, nil
+	return summaries, nil
 }
 
 func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccountID int64) (int64, error) {
-	const sqlQuery =`
+	const sqlQuery = `
 		SELECT
 			p.id
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
-			phaddergrupps AS p ON p.id = pm.phaddergrupp_id
+			phaddergrupps AS p ON p.id = pm.phaddergrupp_id AND p.deleted_at IS NULL
 		WHERE
 			pm.user_account_id = ?
 		ORDER BY
@@ -332,11 +337,11 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		return 0, err
 	}
 
-    db.Emit(DBEvent{
-        "phaddergrupp_mappings",
-        DBRead,
-        nil,
-    })
+	db.Emit(DBEvent{
+		"phaddergrupp_mappings",
+		DBRead,
+		nil,
+	})
 	db.Emit(DBEvent{
 		"phaddergrupps",
 		DBRead,
@@ -375,9 +380,9 @@ func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID
 		Table: "phaddergrupp_mappings",
 		Type:  DBUpdate,
 		Data: MumsAvailableUpdate{
-			UserAccountID: userAccountID,
+			UserAccountID:  userAccountID,
 			PhaddergruppID: phaddergruppID,
-			MumsAvailable: mumsAvailable,
+			MumsAvailable:  mumsAvailable,
 		},
 	})
 

@@ -24,6 +24,7 @@ const SchemaPhaddergrupps = `
 CREATE TABLE IF NOT EXISTS phaddergrupps (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	deleted_at DATETIME DEFAULT NULL,
 	name TEXT NOT NULL,
 	logo_file_path TEXT DEFAULT NULL,
 	primary_color TEXT NOT NULL,
@@ -77,7 +78,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 		FROM
 			phaddergrupps
 		WHERE
-			id = ?
+			id = ? AND deleted_at IS NULL
 	`
 	
 	row := q.QueryRow(sqlQuery, phaddergruppID)
@@ -120,7 +121,7 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 			swish_recipient_number = ?,
 			mums_capacity_per_user = ?
 		WHERE
-			id = ?
+			id = ? AND deleted_at IS NULL
 	`
 
 	_, err := exec.Exec(sqlQuery,
@@ -150,28 +151,27 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 }
 
 func (db *DB) DeletePhaddergrupp(exec execer, phaddergruppID int64) error {
-    const sqlQuery = `
-        DELETE FROM
-			phaddergrupps
-        WHERE
-			id = ?
-    `
+	const sqlQuery = `
+		UPDATE phaddergrupps
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND deleted_at IS NULL
+	`
 
-    result, err := exec.Exec(sqlQuery, phaddergruppID)
-    if err != nil {
-        return err
-    }
+	result, err := exec.Exec(sqlQuery, phaddergruppID)
+	if err != nil {
+		return err
+	}
 
-    _, err = result.RowsAffected()
-    if err != nil {
-        return err
-    }
+	_, err = result.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-    db.Emit(DBEvent{
-        "phaddergrupps",
-        DBDelete,
-        nil,
-    })
+	db.Emit(DBEvent{
+		"phaddergrupps",
+		DBDelete,
+		nil,
+	})
 
-    return nil
+	return nil
 }

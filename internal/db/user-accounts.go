@@ -3,6 +3,7 @@ package db
 const SchemaUserAccounts = `
 CREATE TABLE IF NOT EXISTS user_accounts (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	deleted_at DATETIME DEFAULT NULL,
 	user_credentials_id INTEGER NOT NULL UNIQUE,
 	user_profile_id INTEGER NOT NULL UNIQUE,
 	FOREIGN KEY (user_credentials_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
@@ -30,7 +31,7 @@ func (db *DB) CreateUserAccount(exec execer, userCredentialsID, userProfileID in
 
 func (db *DB) ReadUserAccountIDByUserCredentialsID(q queryer, userCredentialsID int64) (int64, error) {
 	row := q.QueryRow(
-		`SELECT id FROM user_accounts WHERE user_credentials_id = ?`,
+		`SELECT id FROM user_accounts WHERE user_credentials_id = ? AND deleted_at IS NULL`,
 		userCredentialsID,
 	)
 
@@ -53,7 +54,7 @@ func (db *DB) ReadUserProfileByUserAccountID(q queryer, userAccountID int64) (Us
 		SELECT p.name
 		FROM user_profiles AS p
 		JOIN user_accounts AS a ON p.id = a.user_profile_id
-		WHERE a.id = ?`,
+		WHERE a.id = ? AND a.deleted_at IS NULL`,
 		userAccountID,
 	)
 

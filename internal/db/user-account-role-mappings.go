@@ -35,9 +35,10 @@ func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, use
 
 func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.UserAccountRole, error) {
 	rows, err := q.Query(`
-		SELECT user_account_role
-		FROM user_account_role_mappings
-		WHERE user_account_id = ?`, userAccountID)
+		SELECT uarm.user_account_role
+		FROM user_account_role_mappings AS uarm
+		JOIN user_accounts AS ua ON uarm.user_account_id = ua.id AND ua.deleted_at IS NULL
+		WHERE uarm.user_account_id = ?`, userAccountID)
 	if err != nil {
 		return nil, err
 	}

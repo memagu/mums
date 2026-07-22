@@ -51,12 +51,14 @@ func (db *DB) CreatePhaddergruppInvite(exec execer, token string, phaddergruppID
 func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInviteData, error) {
 	sqlQuery := `
 		SELECT
-			phaddergrupp_id,
-			phaddergrupp_role
+			pi.phaddergrupp_id,
+			pi.phaddergrupp_role
 		FROM
-			phaddergrupp_invites
+			phaddergrupp_invites AS pi
+		JOIN
+			phaddergrupps AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		WHERE
-			token = ?
+			pi.token = ?
 	`
 
 	row := q.QueryRow(sqlQuery, token) 
@@ -86,11 +88,13 @@ type PhaddergruppInviteTokens struct {
 func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppInviteTokens, error) {
 	sqlQuery := `
 		SELECT
-			token, phaddergrupp_role
+			pi.token, pi.phaddergrupp_role
 		FROM
-			phaddergrupp_invites
+			phaddergrupp_invites AS pi
+		JOIN
+			phaddergrupps AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		WHERE
-			phaddergrupp_id = ?
+			pi.phaddergrupp_id = ?
 	`
 
 	rows, err := q.Query(sqlQuery, phaddergruppID)

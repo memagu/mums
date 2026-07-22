@@ -1,6 +1,7 @@
 package context
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -18,6 +19,9 @@ func InjectPhaddergrupp() echo.MiddlewareFunc {
 
 			phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
 			if err != nil {
+				if err == sql.ErrNoRows {
+					return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
+				}
 				c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
                 return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 			}
