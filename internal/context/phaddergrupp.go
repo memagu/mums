@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/db"
-	"github.com/labstack/echo/v4"
 )
 
 func InjectPhaddergrupp() echo.MiddlewareFunc {
@@ -23,7 +23,7 @@ func InjectPhaddergrupp() echo.MiddlewareFunc {
 					return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
 				}
 				c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
-                return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 			}
 			c.Set(config.CTXKeyPhaddergrupp, phaddergruppData)
 

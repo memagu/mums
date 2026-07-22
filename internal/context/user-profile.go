@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/db"
-	"github.com/labstack/echo/v4"
 )
 
 func InjectUserProfile() echo.MiddlewareFunc {
@@ -19,7 +19,7 @@ func InjectUserProfile() echo.MiddlewareFunc {
 			userProfileData, err := database.ReadUserProfileByUserAccountID(database, userAccountID)
 			if err != nil {
 				c.Logger().Errorf("Database error during user profile read: %v", err)
-                return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 			}
 			c.Set(config.CTXKeyUserProfile, userProfileData)
 
