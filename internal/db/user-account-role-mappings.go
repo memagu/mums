@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS user_account_role_mappings (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	user_account_id INTEGER NOT NULL,
 	user_account_role TEXT NOT NULL,
-	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE
+	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
+	UNIQUE (user_account_id, user_account_role)
 );`
 
 func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
