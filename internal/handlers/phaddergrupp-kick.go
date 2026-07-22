@@ -30,7 +30,7 @@ func PostPhaddergruppKick(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %d", err))
 	}
 	defer tx.Rollback()
-	err = database.DeletePhaddergruppMapping(database, userAccountID, phaddergruppID)
+	err = database.DeletePhaddergruppMapping(tx, userAccountID, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp kick of user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
