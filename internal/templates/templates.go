@@ -36,9 +36,15 @@ func dict(values ...any) (map[string]any, error) {
 	return dict, nil
 }
 
+func hasKey(m map[string]any, key string) bool {
+	_, ok := m[key]
+	return ok
+}
+
 func NewTemplateRenderer() *TemplateRenderer {
 	funcMap := template.FuncMap{
-		"dict": dict,
+		"dict":   dict,
+		"hasKey": hasKey,
 	}
 	templates := make(map[string]*template.Template)
 

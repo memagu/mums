@@ -11,12 +11,12 @@
         name="{{ .Name }}"
         type="{{ .Type }}"
         {{ if .Pattern }} pattern="{{ .Pattern }}" {{ end }}
-        {{ if .Min }} min="{{ .Min }}" {{ end }}
-        {{ if .Max }} max="{{ .Max }}" {{ end }}
-        {{ if .Step }} step="{{ .Step }}" {{ end }}
-        autocomplete="{{ .Autocomplete }}"
+        {{ if hasKey . "Min" }} min="{{ .Min }}" {{ end }}
+        {{ if hasKey . "Max" }} max="{{ .Max }}" {{ end }}
+        {{ if hasKey . "Step" }} step="{{ .Step }}" {{ end }}
+        {{ if .Autocomplete }} autocomplete="{{ .Autocomplete }}" {{ end }}
         {{ if .Required }} required {{ end }}
-        {{ if .Value }} value="{{ .Value }}" {{ end }}
+        {{ if hasKey . "Value" }} value="{{ .Value }}" {{ end }}
         class="w-full rounded-md border-2 border-gray-300 px-3 py-2 shadow-sm placeholder-gray-400 focus:border-c focus:outline-none"
     >
     {{ template "form-errors" . }}
