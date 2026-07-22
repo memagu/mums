@@ -81,6 +81,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 		userAccountID, err := database.ReadUserAccountIDByUserCredentialsID(database, userCredentialsID)
 		if err != nil {
 			c.Logger().Errorf("CRITICAL: Credentials found (ID: %d) but no matching user account.", userCredentialsID)
+			return unexpectedError()
 		}
 
 		return loginUser(c, ss, userAccountID)
