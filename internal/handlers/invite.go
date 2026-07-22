@@ -52,5 +52,5 @@ func GetInvite(c echo.Context) error {
 
 	redirectURL := fmt.Sprintf("/phaddergrupp/%d", invite.PhaddergruppID)
 
-	return httpx.Redirect(c, http.StatusFound, redirectURL)
+	return httpx.Redirect(c, http.StatusSeeOther, redirectURL)
 }
