@@ -124,7 +124,7 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 			id = ? AND deleted_at IS NULL
 	`
 
-	_, err := exec.Exec(sqlQuery,
+	result, err := exec.Exec(sqlQuery,
 		phaddergruppData.Name,
 		phaddergruppData.LogoFilePath,
 		phaddergruppData.PrimaryColor,
@@ -139,6 +139,14 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
 	}
 
 	db.Emit(DBEvent{
@@ -162,9 +170,12 @@ func (db *DB) DeletePhaddergrupp(exec execer, phaddergruppID int64) error {
 		return err
 	}
 
-	_, err = result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
+	}
+	if rowsAffected == 0 {
+		return nil
 	}
 
 	db.Emit(DBEvent{

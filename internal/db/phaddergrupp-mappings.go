@@ -401,9 +401,12 @@ func (db *DB) DeletePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 		return err
 	}
 
-	_, err = result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
+	}
+	if rowsAffected == 0 {
+		return nil
 	}
 
 	db.Emit(DBEvent{
