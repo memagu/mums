@@ -54,7 +54,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 		userPassword := c.FormValue("password")
 
 		unexpectedError := func() error {
-			pageData := registerPageData{
+			pageData := loginPageData{
 				IsLoggedIn: false,
 				Email:      userEmail,
 				Errors:     map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
