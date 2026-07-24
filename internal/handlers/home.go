@@ -64,33 +64,24 @@ func PostHome(c echo.Context) error {
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	tx, err := database.Begin()
-	if err != nil {
-		c.Logger().Errorf("Failed to begin transaction during phaddergrupp creation: %v", err)
-		return unexpectedFormError()
-	}
-	defer tx.Rollback()
-	phaddergruppID, err := database.CreatePhaddergrupp(database, phaddergruppName, swishRecipientNumber)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp creation: %v", err)
-		return unexpectedFormError()
-	}
-	err = database.CreatePhaddergruppMapping(tx, userAccountID, phaddergruppID, roles.Phadder)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp mapping creation during phaddergrupp creation: %v", err)
-		return unexpectedFormError()
-	}
-	err = database.CreatePhaddergruppInvite(tx, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.N0lla)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp invite (roles.N0lla) creation during phaddergrupp creation: %v", err)
-		return unexpectedFormError()
-	}
-	err = database.CreatePhaddergruppInvite(tx, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.Phadder)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp invite (roles.Phadder) creation during phaddergrupp creation: %v", err)
-		return unexpectedFormError()
-	}
-	err = tx.Commit()
+	var phaddergruppID int64
+	err := db.WithTx(database, func(e db.Execer) error {
+		var err error
+		phaddergruppID, err = database.CreatePhaddergrupp(e, phaddergruppName, swishRecipientNumber)
+		if err != nil {
+			return err
+		}
+		err = database.CreatePhaddergruppMapping(e, userAccountID, phaddergruppID, roles.Phadder)
+		if err != nil {
+			return err
+		}
+		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.N0lla)
+		if err != nil {
+			return err
+		}
+		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.Phadder)
+		return err
+	})
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp creation: %v", err)
 		return unexpectedFormError()

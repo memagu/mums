@@ -15,23 +15,15 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	tx, err := database.Begin()
-	if err != nil {
-		c.Logger().Errorf("Failed to begin transaction during mumsning: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	defer tx.Rollback()
-	_, err = database.UpdateAdjustMumsAvailable(tx, userAccountID, phaddergruppID, -1)
-	if err != nil {
-		c.Logger().Errorf("Database error during mums available update for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	_, err = database.CreateMums(tx, userAccountID, phaddergruppID, 1, db.Consumption)
-	if err != nil {
-		c.Logger().Errorf("Database error during mums creation for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	err = tx.Commit()
+	err := db.WithTx(database, func(e db.Execer) error {
+		q := e.(db.Queryer)
+		_, err := database.UpdateAdjustMumsAvailable(q, userAccountID, phaddergruppID, -1)
+		if err != nil {
+			return err
+		}
+		_, err = database.CreateMums(e, userAccountID, phaddergruppID, 1, db.Consumption)
+		return err
+	})
 	if err != nil {
 		c.Logger().Errorf("Database error during mumsning: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))

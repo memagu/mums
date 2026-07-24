@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS user_accounts (
 	FOREIGN KEY (user_profile_id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );`
 
-func (db *DB) CreateUserAccount(exec execer, userCredentialsID, userProfileID int64) (int64, error) {
-	res, err := exec.Exec(
+func (db *DB) CreateUserAccount(e execer, userCredentialsID, userProfileID int64) (int64, error) {
+	res, err := e.Exec(
 		`INSERT INTO user_accounts (user_credentials_id, user_profile_id) VALUES (?, ?)`,
 		userCredentialsID,
 		userProfileID,
@@ -25,7 +25,7 @@ func (db *DB) CreateUserAccount(exec execer, userCredentialsID, userProfileID in
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "user_accounts",
 		Type:  DBCreate,
 		Data:  nil,
@@ -45,7 +45,7 @@ func (db *DB) ReadUserAccountIDByUserCredentialsID(q queryer, userCredentialsID 
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_accounts",
 		Type:  DBRead,
 		Data:  userAccountID,
@@ -70,7 +70,7 @@ func (db *DB) ReadUserProfileByUserAccountID(q queryer, userAccountID int64) (Us
 		return UserProfileData{}, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBRead,
 		Data:  nil,

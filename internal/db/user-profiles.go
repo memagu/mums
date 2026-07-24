@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 	name TEXT NOT NULL
 );`
 
-func (db *DB) CreateUserProfile(exec execer, name string) (int64, error) {
-	res, err := exec.Exec(`INSERT INTO user_profiles (name) VALUES (?)`, name)
+func (db *DB) CreateUserProfile(e execer, name string) (int64, error) {
+	res, err := e.Exec(`INSERT INTO user_profiles (name) VALUES (?)`, name)
 	if err != nil {
 		return 0, err
 	}
@@ -21,7 +21,7 @@ func (db *DB) CreateUserProfile(exec execer, name string) (int64, error) {
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBCreate,
 		Data:  nil,

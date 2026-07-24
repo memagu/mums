@@ -20,32 +20,27 @@ func GetInvite(c echo.Context) error {
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	tx, err := database.Begin()
+	var invite db.PhaddergruppInviteData
+	err := db.WithTx(database, func(e db.Execer) error {
+		q := e.(db.Queryer)
+		var err error
+		invite, err = database.ReadPhaddergruppInvite(q, token)
+		if err != nil {
+			return err
+		}
+		userIsAlreadyPhaddergruppMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(q, userAccountID, invite.PhaddergruppID)
+		if err != nil {
+			return err
+		}
+		if userIsAlreadyPhaddergruppMember {
+			return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("User account %d is already a member of phaddergrupp %d", userAccountID, invite.PhaddergruppID))
+		}
+		return database.CreatePhaddergruppMapping(e, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
+	})
 	if err != nil {
-		c.Logger().Errorf("Failed to begin transaction during phaddergrupp invite: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	defer tx.Rollback()
-	invite, err := database.ReadPhaddergruppInvite(tx, token)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp invite read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	userIsAlreadyPhaddergruppMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(tx, userAccountID, invite.PhaddergruppID)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp membership check during phaddergrupp invite: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	if userIsAlreadyPhaddergruppMember {
-		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("User account %d is already a member of phaddergrupp %d", userAccountID, invite.PhaddergruppID))
-	}
-	err = database.CreatePhaddergruppMapping(tx, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp mapping creation during phaddergrupp invite: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	err = tx.Commit()
-	if err != nil {
+		if httpErr, ok := err.(*echo.HTTPError); ok {
+			return httpErr
+		}
 		c.Logger().Errorf("Database error during phaddergrupp invite: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}

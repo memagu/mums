@@ -37,36 +37,32 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "delta must be non-zero")
 	}
 
-	tx, err := database.Begin()
+	isNotMember := false
+	err = db.WithTx(database, func(e db.Execer) error {
+		q := e.(db.Queryer)
+		isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(q, userAccountID, phaddergruppID)
+		if err != nil {
+			return err
+		}
+		if !isMember {
+			isNotMember = true
+			return fmt.Errorf("user %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID)
+		}
+		_, err = database.UpdateAdjustMumsAvailable(q, userAccountID, phaddergruppID, delta)
+		if err != nil {
+			return err
+		}
+		_, err = database.CreateMums(e, userAccountID, phaddergruppID, delta, db.Purchase)
+		return err
+	})
 	if err != nil {
-		c.Logger().Errorf("Failed to begin transaction during phaddergrupp mums adjustment: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	defer tx.Rollback()
-	isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(tx, userAccountID, phaddergruppID)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp membership read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	if !isMember {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Bad Request: User account %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID))
-	}
-	_, err = database.UpdateAdjustMumsAvailable(tx, userAccountID, phaddergruppID, delta)
-	if err != nil {
+		if isNotMember {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Bad Request: User account %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID))
+		}
 		if err == sql.ErrNoRows {
 			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Too large negative adjustment or user not member in phaddergrupp")
 		}
 		c.Logger().Errorf("Database error during mums available adjustment for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	_, err = database.CreateMums(tx, userAccountID, phaddergruppID, delta, db.Purchase)
-	if err != nil {
-		c.Logger().Errorf("Database error during mums log entry creation: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	err = tx.Commit()
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp mums adjustment: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 

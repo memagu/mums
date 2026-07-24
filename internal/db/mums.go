@@ -25,8 +25,8 @@ CREATE INDEX IF NOT EXISTS idx_mums_phaddergrupp_id ON mums(phaddergrupp_id);`
 const IndexMumsOnUserAccountID = `
 CREATE INDEX IF NOT EXISTS idx_mums_user_account_id ON mums(user_account_id);`
 
-func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
-	res, err := exec.Exec(
+func (db *DB) CreateMums(e execer, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
+	res, err := e.Exec(
 		`INSERT INTO mums (user_account_id, phaddergrupp_id, mums_quantity, mums_type) VALUES (?, ?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
@@ -41,7 +41,7 @@ func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantit
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBCreate,
 		Data:  nil,

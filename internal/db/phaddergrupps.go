@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS phaddergrupps (
 	mums_capacity_per_user INTEGER NOT NULL
 );`
 
-func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string) (int64, error) {
-	res, err := exec.Exec(
+func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (int64, error) {
+	res, err := e.Exec(
 		`INSERT INTO phaddergrupps (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
 		config.DefaultPrimaryPhaddergruppColor,
@@ -56,7 +56,7 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBCreate,
 		Data:  nil,
@@ -102,7 +102,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 		return PhaddergruppData{}, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBRead,
 		Data:  nil,
@@ -111,7 +111,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 	return pd, nil
 }
 
-func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
+func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
 	const sqlQuery = `
 		UPDATE phaddergrupps SET
 			name = ?,
@@ -127,7 +127,7 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 			id = ? AND deleted_at IS NULL
 	`
 
-	result, err := exec.Exec(sqlQuery,
+	result, err := e.Exec(sqlQuery,
 		phaddergruppData.Name,
 		phaddergruppData.LogoFilePath,
 		phaddergruppData.PrimaryColor,
@@ -152,7 +152,7 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 		return sql.ErrNoRows
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBUpdate,
 		Data:  nil,
@@ -161,14 +161,14 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 	return nil
 }
 
-func (db *DB) DeletePhaddergrupp(exec execer, phaddergruppID int64) error {
+func (db *DB) DeletePhaddergrupp(e execer, phaddergruppID int64) error {
 	const sqlQuery = `
 		UPDATE phaddergrupps
 		SET deleted_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND deleted_at IS NULL
 	`
 
-	result, err := exec.Exec(sqlQuery, phaddergruppID)
+	result, err := e.Exec(sqlQuery, phaddergruppID)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (db *DB) DeletePhaddergrupp(exec execer, phaddergruppID int64) error {
 		return nil
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBDelete,
 		Data:  nil,

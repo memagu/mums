@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS user_credentials (
 	hashword TEXT NOT NULL
 );`
 
-func (db *DB) CreateUserCredentials(exec execer, email string, hashword string) (int64, error) {
-	res, err := exec.Exec(
+func (db *DB) CreateUserCredentials(e execer, email string, hashword string) (int64, error) {
+	res, err := e.Exec(
 		`INSERT INTO user_credentials (email, hashword) VALUES (?, ?)`,
 		email,
 		hashword,
@@ -23,7 +23,7 @@ func (db *DB) CreateUserCredentials(exec execer, email string, hashword string) 
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBCreate,
 		Data:  nil,
@@ -44,7 +44,7 @@ func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (
 		return 0, "", err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBRead,
 		Data:  nil,
@@ -67,7 +67,7 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 		return false, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBRead,
 		Data:  nil,

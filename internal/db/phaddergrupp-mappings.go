@@ -24,8 +24,8 @@ ON
 	phaddergrupp_mappings(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppMapping(exec execer, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
-	_, err := exec.Exec(
+func (db *DB) CreatePhaddergruppMapping(e execer, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
+	_, err := e.Exec(
 		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role) VALUES (?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
@@ -35,7 +35,7 @@ func (db *DB) CreatePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 		return err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBCreate,
 		Data:  nil,
@@ -66,7 +66,7 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 		return false, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -92,7 +92,7 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 		return false, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -114,7 +114,7 @@ func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int6
 		return "", err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -136,7 +136,7 @@ func (db *DB) ReadMumsAvailable(q queryer, userAccountID, phaddergruppID int64) 
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -220,12 +220,12 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		return nil, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBRead,
 		Data:  nil,
@@ -300,17 +300,17 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 		return PhaddergruppUserSummaries{}, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_accounts",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBRead,
 		Data:  nil,
@@ -340,12 +340,12 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupps",
 		Type:  DBRead,
 		Data:  nil,
@@ -373,7 +373,7 @@ func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBUpdate,
 		Data: MumsAvailableUpdate{
@@ -386,14 +386,14 @@ func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID
 	return mumsAvailable, nil
 }
 
-func (db *DB) DeletePhaddergruppMapping(exec execer, userAccountID, phaddergruppID int64) error {
+func (db *DB) DeletePhaddergruppMapping(e execer, userAccountID, phaddergruppID int64) error {
 	const sqlQuery = `
 		DELETE FROM
 			phaddergrupp_mappings
 		WHERE
 			user_account_id = ? AND phaddergrupp_id = ?
 	`
-	result, err := exec.Exec(sqlQuery, userAccountID, phaddergruppID)
+	result, err := e.Exec(sqlQuery, userAccountID, phaddergruppID)
 	if err != nil {
 		return err
 	}
@@ -406,7 +406,7 @@ func (db *DB) DeletePhaddergruppMapping(exec execer, userAccountID, phaddergrupp
 		return nil
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBDelete,
 		Data:  nil,

@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS user_account_role_mappings (
 	UNIQUE (user_account_id, user_account_role)
 );`
 
-func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
-	res, err := exec.Exec(
+func (db *DB) CreateUserAccountRoleMapping(e execer, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
+	res, err := e.Exec(
 		`INSERT INTO user_account_role_mappings (user_account_id, user_account_role) VALUES (?, ?)`,
 		userAccountID,
 		string(userAccountRole),
@@ -27,7 +27,7 @@ func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, use
 		return 0, err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "user_account_role_mappings",
 		Type:  DBCreate,
 		Data:  nil,
@@ -61,7 +61,7 @@ func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.User
 		return nil, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "user_account_role_mappings",
 		Type:  DBRead,
 		Data:  nil,

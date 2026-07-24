@@ -77,28 +77,19 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 			return unexpectedError()
 		}
 
-		tx, err := database.Begin()
-		if err != nil {
-			c.Logger().Errorf("Failed to begin transaction during user creation: %v", err)
-			return unexpectedError()
-		}
-		defer tx.Rollback()
-		userCredentialsID, err := database.CreateUserCredentials(tx, userEmail, hashword)
-		if err != nil {
-			c.Logger().Errorf("Database error during user credentials creation during user creation: %v", err)
-			return unexpectedError()
-		}
-		userProfileID, err := database.CreateUserProfile(tx, userName)
-		if err != nil {
-			c.Logger().Errorf("Database error during user profile creation during user creation: %v", err)
-			return unexpectedError()
-		}
-		userAccountID, err := database.CreateUserAccount(tx, userCredentialsID, userProfileID)
-		if err != nil {
-			c.Logger().Errorf("Database error during user account creation during user creation: %v", err)
-			return unexpectedError()
-		}
-		err = tx.Commit()
+		var userAccountID int64
+		err = db.WithTx(database, func(e db.Execer) error {
+			userCredentialsID, err := database.CreateUserCredentials(e, userEmail, hashword)
+			if err != nil {
+				return err
+			}
+			userProfileID, err := database.CreateUserProfile(e, userName)
+			if err != nil {
+				return err
+			}
+			userAccountID, err = database.CreateUserAccount(e, userCredentialsID, userProfileID)
+			return err
+		})
 		if err != nil {
 			c.Logger().Errorf("Database error during user creation: %v", err)
 			return unexpectedError()

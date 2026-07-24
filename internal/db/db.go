@@ -31,18 +31,45 @@ var indexes = []string{
 
 type execer interface {
 	Exec(query string, args ...any) (sql.Result, error)
+	Emit(DBEvent)
 }
+
+type Execer = execer
 
 type queryer interface {
 	Query(query string, args ...any) (*sql.Rows, error)
 	QueryRow(query string, args ...any) *sql.Row
+	Emit(DBEvent)
 }
+
+type Queryer = queryer
 
 type DB struct {
 	*sql.DB
 	sync.RWMutex
 	subscribers map[int64]chan DBEvent
 	nextID      int64
+}
+
+type txWrapper struct {
+	tx     *sql.Tx
+	events []DBEvent
+}
+
+func (tw *txWrapper) Emit(e DBEvent) {
+	tw.events = append(tw.events, e)
+}
+
+func (tw *txWrapper) Exec(query string, args ...any) (sql.Result, error) {
+	return tw.tx.Exec(query, args...)
+}
+
+func (tw *txWrapper) Query(query string, args ...any) (*sql.Rows, error) {
+	return tw.tx.Query(query, args...)
+}
+
+func (tw *txWrapper) QueryRow(query string, args ...any) *sql.Row {
+	return tw.tx.QueryRow(query, args...)
 }
 
 func NewDB(dbFilePath string) (*DB, error) {
@@ -79,6 +106,29 @@ func NewDB(dbFilePath string) (*DB, error) {
 	}
 
 	return db, nil
+}
+
+func WithTx(db *DB, fn func(e execer) error) error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+
+	tw := &txWrapper{tx: tx}
+	if err := fn(tw); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+
+	for _, event := range tw.events {
+		db.Emit(event)
+	}
+
+	return nil
 }
 
 func DBMiddleware(db *DB) echo.MiddlewareFunc {

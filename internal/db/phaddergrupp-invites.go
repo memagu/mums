@@ -26,7 +26,7 @@ ON
 	phaddergrupp_invites(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppInvite(exec execer, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) (error) {
+func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) (error) {
 	sqlQuery := `
 		INSERT INTO phaddergrupp_invites
 			(token, phaddergrupp_id, phaddergrupp_role)
@@ -34,12 +34,12 @@ func (db *DB) CreatePhaddergruppInvite(exec execer, token string, phaddergruppID
 			(?, ?, ?)
 	`
 
-	_, err := exec.Exec(sqlQuery, token, phaddergruppID, phaddergruppRole)
+	_, err := e.Exec(sqlQuery, token, phaddergruppID, phaddergruppRole)
 	if err != nil {
 		return err
 	}
 
-	db.Emit(DBEvent{
+	e.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBCreate,
 		Data:  nil,
@@ -71,7 +71,7 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 		return PhaddergruppInviteData{}, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBRead,
 		Data:  nil,
@@ -126,7 +126,7 @@ func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergru
 		return PhaddergruppInviteTokens{}, err
 	}
 
-	db.Emit(DBEvent{
+	q.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBRead,
 		Data:  nil,

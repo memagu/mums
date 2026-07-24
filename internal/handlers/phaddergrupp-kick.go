@@ -24,30 +24,21 @@ func PostPhaddergruppKick(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request user-account-id must be a valid integer")
 	}
 
-	tx, err := database.Begin()
-	if err != nil {
-		c.Logger().Errorf("Failed to begin transaction during phaddergrupp kick: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	defer tx.Rollback()
-	err = database.DeletePhaddergruppMapping(tx, userAccountID, phaddergruppID)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp kick of user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	phaddergruppIsEmpty, err := database.ReadPhaddergruppIsEmpty(tx, phaddergruppID)
-	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp empty read of phaddergrupp %d during phaddergrupp kick: %v", phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
-	}
-	if phaddergruppIsEmpty {
-		err := database.DeletePhaddergrupp(tx, phaddergruppID) 
+	err = db.WithTx(database, func(e db.Execer) error {
+		q := e.(db.Queryer)
+		err := database.DeletePhaddergruppMapping(e, userAccountID, phaddergruppID)
 		if err != nil {
-			c.Logger().Errorf("Database error during phaddergrupp %d deletion during phaddergrupp kick: %v", phaddergruppID, err)
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+			return err
 		}
-	}
-	err = tx.Commit()
+		phaddergruppIsEmpty, err := database.ReadPhaddergruppIsEmpty(q, phaddergruppID)
+		if err != nil {
+			return err
+		}
+		if phaddergruppIsEmpty {
+			return database.DeletePhaddergrupp(e, phaddergruppID)
+		}
+		return nil
+	})
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp kick: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
