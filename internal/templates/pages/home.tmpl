@@ -35,17 +35,17 @@
             <div class="flex flex-shrink-0 items-center space-x-3 text-sm">
 
                 <span class="flex items-center text-gray-600 rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "phadder" }} shadow-md border-[{{ $s.PrimaryColor }}] {{ else }} border-transparent {{ end }}" title="Phaddrar">
-                    <img src="/static/icons/student-cap.svg" class="w-5 h-5 mr-1" />
+                    <img src="/static/icons/student-cap.svg" alt="Phadder count" class="w-5 h-5 mr-1" />
                     <span class="font-semibold w-[2ch] text-right">{{ $s.PhadderCount }}</span>
                 </span>
                 
                 <span class="flex items-center text-gray-600 rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "n0lla" }} shadow-md border-[{{ $s.SecondaryColor }}] {{ else }} border-transparent {{ end }}" title="N0llor">
-                    <img src="/static/icons/cap.svg" class="w-5 h-5 mr-1" />
+                    <img src="/static/icons/cap.svg" alt="N0lla count" class="w-5 h-5 mr-1" />
                     <span class="font-semibold w-[2ch] text-right">{{ $s.N0llaCount }}</span>
                 </span>
                 
                 <span class="flex items-center text-indigo-600" title="Your mums">
-                    <img src="/static/icons/mums.svg" class="w-5 h-5 mr-1" />
+                    <img src="/static/icons/mums.svg" alt="Mums available" class="w-5 h-5 mr-1" />
                     <span class="font-bold w-[2ch]">{{ $s.MumsAvailable }}</span>
                 </span>
 

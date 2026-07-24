@@ -29,10 +29,10 @@
         <div class="flex justify-center items-center text-center font-semibold text-xl text-gray-500">
             -&nbsp;
             {{ if .IsPhadder }} 
-            <img src="/static/icons/student-cap.svg" class="w-5 h-5 mr-1.5" />
+            <img src="/static/icons/student-cap.svg" alt="Phadder role" class="w-5 h-5 mr-1.5" />
             <span>Phadder</span>
             {{ else }} 
-            <img src="/static/icons/cap.svg" class="w-5 h-5 mr-1.5" />
+            <img src="/static/icons/cap.svg" alt="N0lla role" class="w-5 h-5 mr-1.5" />
             <span>N0lla</span>
             {{ end }}
             &nbsp;-
@@ -136,7 +136,7 @@
                 class="rounded-full px-4 py-1 bg-red-600 border-2 border-dashed border-yellow-400 shadow-lg hover:bg-red-700 focus:bg-red-700"
                 title="Kick user from phaddergrupp"   
             > 
-                <img src="/static/icons/kick.svg" class="w-5 h-5 invert" />
+                <img src="/static/icons/kick.svg" alt="Kick user" class="w-5 h-5 invert" />
             </button>
 
             {{ template "mums-available-badge" dict
@@ -155,7 +155,7 @@
             hx-on::after-request="this.blur()"
             class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 focus:bg-gray-100 p-2" title="Increment user's mums"
         > 
-            <img src="/static/icons/plus.svg" class="w-12 h-12" />
+            <img src="/static/icons/plus.svg" alt="Increment mums" class="w-12 h-12" />
         </button>
         
         <button
@@ -164,7 +164,7 @@
             hx-on::after-request="this.blur()"
             class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 focus:bg-gray-100 p-2" title="Decrement user's mums"
         > 
-            <img src="/static/icons/minus.svg" class="w-12 h-12" />
+            <img src="/static/icons/minus.svg" alt="Decrement mums" class="w-12 h-12" />
         </button>
 
     </div>
@@ -174,7 +174,7 @@
 
 {{ define "mums-available-badge" }}
 <div class="flex mx-auto items-center text-indigo-600 " title="User's mums">
-    <img src="/static/icons/mums.svg" class="w-8 h-8 mr-1" />
+    <img src="/static/icons/mums.svg" alt="Mums available" class="w-8 h-8 mr-1" />
     <span 
     id="mums-available-badge-{{ .UserAccountID }}"
     {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
