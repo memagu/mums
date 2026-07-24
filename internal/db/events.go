@@ -17,6 +17,12 @@ type DBEvent struct {
 	Data  any
 }
 
+type MumsAvailableUpdate struct {
+	UserAccountID  int64
+	PhaddergruppID int64
+	MumsAvailable  int64
+}
+
 func (db *DB) Subscribe(bufferSize int) (int64, <-chan DBEvent) {
 	db.Lock()
 	defer db.Unlock()

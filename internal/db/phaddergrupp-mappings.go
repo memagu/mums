@@ -354,12 +354,6 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 	return phaddergruppID, nil
 }
 
-type MumsAvailableUpdate struct {
-	UserAccountID  int64
-	PhaddergruppID int64
-	MumsAvailable  int64
-}
-
 // Returns zero if no rows were affected (not found = 0 as well)
 func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID, amount int64) (int64, error) {
 	const sqlQuery = `
