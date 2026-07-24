@@ -26,7 +26,7 @@ ON
 	phaddergrupp_invites(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) (error) {
+func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	sqlQuery := `
 		INSERT INTO phaddergrupp_invites
 			(token, phaddergrupp_id, phaddergrupp_role)

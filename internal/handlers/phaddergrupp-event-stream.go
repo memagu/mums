@@ -65,7 +65,7 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 		return
 	}
 
-	httpx.EmitSSE(c, "mums-available-badge-update", sb.String())
+	_ = httpx.EmitSSE(c, "mums-available-badge-update", sb.String())
 }
 
 func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
