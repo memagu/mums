@@ -9,9 +9,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/roles"
+	"github.com/memagu/mums/pkg/httpx"
+)
+
+const (
+	ctxKeyUserAccountRoles = "userAccountRoles"
+	ctxKeyIsSuperAdmin     = "isSuperAdmin"
+	ctxKeyPhaddergruppID   = "phaddergruppID"
+	ctxKeyPhaddergruppRole = "phaddergruppRole"
 )
 
 func UserAccountRBACMiddleware() echo.MiddlewareFunc {
@@ -22,10 +29,10 @@ func UserAccountRBACMiddleware() echo.MiddlewareFunc {
 			if err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 			}
-			c.Set(config.CTXKeyUserAccountRoles, userAccountRoles)
+			c.Set(ctxKeyUserAccountRoles, userAccountRoles)
 
 			isSuperAdmin := slices.Contains(userAccountRoles, roles.SuperAdmin)
-			c.Set(config.CTXKeyIsSuperAdmin, isSuperAdmin)
+			c.Set(ctxKeyIsSuperAdmin, isSuperAdmin)
 
 			return next(c)
 		}
@@ -33,21 +40,11 @@ func UserAccountRBACMiddleware() echo.MiddlewareFunc {
 }
 
 func GetUserAccountRoles(c echo.Context) []roles.UserAccountRole {
-	userAccountRoles, ok := c.Get(config.CTXKeyUserAccountRoles).([]roles.UserAccountRole)
-	if !ok {
-		panic("config.CTXKeyUserAccountRoles is not set in context, was UserAccountRBACMiddleware not applied?")
-	}
-
-	return userAccountRoles
+	return httpx.MustGet[[]roles.UserAccountRole](c, ctxKeyUserAccountRoles, "UserAccountRBACMiddleware")
 }
 
 func GetIsSuperAdmin(c echo.Context) bool {
-	isSuperAdmin, ok := c.Get(config.CTXKeyIsSuperAdmin).(bool)
-	if !ok {
-		panic("config.CTXKeyIsSuperAdmin is not set in context, was UserAccountRBACMiddleware not applied?")
-	}
-
-	return isSuperAdmin
+	return httpx.MustGet[bool](c, ctxKeyIsSuperAdmin, "UserAccountRBACMiddleware")
 }
 
 func RequireUserAccountRole(allowedUserAccountRoles ...roles.UserAccountRole) echo.MiddlewareFunc {
@@ -88,8 +85,8 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 			}
 
-			c.Set(config.CTXKeyPhaddergruppID, phaddergruppID)
-			c.Set(config.CTXKeyPhaddergruppRole, phaddergruppRole)
+			c.Set(ctxKeyPhaddergruppID, phaddergruppID)
+			c.Set(ctxKeyPhaddergruppRole, phaddergruppRole)
 
 			return next(c)
 		}
@@ -97,21 +94,11 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 }
 
 func GetPhaddergruppID(c echo.Context) int64 {
-	phaddergruppID, ok := c.Get(config.CTXKeyPhaddergruppID).(int64)
-	if !ok {
-		panic("config.CTXKeyPhaddergruppID is not set in context, was PhaddergruppRBACMiddleware not applied?")
-	}
-
-	return phaddergruppID
+	return httpx.MustGet[int64](c, ctxKeyPhaddergruppID, "PhaddergruppRBACMiddleware")
 }
 
 func GetPhaddergruppRole(c echo.Context) roles.PhaddergruppRole {
-	phaddergruppRole, ok := c.Get(config.CTXKeyPhaddergruppRole).(roles.PhaddergruppRole)
-	if !ok {
-		panic("config.CTXKeyPhaddergruppRole is not set in context, was PhaddergruppRBACMiddleware not applied?")
-	}
-
-	return phaddergruppRole
+	return httpx.MustGet[roles.PhaddergruppRole](c, ctxKeyPhaddergruppRole, "PhaddergruppRBACMiddleware")
 }
 
 func RequirePhaddergruppRole(allowedPhaddergruppRoles ...roles.PhaddergruppRole) echo.MiddlewareFunc {

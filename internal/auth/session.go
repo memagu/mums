@@ -12,6 +12,12 @@ import (
 	"github.com/memagu/mums/pkg/token"
 )
 
+const (
+	ctxKeySessionToken  = "sessionID"
+	ctxKeyUserAccountID = "userAccountID"
+	ctxKeyIsLoggedIn    = "isLoggedIn"
+)
+
 type session struct {
 	sync.RWMutex
 	userAccountID int64
@@ -111,7 +117,7 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			setNotLoggedIn := func() error {
-				c.Set(config.CTXKeyIsLoggedIn, false)
+				c.Set(ctxKeyIsLoggedIn, false)
 				return next(c)
 			}
 
@@ -133,10 +139,10 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 			}
 			s.touch()
 			setSessionCookie(c, sessionToken, s.expiresAt)
-			
-			c.Set(config.CTXKeySessionToken, sessionToken)
-			c.Set(config.CTXKeyIsLoggedIn, true)
-			c.Set(config.CTXKeyUserAccountID, s.userAccountID)
+
+			c.Set(ctxKeySessionToken, sessionToken)
+			c.Set(ctxKeyIsLoggedIn, true)
+			c.Set(ctxKeyUserAccountID, s.userAccountID)
 
 			return next(c)
 		}
@@ -144,30 +150,15 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 }
 
 func getSessionToken(c echo.Context) string {
-	sessionToken, ok := c.Get(config.CTXKeySessionToken).(string)
-	if !ok {
-		panic("config.CTXKeySessionToken is not set in context, was SessionMiddleware not applied?")
-	}
-
-	return sessionToken
+	return httpx.MustGet[string](c, ctxKeySessionToken, "SessionMiddleware")
 }
 
 func GetIsLoggedIn(c echo.Context) bool {
-	isLoggedIn, ok := c.Get(config.CTXKeyIsLoggedIn).(bool)
-	if !ok {
-		panic("config.CTXKeyIsLoggedIn is not set in context, was SessionMiddleware not applied?")
-	}
-
-	return isLoggedIn
+	return httpx.MustGet[bool](c, ctxKeyIsLoggedIn, "SessionMiddleware")
 }
 
 func GetUserAccountID(c echo.Context) int64 {
-	userAccountID, ok := c.Get(config.CTXKeyUserAccountID).(int64)
-	if !ok {
-		panic("config.CTXKeyUserAccountID is not set in context, was SessionMiddleware not applied?")
-	}
-
-	return userAccountID
+	return httpx.MustGet[int64](c, ctxKeyUserAccountID, "SessionMiddleware")
 }
 
 func RequireSession() echo.MiddlewareFunc {

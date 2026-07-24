@@ -10,8 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
-	"github.com/memagu/mums/internal/context"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
 )
@@ -19,7 +19,7 @@ import (
 func PostPhaddergruppPurchaseMums(c echo.Context) error {
 	mumsPurchaseQuantityStr := c.FormValue("mums-purchase-quantity")
 	if mumsPurchaseQuantityStr == "" {
-	    return echo.NewHTTPError(http.StatusBadRequest, "mums-purchase-quantity is required")
+		return echo.NewHTTPError(http.StatusBadRequest, "mums-purchase-quantity is required")
 	}
 	mumsPurchaseQuantity, err := strconv.ParseInt(mumsPurchaseQuantityStr, 10, 64)
 	if err != nil {
@@ -33,15 +33,15 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	phaddergruppRole := auth.GetPhaddergruppRole(c)
-	phaddergruppData := context.GetPhaddergrupp(c)
+	phaddergruppData := loaders.GetPhaddergrupp(c)
 
-	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID) 	
+	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during mums available read: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
 	}
 
-	if mumsPurchaseQuantity + mumsAvailable > phaddergruppData.MumsCapacityPerUser {
+	if mumsPurchaseQuantity+mumsAvailable > phaddergruppData.MumsCapacityPerUser {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
 			"Purchase exceeds allowed limit: current=%d, requested=%d, max=%d",
 			mumsAvailable, mumsPurchaseQuantity, phaddergruppData.MumsCapacityPerUser,
@@ -49,15 +49,15 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 	}
 
 	var mumsPrice float64
-    if phaddergruppRole == roles.N0lla {
-        mumsPrice = phaddergruppData.MumsPriceN0lla
-    } else {
-        mumsPrice = phaddergruppData.MumsPricePhadder
-    }
+	if phaddergruppRole == roles.N0lla {
+		mumsPrice = phaddergruppData.MumsPriceN0lla
+	} else {
+		mumsPrice = phaddergruppData.MumsPricePhadder
+	}
 
 	finalMumsPrice := mumsPrice * float64(mumsPurchaseQuantity)
 
-    // The biggest of thanks to "t-shirt danne" for the Swish URL <3
+	// The biggest of thanks to "t-shirt danne" for the Swish URL <3
 	// https://app.swish.nu/1/p/sw/?sw=<number>&amt=<amount>&cur=<currency>&msg=<message>
 	swishURL := &url.URL{
 		Scheme: "https",

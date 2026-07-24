@@ -8,31 +8,31 @@ import (
 
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
-	"github.com/memagu/mums/internal/context"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
 )
 
 type templateDataMumsAvailableWidget struct {
-	PhaddergruppID         int64
-	db.PhaddergruppData 
+	PhaddergruppID int64
+	db.PhaddergruppData
 	MumsAvailable          int64
-	HasMumsAvailable 	   bool
+	HasMumsAvailable       bool
 	MumsCapacityReached    bool
 	MumsPurchaseQuantities []int
 }
 
 func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpdate) error {
 	phaddergruppID := auth.GetPhaddergruppID(c)
-	phaddergruppData := context.GetPhaddergrupp(c)
+	phaddergruppData := loaders.GetPhaddergrupp(c)
 	purchaseQuantities := mumsPurchaseQuantities(eventData.MumsAvailable, phaddergruppData.MumsCapacityPerUser)
 
-	templateData := templateDataMumsAvailableWidget {
+	templateData := templateDataMumsAvailableWidget{
 		PhaddergruppID:         phaddergruppID,
 		PhaddergruppData:       phaddergruppData,
 		MumsAvailable:          eventData.MumsAvailable,
-		HasMumsAvailable: 		eventData.MumsAvailable > 0,
+		HasMumsAvailable:       eventData.MumsAvailable > 0,
 		MumsCapacityReached:    eventData.MumsAvailable >= phaddergruppData.MumsCapacityPerUser,
 		MumsPurchaseQuantities: purchaseQuantities,
 	}
@@ -48,7 +48,7 @@ func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpd
 
 type mumsAvailableBadgeTemplateData struct {
 	UserAccountID int64
-	DoOOB 	      bool
+	DoOOB         bool
 	MumsAvailable int64
 }
 
@@ -88,7 +88,7 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 	if eventData.PhaddergruppID != phaddergruppID {
 		return
 	}
-	
+
 	if eventData.UserAccountID == auth.GetUserAccountID(c) {
 		emitMumsAvailableWidgetUpdate(c, eventData)
 	}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
-	"github.com/memagu/mums/internal/context"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
 	"github.com/memagu/mums/pkg/token"
@@ -30,7 +30,7 @@ type homePageData struct {
 func GetHome(c echo.Context) error {
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
-	userProfile := context.GetUserProfile(c)
+	userProfile := loaders.GetUserProfile(c)
 
 	userPhaddergruppSummaries, err := database.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
 	if err != nil {
@@ -39,12 +39,12 @@ func GetHome(c echo.Context) error {
 	}
 
 	pageData := homePageData{
-		IsLoggedIn: auth.GetIsLoggedIn(c),
-		AllowedErrorCodes: []int{http.StatusInternalServerError},
-		UserProfileName: userProfile.Name,
-		UserPhaddergruppSummaries: userPhaddergruppSummaries,
+		IsLoggedIn:                            auth.GetIsLoggedIn(c),
+		AllowedErrorCodes:                     []int{http.StatusInternalServerError},
+		UserProfileName:                       userProfile.Name,
+		UserPhaddergruppSummaries:             userPhaddergruppSummaries,
 		HasMoreThanOneUserPhaddergruppSummary: len(userPhaddergruppSummaries) > 1,
-		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
+		SwishRecipientNumberPattern:           config.SwishRecipientNumberPattern,
 	}
 	return c.Render(http.StatusOK, "home", pageData)
 }
@@ -67,7 +67,7 @@ func PostHome(c echo.Context) error {
 	tx, err := database.Begin()
 	if err != nil {
 		c.Logger().Errorf("Failed to begin transaction during phaddergrupp creation: %v", err)
-		return unexpectedFormError()	
+		return unexpectedFormError()
 	}
 	defer tx.Rollback()
 	phaddergruppID, err := database.CreatePhaddergrupp(database, phaddergruppName, swishRecipientNumber)
@@ -93,7 +93,7 @@ func PostHome(c echo.Context) error {
 	err = tx.Commit()
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp creation: %v", err)
-		return unexpectedFormError()	
+		return unexpectedFormError()
 	}
 
 	redirectURL := fmt.Sprintf("/phaddergrupp/%d", phaddergruppID)

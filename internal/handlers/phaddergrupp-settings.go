@@ -9,25 +9,25 @@ import (
 
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
-	"github.com/memagu/mums/internal/context"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/internal/loaders"
 )
 
 type phaddergruppSettingsTemplateData struct {
-	IsLoggedIn                  bool
-	AllowedErrorCodes           []int
-	PhaddergruppID              int64
-	db.PhaddergruppData 
+	IsLoggedIn        bool
+	AllowedErrorCodes []int
+	PhaddergruppID    int64
+	db.PhaddergruppData
 	SwishRecipientNumberPattern string
 	Errors                      map[string][]string
 }
 
 func GetPhaddergruppSettings(c echo.Context) error {
 	templateData := phaddergruppSettingsTemplateData{
-		IsLoggedIn: auth.GetIsLoggedIn(c),
-		AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusBadRequest},
-		PhaddergruppID: auth.GetPhaddergruppID(c),
-		PhaddergruppData: context.GetPhaddergrupp(c),
+		IsLoggedIn:                  auth.GetIsLoggedIn(c),
+		AllowedErrorCodes:           []int{http.StatusInternalServerError, http.StatusBadRequest},
+		PhaddergruppID:              auth.GetPhaddergruppID(c),
+		PhaddergruppData:            loaders.GetPhaddergrupp(c),
 		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
 	}
 
@@ -37,7 +37,7 @@ func GetPhaddergruppSettings(c echo.Context) error {
 func PatchPhaddergruppSettings(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
-	phaddergruppData := context.GetPhaddergrupp(c)
+	phaddergruppData := loaders.GetPhaddergrupp(c)
 
 	updatedPhaddergruppData := phaddergruppData
 	formErrors := make(map[string][]string)
@@ -87,9 +87,9 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 	}
 
 	templateData := phaddergruppSettingsTemplateData{
-		PhaddergruppData: updatedPhaddergruppData,
+		PhaddergruppData:            updatedPhaddergruppData,
 		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
-		Errors: formErrors,
+		Errors:                      formErrors,
 	}
 
 	var statusCode int

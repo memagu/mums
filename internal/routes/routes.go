@@ -4,8 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
-	"github.com/memagu/mums/internal/context"
 	"github.com/memagu/mums/internal/handlers"
+	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 )
 
@@ -22,7 +22,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 		"",
 		auth.RequireSession(),
 		auth.UserAccountRBACMiddleware(),
-		context.InjectUserProfile(),
+		loaders.UserProfileMiddleware(),
 	)
 
 	protected.GET("/", handlers.GetHome)
@@ -35,7 +35,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 	phaddergrupp := protected.Group(
 		"/phaddergrupp/:id",
 		auth.PhaddergruppRBACMiddleware(),
-		context.InjectPhaddergrupp(),
+		loaders.PhaddergruppMiddleware(),
 	)
 
 	phaddergrupp.GET("", handlers.GetPhaddergrupp)

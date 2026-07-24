@@ -3,13 +3,13 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"sync"
 
-	"github.com/memagu/mums/internal/config"
 	"github.com/labstack/echo/v4"
 	_ "modernc.org/sqlite"
 )
+
+const ctxKeyDB = "db"
 
 var schemas = []string{
 	SchemaUserCredentials,
@@ -81,46 +81,10 @@ func NewDB(dbFilePath string) (*DB, error) {
 	return db, nil
 }
 
-func (db *DB) Subscribe(bufferSize int) (int64, <-chan DBEvent) {
-	db.Lock()
-	defer db.Unlock()
-
-	id := db.nextID
-	db.nextID++
-
-	channel := make(chan DBEvent, bufferSize)
-	db.subscribers[id] = channel
-
-	return id, channel
-}
-
-func (db *DB) Unsubscribe(id int64) {
-	db.Lock()
-	defer db.Unlock()
-
-	if channel, ok := db.subscribers[id]; ok {
-		close(channel)
-		delete(db.subscribers, id)
-	}
-}
-
-func (db *DB) Emit(dbEvent DBEvent) {
-	db.RLock()
-	defer db.RUnlock()
-
-	for id, channel := range db.subscribers {
-		select {
-		case channel <- dbEvent:
-		default:
-			log.Printf("[db] subscriber %d slow; event dropped", id)
-		}
-	}
-}
-
 func DBMiddleware(db *DB) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Set(config.CTXKeyDB, db)
+			c.Set(ctxKeyDB, db)
 
 			return next(c)
 		}
@@ -128,9 +92,9 @@ func DBMiddleware(db *DB) echo.MiddlewareFunc {
 }
 
 func GetDB(c echo.Context) *DB {
-	db, ok := c.Get(config.CTXKeyDB).(*DB)
+	db, ok := c.Get(ctxKeyDB).(*DB)
 	if !ok {
-		panic("config.CTXKeyDB is not set in context, was DBMiddleware not applied?")
+		panic("ctxKeyDB is not set in context, was DBMiddleware not applied?")
 	}
 	return db
 }
