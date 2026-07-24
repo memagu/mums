@@ -28,9 +28,9 @@ func (db *DB) CreateUserAccountRoleMapping(exec execer, userAccountID int64, use
 	}
 
 	db.Emit(DBEvent{
-		"user_account_role_mappings",
-		DBCreate,
-		nil,
+		Table: "user_account_role_mappings",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil
@@ -62,9 +62,9 @@ func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.User
 	}
 
 	db.Emit(DBEvent{
-		"user_account_role_mappings",
-		DBRead,
-		nil,
+		Table: "user_account_role_mappings",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return userAccountRoles, nil

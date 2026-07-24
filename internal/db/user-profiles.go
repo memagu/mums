@@ -22,9 +22,9 @@ func (db *DB) CreateUserProfile(exec execer, name string) (int64, error) {
 	}
 
 	db.Emit(DBEvent{
-		"user_profiles",
-		DBCreate,
-		nil,
+		Table: "user_profiles",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil

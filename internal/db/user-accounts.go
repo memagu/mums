@@ -26,9 +26,9 @@ func (db *DB) CreateUserAccount(exec execer, userCredentialsID, userProfileID in
 	}
 
 	db.Emit(DBEvent{
-		"user_accounts",
-		DBCreate,
-		nil,
+		Table: "user_accounts",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil
@@ -46,9 +46,9 @@ func (db *DB) ReadUserAccountIDByUserCredentialsID(q queryer, userCredentialsID 
 	}
 
 	db.Emit(DBEvent{
-		"user_accounts",
-		DBRead,
-		userAccountID,
+		Table: "user_accounts",
+		Type:  DBRead,
+		Data:  userAccountID,
 	})
 
 	return userAccountID, nil
@@ -71,9 +71,9 @@ func (db *DB) ReadUserProfileByUserAccountID(q queryer, userAccountID int64) (Us
 	}
 
 	db.Emit(DBEvent{
-		"user_profiles",
-		DBRead,
-		nil,
+		Table: "user_profiles",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return upd, nil

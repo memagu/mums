@@ -42,9 +42,9 @@ func (db *DB) CreateMums(exec execer, userAccountID, phaddergruppID, mumsQuantit
 	}
 
 	db.Emit(DBEvent{
-		"mums",
-		DBCreate,
-		nil,
+		Table: "mums",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil

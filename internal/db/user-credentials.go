@@ -24,9 +24,9 @@ func (db *DB) CreateUserCredentials(exec execer, email string, hashword string) 
 	}
 
 	db.Emit(DBEvent{
-		"user_credentials",
-		DBCreate,
-		nil,
+		Table: "user_credentials",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil
@@ -45,9 +45,9 @@ func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (
 	}
 
 	db.Emit(DBEvent{
-		"user_credentials",
-		DBRead,
-		nil,
+		Table: "user_credentials",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return userCredentialsID, hashword, nil
@@ -68,9 +68,9 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 	}
 
 	db.Emit(DBEvent{
-		"user_credentials",
-		DBRead,
-		nil,
+		Table: "user_credentials",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return true, nil

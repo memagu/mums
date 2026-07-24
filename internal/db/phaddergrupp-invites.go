@@ -40,9 +40,9 @@ func (db *DB) CreatePhaddergruppInvite(exec execer, token string, phaddergruppID
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupp_invites",
-		DBCreate,
-		nil,
+		Table: "phaddergrupp_invites",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return nil
@@ -72,9 +72,9 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupp_invites",
-		DBRead,
-		nil,
+		Table: "phaddergrupp_invites",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return pid, nil
@@ -127,9 +127,9 @@ func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergru
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupp_invites",
-		DBRead,
-		nil,
+		Table: "phaddergrupp_invites",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return tokens, nil

@@ -57,9 +57,9 @@ func (db *DB) CreatePhaddergrupp(exec execer, name, swishRecipientNumber string)
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupps",
-		DBCreate,
-		nil,
+		Table: "phaddergrupps",
+		Type:  DBCreate,
+		Data:  nil,
 	})
 
 	return id, nil
@@ -103,9 +103,9 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupps",
-		DBRead,
-		nil,
+		Table: "phaddergrupps",
+		Type:  DBRead,
+		Data:  nil,
 	})
 
 	return pd, nil
@@ -153,9 +153,9 @@ func (db *DB) UpdatePhaddergrupp(exec execer, phaddergruppID int64, phaddergrupp
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupps",
-		DBUpdate,
-		nil,
+		Table: "phaddergrupps",
+		Type:  DBUpdate,
+		Data:  nil,
 	})
 
 	return nil
@@ -182,9 +182,9 @@ func (db *DB) DeletePhaddergrupp(exec execer, phaddergruppID int64) error {
 	}
 
 	db.Emit(DBEvent{
-		"phaddergrupps",
-		DBDelete,
-		nil,
+		Table: "phaddergrupps",
+		Type:  DBDelete,
+		Data:  nil,
 	})
 
 	return nil
