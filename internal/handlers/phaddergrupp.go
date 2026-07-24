@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,11 +14,10 @@ import (
 )
 
 type phaddergruppPageData struct {
-	IsLoggedIn        bool
-	AllowedErrorCodes []int
-	PhaddergruppID    int64
-	IsPhadder         bool
-	MumsAvailable     int64
+	basePageData
+	PhaddergruppID int64
+	IsPhadder      bool
+	MumsAvailable  int64
 	db.UserProfileData
 	db.PhaddergruppData
 	PhaddergruppUserSummaries db.PhaddergruppUserSummaries
@@ -51,30 +49,29 @@ func GetPhaddergrupp(c echo.Context) error {
 
 	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during mums available read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "mums available read", err)
 	}
 
 	phaddergruppUserSummaries, err := database.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp user summary read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
 	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData.MumsCapacityPerUser)
 
 	inviteTokens, err := database.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during invite tokens read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "invite tokens read", err)
 	}
 
 	inviteURLN0lla := config.PhaddergruppInviteURLBase + inviteTokens.N0lla
 	inviteURLPhadder := config.PhaddergruppInviteURLBase + inviteTokens.Phadder
 
 	pageData := phaddergruppPageData{
-		IsLoggedIn:                auth.GetIsLoggedIn(c),
-		AllowedErrorCodes:         []int{http.StatusInternalServerError},
+		basePageData: basePageData{
+			IsLoggedIn:        auth.GetIsLoggedIn(c),
+			AllowedErrorCodes: []int{http.StatusInternalServerError},
+		},
 		PhaddergruppID:            phaddergruppID,
 		IsPhadder:                 phaddergruppRole == roles.Phadder,
 		MumsAvailable:             mumsAvailable,
@@ -96,8 +93,7 @@ func DeletePhaddergrupp(c echo.Context) error {
 
 	err := database.DeletePhaddergrupp(database, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp deletion: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "phaddergrupp deletion", err)
 	}
 
 	return httpx.Redirect(c, http.StatusSeeOther, "/")

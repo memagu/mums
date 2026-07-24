@@ -1,27 +1,22 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/pkg/httpx"
 )
 
 func PostPhaddergruppKick(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	userAccountIDStr := c.QueryParam("user-account-id")
-	if userAccountIDStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request: user-account-id is required")
-	}
-	userAccountID, err := strconv.ParseInt(userAccountIDStr, 10, 64)
+	userAccountID, err := httpx.QueryParamInt64(c, "user-account-id")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request user-account-id must be a valid integer")
+		return err
 	}
 
 	err = db.WithTx(database, func(e db.Execer) error {
@@ -40,8 +35,7 @@ func PostPhaddergruppKick(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp kick: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "phaddergrupp kick", err)
 	}
 
 	return c.NoContent(http.StatusOK)

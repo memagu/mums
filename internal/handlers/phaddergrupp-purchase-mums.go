@@ -37,8 +37,7 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 
 	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during mums available read: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "mums available read", err)
 	}
 
 	if mumsPurchaseQuantity+mumsAvailable > phaddergruppData.MumsCapacityPerUser {

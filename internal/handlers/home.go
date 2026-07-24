@@ -16,8 +16,7 @@ import (
 )
 
 type homePageData struct {
-	IsLoggedIn                            bool
-	AllowedErrorCodes                     []int
+	basePageData
 	UserProfileName                       string
 	UserPhaddergruppSummaries             []db.UserPhaddergruppSummary
 	HasMoreThanOneUserPhaddergruppSummary bool
@@ -34,13 +33,14 @@ func GetHome(c echo.Context) error {
 
 	userPhaddergruppSummaries, err := database.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
 	if err != nil {
-		c.Logger().Errorf("Database error user phaddergrupp summaries read for user %d: %v", userAccountID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "user phaddergrupp summaries read", err)
 	}
 
 	pageData := homePageData{
-		IsLoggedIn:                            auth.GetIsLoggedIn(c),
-		AllowedErrorCodes:                     []int{http.StatusInternalServerError},
+		basePageData: basePageData{
+			IsLoggedIn:        auth.GetIsLoggedIn(c),
+			AllowedErrorCodes: []int{http.StatusInternalServerError},
+		},
 		UserProfileName:                       userProfile.Name,
 		UserPhaddergruppSummaries:             userPhaddergruppSummaries,
 		HasMoreThanOneUserPhaddergruppSummary: len(userPhaddergruppSummaries) > 1,

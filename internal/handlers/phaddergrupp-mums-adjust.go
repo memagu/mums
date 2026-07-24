@@ -4,34 +4,26 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/pkg/httpx"
 )
 
 func PostPhaddergruppMumsAdjust(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	userAccountIDStr := c.QueryParam("user-account-id")
-	if userAccountIDStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request: user-account-id is required")
-	}
-	userAccountID, err := strconv.ParseInt(userAccountIDStr, 10, 64)
+	userAccountID, err := httpx.QueryParamInt64(c, "user-account-id")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request user-account-id must be a valid integer")
+		return err
 	}
-	
-	deltaStr := c.QueryParam("delta")
-	if deltaStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad Request: delta is required")
-	}
-	delta, err := strconv.ParseInt(deltaStr, 10, 64)
+
+	delta, err := httpx.QueryParamInt64(c, "delta")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "delta must be a valid integer")
+		return err
 	}
 	if delta == 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, "delta must be non-zero")
@@ -62,8 +54,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		if err == sql.ErrNoRows {
 			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Too large negative adjustment or user not member in phaddergrupp")
 		}
-		c.Logger().Errorf("Database error during mums available adjustment for user %d in phaddergrupp %d: %v", userAccountID, phaddergruppID, err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "mums available adjustment", err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

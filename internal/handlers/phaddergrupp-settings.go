@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,9 +13,8 @@ import (
 )
 
 type phaddergruppSettingsTemplateData struct {
-	IsLoggedIn        bool
-	AllowedErrorCodes []int
-	PhaddergruppID    int64
+	basePageData
+	PhaddergruppID int64
 	db.PhaddergruppData
 	SwishRecipientNumberPattern string
 	Errors                      map[string][]string
@@ -24,8 +22,10 @@ type phaddergruppSettingsTemplateData struct {
 
 func GetPhaddergruppSettings(c echo.Context) error {
 	templateData := phaddergruppSettingsTemplateData{
-		IsLoggedIn:                  auth.GetIsLoggedIn(c),
-		AllowedErrorCodes:           []int{http.StatusInternalServerError, http.StatusBadRequest},
+		basePageData: basePageData{
+			IsLoggedIn:        auth.GetIsLoggedIn(c),
+			AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusBadRequest},
+		},
 		PhaddergruppID:              auth.GetPhaddergruppID(c),
 		PhaddergruppData:            loaders.GetPhaddergrupp(c),
 		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
@@ -82,8 +82,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 
 	err := database.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData)
 	if err != nil {
-		c.Logger().Errorf("Database error during phaddergrupp update: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "phaddergrupp update", err)
 	}
 
 	templateData := phaddergruppSettingsTemplateData{

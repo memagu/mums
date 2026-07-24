@@ -9,13 +9,12 @@ import (
 )
 
 type aboutPageData struct {
-	IsLoggedIn        bool
-	AllowedErrorCodes []int
+	basePageData
 }
 
 func GetAbout(c echo.Context) error {
 	pageData := aboutPageData{
-		IsLoggedIn: auth.GetIsLoggedIn(c),
+		basePageData: basePageData{IsLoggedIn: auth.GetIsLoggedIn(c)},
 	}
 	return c.Render(http.StatusOK, "about", pageData)
 }

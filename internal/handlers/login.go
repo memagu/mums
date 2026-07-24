@@ -14,16 +14,16 @@ import (
 )
 
 type loginPageData struct {
-	IsLoggedIn        bool
-	AllowedErrorCodes []int
-	Email             string
-	Errors            map[string][]string
+	basePageData
+	Email  string
+	Errors map[string][]string
 }
 
 func GetLogin(c echo.Context) error {
 	pageData := loginPageData{
-		IsLoggedIn:        false,
-		AllowedErrorCodes: []int{http.StatusUnauthorized, http.StatusInternalServerError},
+		basePageData: basePageData{
+			AllowedErrorCodes: []int{http.StatusUnauthorized, http.StatusInternalServerError},
+		},
 	}
 	return c.Render(http.StatusOK, "login", pageData)
 }
@@ -40,13 +40,11 @@ func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error
 	case sql.ErrNoRows:
 		redirectURL = "/"
 	default:
-		c.Logger().Errorf("Database error during last created phaddergrupp read for user: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "last created phaddergrupp read", err)
 	}
 
 	return httpx.Redirect(c, http.StatusSeeOther, redirectURL)
 }
-
 
 func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -55,9 +53,9 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 
 		unexpectedError := func() error {
 			pageData := loginPageData{
-				IsLoggedIn: false,
-				Email:      userEmail,
-				Errors:     map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
+				basePageData: basePageData{IsLoggedIn: false},
+				Email:        userEmail,
+				Errors:       map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 			}
 			return c.Render(http.StatusInternalServerError, "login#form-fields", pageData)
 		}
@@ -67,9 +65,9 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 		userCredentialsID, hashword, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
 		if err == sql.ErrNoRows || !password.Check(userPassword, hashword) {
 			pageData := loginPageData{
-				IsLoggedIn: false,
-				Email:      userEmail,
-				Errors:     map[string][]string{"Generic": {"Invalid email or password."}},
+				basePageData: basePageData{IsLoggedIn: false},
+				Email:        userEmail,
+				Errors:       map[string][]string{"Generic": {"Invalid email or password."}},
 			}
 			return c.Render(http.StatusUnauthorized, "login#form-fields", pageData)
 		}

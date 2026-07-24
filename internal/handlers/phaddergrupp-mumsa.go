@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -25,8 +24,7 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 		return err
 	})
 	if err != nil {
-		c.Logger().Errorf("Database error during mumsning: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "mumsning", err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

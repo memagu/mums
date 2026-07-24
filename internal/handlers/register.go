@@ -12,17 +12,18 @@ import (
 )
 
 type registerPageData struct {
-	IsLoggedIn        bool
-	AllowedErrorCodes []int
-	Name              string
-	Email             string
-	Errors            map[string][]string
+	basePageData
+	Name   string
+	Email  string
+	Errors map[string][]string
 }
 
 func GetRegister(c echo.Context) error {
 	pageData := registerPageData{
-		IsLoggedIn:        auth.GetIsLoggedIn(c),
-		AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusConflict, http.StatusBadRequest},
+		basePageData: basePageData{
+			IsLoggedIn:        auth.GetIsLoggedIn(c),
+			AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusConflict, http.StatusBadRequest},
+		},
 	}
 	return c.Render(http.StatusOK, "register", pageData)
 }
@@ -36,20 +37,20 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 
 		unexpectedError := func() error {
 			pageData := registerPageData{
-				IsLoggedIn: false,
-				Name:       userName,
-				Email:      userEmail,
-				Errors:     map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
+				basePageData: basePageData{IsLoggedIn: false},
+				Name:         userName,
+				Email:        userEmail,
+				Errors:       map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 			}
 			return c.Render(http.StatusInternalServerError, "register#form-fields", pageData)
 		}
 
 		fieldError := func(statusCode int, field string, errorMessages []string) error {
 			pageData := registerPageData{
-				IsLoggedIn: false,
-				Name:       userName,
-				Email:      userEmail,
-				Errors:     map[string][]string{field: errorMessages},
+				basePageData: basePageData{IsLoggedIn: false},
+				Name:         userName,
+				Email:        userEmail,
+				Errors:       map[string][]string{field: errorMessages},
 			}
 			return c.Render(statusCode, "register#form-fields", pageData)
 		}

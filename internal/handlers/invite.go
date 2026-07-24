@@ -14,7 +14,7 @@ import (
 func GetInvite(c echo.Context) error {
 	token := c.Param("token")
 	if token == "" {
-	    return echo.NewHTTPError(http.StatusBadRequest, "token is required")
+		return echo.NewHTTPError(http.StatusBadRequest, "token is required")
 	}
 
 	database := db.GetDB(c)
@@ -41,8 +41,7 @@ func GetInvite(c echo.Context) error {
 		if httpErr, ok := err.(*echo.HTTPError); ok {
 			return httpErr
 		}
-		c.Logger().Errorf("Database error during phaddergrupp invite: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+		return handleDBError(c, "phaddergrupp invite", err)
 	}
 
 	redirectURL := fmt.Sprintf("/phaddergrupp/%d", invite.PhaddergruppID)
