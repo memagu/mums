@@ -28,7 +28,11 @@
             toastr.options.timeOut = 2000;
             toastr.options.positionClass = 'toast-top-center';
             toastr.options.progressBar = true;
-            toastr.success('Settings saved');
+            if (event.detail.xhr.status === 200) {
+                toastr.success('Settings saved');
+            } else {
+                toastr.error('Failed to save settings');
+            }
         "
         class="w-full mx-auto my-8">
         {{ template "form-fields" . }}
