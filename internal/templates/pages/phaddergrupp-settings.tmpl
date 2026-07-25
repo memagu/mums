@@ -5,9 +5,7 @@
 {{ block "title" . }}mums | Phaddergrupp Settings{{ end }}
 
 {{ define "head" }}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+{{ template "import-toastr" . }}
 {{ end }}
 
 {{ define "content" }}
