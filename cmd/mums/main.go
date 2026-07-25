@@ -12,11 +12,13 @@ import (
 )
 
 func main() {
+	config.Load()
+
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 
-	database, err := db.NewDB(config.DBFilePath)
+	database, err := db.NewDB(config.DB.FilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -29,5 +31,5 @@ func main() {
 
 	e.Static("/static", "web/static")
 
-	e.Start(config.ServerAddress)
+	e.Start(config.Server.Address)
 }

@@ -39,7 +39,7 @@ func (s *session) isExpired() bool {
 func (s *session) touch() {
 	s.Lock()
 	defer s.Unlock()
-	s.expiresAt = time.Now().Add(config.SessionExpirationTime)
+	s.expiresAt = time.Now().Add(config.Auth.SessionTTL)
 }
 
 type SessionStore struct {
@@ -48,7 +48,7 @@ type SessionStore struct {
 }
 
 func (ss *SessionStore) cleanupExpiredSessions() {
-	ticker := time.NewTicker(config.SessionCleanupInterval)
+	ticker := time.NewTicker(config.Auth.SessionCleanup)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -71,7 +71,7 @@ func NewSessionStore() *SessionStore {
 }
 
 func (ss *SessionStore) createSession(userAccountID int64) string {
-	sessionToken := token.MustGenerateSecure(config.SessionTokenSize)
+	sessionToken := token.MustGenerateSecure(config.Auth.SessionTokenSize)
 	s := newSession(userAccountID)
 
 	ss.Lock()
@@ -97,11 +97,11 @@ func (ss *SessionStore) deleteSession(sessionToken string) {
 
 func setSessionCookie(c echo.Context, sessionToken string, expiresAt time.Time) {
 	sc := new(http.Cookie)
-	sc.Name = config.SessionCookieName
+	sc.Name = config.Auth.SessionCookie
 	sc.Value = sessionToken
 	sc.Path = "/"
 	sc.HttpOnly = true
-	sc.Secure = true // Set to false for local development, better solution needed
+	sc.Secure = config.Server.CookieSecure
 	sc.SameSite = http.SameSiteLaxMode
 	sc.Expires = expiresAt
 	c.SetCookie(sc)
@@ -110,7 +110,7 @@ func setSessionCookie(c echo.Context, sessionToken string, expiresAt time.Time) 
 func LoginUser(c echo.Context, ss *SessionStore, userAccountID int64) {
 	sessionToken := ss.createSession(userAccountID)
 
-	setSessionCookie(c, sessionToken, time.Now().Add(config.SessionExpirationTime))
+	setSessionCookie(c, sessionToken, time.Now().Add(config.Auth.SessionTTL))
 }
 
 func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
@@ -121,7 +121,7 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			sc, err := c.Cookie(config.SessionCookieName)
+			sc, err := c.Cookie(config.Auth.SessionCookie)
 			if err != nil {
 				return setNotLoggedIn()
 			}

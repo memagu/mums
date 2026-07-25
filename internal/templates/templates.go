@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/memagu/mums/internal/config"
 	"github.com/labstack/echo/v4"
 )
 
@@ -79,7 +78,7 @@ func NewTemplateRenderer() *TemplateRenderer {
 
 // name format: pageName or pageName#blockName
 func (tr *TemplateRenderer) Render(w io.Writer, name string, data any, c echo.Context) error {
-	pageName, blockName, isBlockRender := strings.Cut(name, config.TemplateBlockRenderSeparator)
+	pageName, blockName, isBlockRender := strings.Cut(name, "#")
 	if !isBlockRender {
 		blockName = pageName
 	}

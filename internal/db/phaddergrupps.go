@@ -40,13 +40,13 @@ func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (i
 	res, err := e.Exec(
 		`INSERT INTO phaddergrupps (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
-		config.DefaultPrimaryPhaddergruppColor,
-		config.DefaultSecondaryPhaddergruppColor,
-		config.DefaultMumsPriceN0lla,
-		config.DefaultMumsPricePhadder,
-		config.DefaultMumsCurrency,
+		config.Defaults.Phaddergrupp.PrimaryColor,
+		config.Defaults.Phaddergrupp.SecondaryColor,
+		config.Defaults.Mums.PriceN0lla,
+		config.Defaults.Mums.PricePhadder,
+		config.Defaults.Mums.Currency,
 		swishRecipientNumber,
-		config.DefaultMumsCapacityPerUser,
+		config.Defaults.Mums.CapacityPerUser,
 	)
 	if err != nil {
 		return 0, err
@@ -83,7 +83,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 		WHERE
 			id = ? AND deleted_at IS NULL
 	`
-	
+
 	row := q.QueryRow(sqlQuery, phaddergruppID)
 
 	var pd PhaddergruppData

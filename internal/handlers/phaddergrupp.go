@@ -30,7 +30,7 @@ type phaddergruppPageData struct {
 
 func mumsPurchaseQuantities(mumsAvailable, mumsCapacityPerUser int64) []int {
 	remainingMumsCapacity := mumsCapacityPerUser - mumsAvailable
-	maxQty := min(config.MumsMaxPurchaseQuantity, int(remainingMumsCapacity))
+	maxQty := min(config.Defaults.Mums.MaxPurchaseQuantity, int(remainingMumsCapacity))
 
 	var purchaseQuantities []int
 	for qty := maxQty; qty >= 1; qty-- {
@@ -64,8 +64,8 @@ func GetPhaddergrupp(c echo.Context) error {
 		return handleDBError(c, "invite tokens read", err)
 	}
 
-	inviteURLN0lla := config.PhaddergruppInviteURLBase + inviteTokens.N0lla
-	inviteURLPhadder := config.PhaddergruppInviteURLBase + inviteTokens.Phadder
+	inviteURLN0lla := config.Server.Origin + "/invite/" + inviteTokens.N0lla
+	inviteURLPhadder := config.Server.Origin + "/invite/" + inviteTokens.Phadder
 
 	pageData := phaddergruppPageData{
 		basePageData: basePageData{

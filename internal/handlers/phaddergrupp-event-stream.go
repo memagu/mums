@@ -103,14 +103,14 @@ func GetPhaddergruppEventStream(c echo.Context) error {
 
 	httpx.SetupSSE(c)
 
-	subID, events := database.Subscribe(config.DBEventChannelBufferSize)
+	subID, events := database.Subscribe(16)
 	defer database.Unsubscribe(subID)
 
 	for {
 		select {
 		case <-c.Request().Context().Done():
 			return nil
-		case <-time.After(config.SSETimeout):
+		case <-time.After(config.Server.SSETimeout):
 			return nil
 		case event, ok := <-events:
 			if !ok {

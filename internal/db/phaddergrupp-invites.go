@@ -7,7 +7,7 @@ import (
 )
 
 type PhaddergruppInviteData struct {
-	PhaddergruppID 	 int64
+	PhaddergruppID   int64
 	PhaddergruppRole roles.PhaddergruppRole
 }
 
@@ -61,7 +61,7 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 			pi.token = ?
 	`
 
-	row := q.QueryRow(sqlQuery, token) 
+	row := q.QueryRow(sqlQuery, token)
 
 	var pid PhaddergruppInviteData
 	if err := row.Scan(

@@ -44,7 +44,7 @@ func GetHome(c echo.Context) error {
 		UserProfileName:                       userProfile.Name,
 		UserPhaddergruppSummaries:             userPhaddergruppSummaries,
 		HasMoreThanOneUserPhaddergruppSummary: len(userPhaddergruppSummaries) > 1,
-		SwishRecipientNumberPattern:           config.SwishRecipientNumberPattern,
+		SwishRecipientNumberPattern:           config.Swish.NumberPattern,
 	}
 	return c.Render(http.StatusOK, "home", pageData)
 }
@@ -75,11 +75,11 @@ func PostHome(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.N0lla)
+		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.N0lla)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.PhaddergruppInviteTokenSize), phaddergruppID, roles.Phadder)
+		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.Phadder)
 		return err
 	})
 	if err != nil {

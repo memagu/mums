@@ -28,7 +28,7 @@ func GetPhaddergruppSettings(c echo.Context) error {
 		},
 		PhaddergruppID:              auth.GetPhaddergruppID(c),
 		PhaddergruppData:            loaders.GetPhaddergrupp(c),
-		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
+		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 	}
 
 	return c.Render(http.StatusOK, "phaddergrupp-settings", templateData)
@@ -87,7 +87,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 
 	templateData := phaddergruppSettingsTemplateData{
 		PhaddergruppData:            updatedPhaddergruppData,
-		SwishRecipientNumberPattern: config.SwishRecipientNumberPattern,
+		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 		Errors:                      formErrors,
 	}
 
