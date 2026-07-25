@@ -42,20 +42,20 @@
     </div>
 
     {{ if .IsPhadder }}
-    {{ template "member-lists" . }}
+    {{ template "fragment-member-lists" . }}
     {{ end }}
 
     {{ if not .IsPhadder }}
-    {{ template "mums-available-widget" . }}
+    {{ template "fragment-mums-available-widget" . }}
     {{ end }}
 
     {{ if .IsPhadder }}
     <div class="w-full max-w-xs flex flex-col items-center mt-6 pt-3 space-y-3 border-t-2 border-[{{ .PrimaryColor }}]">
-        {{ template "invite-link" dict
+        {{ template "fragment-invite-link" dict
             "Label" "Invite Phaddrar"
             "URL" .InviteURLPhadder
         }}
-        {{ template "invite-link" dict
+        {{ template "fragment-invite-link" dict
             "Label" "Invite N0llor"
             "URL" .InviteURLN0lla
         }}
@@ -72,7 +72,7 @@
 </div>
 {{ end }}
 
-{{ define "member-lists" }}
+{{ define "fragment-member-lists" }}
 <div 
     sse-swap="mums-available-badge-update"
     hx-swap="none"
@@ -81,7 +81,7 @@
     {{ if .PhaddergruppUserSummaries.N0llas }}
     <div>
         <p class="text-xs text-center text-gray-400 mb-1">󱞡 N0llor 󱞣</p>
-        {{ template "member-list" dict 
+        {{ template "fragment-member-list" dict 
             "PhaddergruppID" .PhaddergruppID
             "UserSummaries" .PhaddergruppUserSummaries.N0llas
             "Color" .PrimaryColor
@@ -92,7 +92,7 @@
     {{ if .PhaddergruppUserSummaries.Phadders }}
     <div>
         <p class="text-xs text-center text-gray-400 mb-1">󱞡 Phaddrar 󱞣</p>
-        {{ template "member-list" dict
+        {{ template "fragment-member-list" dict
             "PhaddergruppID" .PhaddergruppID
             "UserSummaries" .PhaddergruppUserSummaries.Phadders
             "Color" .SecondaryColor
@@ -103,11 +103,11 @@
 </div>
 {{ end }}
 
-{{ define "member-list" }}
+{{ define "fragment-member-list" }}
 <div class="max-w-sm sm:max-w-3xl space-y-3 px-4">
     {{ $root := . }}
     {{ range $_, $s := .UserSummaries }}
-    {{ template "member-summary-card" dict 
+    {{ template "fragment-member-summary-card" dict 
         "Color" $root.Color
         "PhaddergruppID" $root.PhaddergruppID
         "MemberSummary" $s
@@ -116,7 +116,7 @@
 </div>
 {{ end }}
 
-{{ define "member-summary-card" }}
+{{ define "fragment-member-summary-card" }}
 <div
     id="member-summary-card-{{ .MemberSummary.UserAccountID }}"
     class="flex items-center w-full p-4
@@ -139,7 +139,7 @@
                 <img src="/static/icons/kick.svg" alt="Kick user" class="w-5 h-5 invert" />
             </button>
 
-            {{ template "mums-available-badge" dict
+            {{ template "fragment-mums-available-badge" dict
                 "UserAccountID" .MemberSummary.UserAccountID
                 "DoOOB" false
                 "MumsAvailable" .MemberSummary.MumsAvailable
@@ -172,7 +172,7 @@
 </div>
 {{ end }}
 
-{{ define "mums-available-badge" }}
+{{ define "fragment-mums-available-badge" }}
 <div class="flex mx-auto items-center text-indigo-600 " title="User's mums">
     <img src="/static/icons/mums.svg" alt="Mums available" class="w-8 h-8 mr-1" />
     <span 
@@ -183,7 +183,7 @@
 </div>
 {{ end }}
 
-{{ define "mums-available-widget" }}
+{{ define "fragment-mums-available-widget" }}
 <div
     id="mums-available-widget"
     sse-swap="mums-available-widget-update"
@@ -232,7 +232,7 @@
 </div>
 {{ end }}
 
-{{ define "invite-link" }}
+{{ define "fragment-invite-link" }}
 <div class="w-full">
     <label class="block text-sm font-medium text-gray-400 mb-1">
         {{ .Label }}

@@ -42,7 +42,7 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 				Email:        userEmail,
 				Errors:       map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 			}
-			return c.Render(http.StatusInternalServerError, "register#form-fields", pageData)
+			return c.Render(http.StatusInternalServerError, "register#fragment-form-fields", pageData)
 		}
 
 		fieldError := func(statusCode int, field string, errorMessages []string) error {
@@ -52,7 +52,7 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 				Email:        userEmail,
 				Errors:       map[string][]string{field: errorMessages},
 			}
-			return c.Render(statusCode, "register#form-fields", pageData)
+			return c.Render(statusCode, "register#fragment-form-fields", pageData)
 		}
 
 		database := db.GetDB(c)

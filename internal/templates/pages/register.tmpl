@@ -12,8 +12,8 @@
     </p>
 
     <form hx-post="/register" hx-target="#form-fields" hx-swap="outerHTML" class="max-w-md mx-auto px-4">
-        {{ template "form-fields" . }}
-        {{ template "form-submit-button" dict "Text" "Register" }}
+        {{ template "fragment-form-fields" . }}
+        {{ template "component-form-submit-button" dict "Text" "Register" }}
         <p class="mt-6 text-center text-sm text-gray-600">
             Already have an account?
             <a href="/login" class="text-indigo-600 hover:underline">Login</a>
@@ -23,9 +23,9 @@
 </div>
 {{ end }}
 
-{{ define "form-fields" }}
+{{ define "fragment-form-fields" }}
 <div id="form-fields">
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "name-field"
         "Label" "Name"
         "Name" "name"
@@ -33,7 +33,7 @@
         "Required" true
         "Value" .Name
     }}
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "email-field"
         "Label" "Email address"
         "Name" "email"
@@ -43,14 +43,14 @@
         "Value" .Email
         "Errors" .Errors.Email
     }}
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "password-field"
         "Label" "Password"
         "Name" "password"
         "Type" "password"
         "Required" true
     }}
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "confirm-password-field"
         "Label" "Confirm password"
         "Name" "confirm-password"
@@ -58,6 +58,6 @@
         "Required" true
         "Errors" .Errors.PasswordConfirm
     }}
-    {{ template "form-errors" dict "Errors" .Errors.Generic }}
+    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
 </div>
 {{ end }}

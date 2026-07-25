@@ -12,8 +12,8 @@
     </p>
 
     <form hx-post="/login" hx-target="#form-fields" hx-swap="outerHTML" class="max-w-md mx-auto px-4">
-        {{ template "form-fields" . }}
-        {{ template "form-submit-button" dict "Text" "Login" }}
+        {{ template "fragment-form-fields" . }}
+        {{ template "component-form-submit-button" dict "Text" "Login" }}
         <p class="mt-6 text-center text-sm text-gray-600">
             Not have an account yet?
             <a href="/register" class="text-indigo-600 hover:underline">Register</a>
@@ -22,9 +22,9 @@
 </div>
 {{ end }}
 
-{{ define "form-fields" }}
+{{ define "fragment-form-fields" }}
 <div id="form-fields">
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "email-field"
         "Label" "Email address"
         "Name" "email"
@@ -33,7 +33,7 @@
         "Required" true
         "Value" .Email
     }}
-    {{ template "form-input-field" dict
+    {{ template "component-form-input-field" dict
         "ID" "password-field"
         "Label" "Password"
         "Name" "password"
@@ -41,6 +41,6 @@
         "Autocomplete" "current-password"
         "Required" true
     }}
-    {{ template "form-errors" dict "Errors" .Errors.Generic }}
+    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
 </div>
 {{ end }}

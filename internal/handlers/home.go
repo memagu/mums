@@ -58,7 +58,7 @@ func PostHome(c echo.Context) error {
 			PhaddergruppName: phaddergruppName,
 			Errors:           map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 		}
-		return c.Render(http.StatusInternalServerError, "home#form-fields", pageData)
+		return c.Render(http.StatusInternalServerError, "home#fragment-form-fields", pageData)
 	}
 
 	database := db.GetDB(c)

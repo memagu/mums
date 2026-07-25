@@ -32,13 +32,13 @@
     </head>
     <body class="max-w-screen min-h-screen flex flex-col font-iosevka">
         <header role="banner" class="sticky top-0 z-1337 bg-amber-50">
-            {{ template "header" . }}
+            {{ template "component-header" . }}
         </header>
         <main role="main" class="flex-grow flex items-center justify-center bg-amber-50 py-12">
             {{ template "content" . }}
         </main>
         <footer role="contentinfo" class="bg-slate-900">
-            {{ template "footer" . }}
+            {{ template "component-footer" . }}
         </footer>
     </body>
 </html>

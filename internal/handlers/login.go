@@ -57,7 +57,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 				Email:        userEmail,
 				Errors:       map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 			}
-			return c.Render(http.StatusInternalServerError, "login#form-fields", pageData)
+			return c.Render(http.StatusInternalServerError, "login#fragment-form-fields", pageData)
 		}
 
 		database := db.GetDB(c)
@@ -69,7 +69,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 				Email:        userEmail,
 				Errors:       map[string][]string{"Generic": {"Invalid email or password."}},
 			}
-			return c.Render(http.StatusUnauthorized, "login#form-fields", pageData)
+			return c.Render(http.StatusUnauthorized, "login#fragment-form-fields", pageData)
 		}
 		if err != nil {
 			c.Logger().Errorf("Database error during login for email %s: %v", userEmail, err)

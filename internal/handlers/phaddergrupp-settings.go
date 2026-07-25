@@ -98,5 +98,5 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		statusCode = http.StatusBadRequest
 	}
 
-	return c.Render(statusCode, "phaddergrupp-settings#form-fields", templateData)
+	return c.Render(statusCode, "phaddergrupp-settings#fragment-form-fields", templateData)
 }

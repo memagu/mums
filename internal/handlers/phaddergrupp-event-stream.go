@@ -38,7 +38,7 @@ func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpd
 	}
 
 	var sb strings.Builder
-	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#mums-available-widget", templateData, c); err != nil {
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-mums-available-widget", templateData, c); err != nil {
 		c.Logger().Errorf("template render error: %v", err)
 		return nil
 	}
@@ -60,7 +60,7 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 	}
 
 	var sb strings.Builder
-	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#mums-available-badge", templateData, c); err != nil {
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-mums-available-badge", templateData, c); err != nil {
 		c.Logger().Errorf("template render error: %v", err)
 		return
 	}

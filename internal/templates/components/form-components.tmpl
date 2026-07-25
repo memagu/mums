@@ -1,4 +1,4 @@
-{{ define "form-input-field" }}
+{{ define "component-form-input-field" }}
 <div class="mb-6">
     {{ if or .Label .InfoLabel }}
     <label for="{{ .ID }}" class="block font-medium mb-1">
@@ -19,11 +19,11 @@
         {{ if hasKey . "Value" }} value="{{ .Value }}" {{ end }}
         class="w-full rounded-md border-2 border-gray-300 px-3 py-2 shadow-sm placeholder-gray-400 focus:border-c focus:outline-none"
     >
-    {{ template "form-errors" . }}
+    {{ template "component-form-errors" . }}
 </div>
 {{ end }}
 
-{{ define "form-errors" }}
+{{ define "component-form-errors" }}
 {{ if .Errors }}
 <div class="mt-1 space-y-1">
     {{ range .Errors }}
@@ -33,7 +33,7 @@
 {{ end }}
 {{ end }}
 
-{{ define "form-submit-button" }}
+{{ define "component-form-submit-button" }}
 <button
     type="submit"
     class="w-full bg-d text-white py-2 rounded-md text-lg font-semibold hover:bg-c focus:bg-c"
