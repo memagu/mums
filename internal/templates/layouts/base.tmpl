@@ -1,41 +1,79 @@
 {{ define "base" }}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{{ block "title" . }}mums{{ end }}</title>
-        <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
-        {{ template "import-htmx" . }}
-        {{ template "import-tailwind" . }}
-        {{ if .AllowedErrorCodes }}
-        <script type="text/javascript">
-            document.addEventListener("DOMContentLoaded", (_) => {
-                document.body.addEventListener("htmx:beforeSwap", function(event) {
-                    const status = event.detail.xhr.status;
-                    if ({{ range $i, $code := .AllowedErrorCodes }} {{ if $i }} || {{ end }} status == {{ $code }} {{ end }}) {
-                        event.detail.shouldSwap = true;
-                        event.detail.isError = false;
-                    }
-                });
-            });
-        </script> 
-        {{ end }}
-        <link rel="stylesheet" href="/static/css/colors.css"/>
-        <link rel="stylesheet" href="/static/css/fonts.css"/>
-        {{ block "head" . }}
-        {{ end }}
-    </head>
-    <body class="max-w-screen min-h-screen flex flex-col font-iosevka">
-        <header role="banner" class="sticky top-0 z-1337 bg-amber-50">
-            {{ template "component-header" . }}
-        </header>
-        <main role="main" class="flex-grow flex items-center justify-center bg-amber-50 py-12">
-            {{ template "content" . }}
-        </main>
-        <footer role="contentinfo" class="bg-slate-900">
-            {{ template "component-footer" . }}
-        </footer>
-    </body>
-</html>
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>{{ block "title" . }}mums{{ end }}</title>
+            <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
+            {{ template "import-htmx" . }}
+            {{ template "import-tailwind" . }}
+            {{ if .AllowedErrorCodes }}
+                <script type="text/javascript">
+                    document.addEventListener("DOMContentLoaded", (_) => {
+                        document.body.addEventListener("htmx:beforeSwap", function(event) {
+                            const status = event.detail.xhr.status;
+                            if ({{ range $i, $code := .AllowedErrorCodes }} {{ if $i }} || {{ end }} status == {{ $code }} {{ end }}) {
+                                event.detail.shouldSwap = true;
+                                event.detail.isError = false;
+                            }
+                        });
+                    });
+                </script> 
+            {{ end }}
+            {{ block "head" . }}
+            {{ end }}
+        </head>
+        <body class="min-h-screen flex flex-col font-iosevka gap-12">
+            <header class="sticky top-0 z-1337 bg-backdrop">
+                <nav class="border-b border-backdrop-border">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between h-16">
+                        <div class="shrink-0 flex flex-1 justify-start items-center">
+                            <a href="/">
+                                <img class="h-10 w-auto" src="/static/icons/mums.svg" alt="Logo" />
+                            </a>
+                        </div>
+                        <ul class="hidden sm:-my-px sm:flex sm:flex-1 justify-center sm:gap-8">
+                            <li class="flex">{{ template "component-nav-link" dict "Href" "/" "Text" "Home" }}</li>
+                            <li class="flex">{{ template "component-nav-link" dict "Href" "/about" "Text" "About" }}</li>
+                        </ul>
+                        <ul class="sm:hidden -my-px flex flex-1 justify-center">
+                            <li class="flex">{{ template "component-nav-link" dict "Href" "/about" "Text" "- About -" }}</li>
+                        </ul>
+                        <div class="flex flex-1 items-center justify-end gap-4">
+                            {{ if .IsLoggedIn }}
+                                <a hx-post="/logout" href="#" class="text-sm text-backdrop-content-highlight hover:text-backdrop-content-highlight active:text-backdrop-content-highlight hover:underline active:underline">Logout</a>
+                            {{ else }}
+                                <a href="/login" class="text-sm text-backdrop-content-muted hover:text-backdrop-content active:text-backdrop-content hover:underline active:underline">Login</a>
+                                <a href="/register" class="text-sm text-backdrop-content-highlight hover:text-backdrop-content-highlight active:text-backdrop-content-highlight hover:underline active:underline">Register</a>
+                            {{ end }}
+                        </div>
+                    </div>
+                </nav>
+            </header>
+            <main class="flex-1 flex flex-col justify-center max-w-xl w-full mx-auto px-8">
+                {{ template "content" . }}
+            </main>
+            <footer class="bg-footer text-footer-content py-6">
+                <div class="max-w-md mx-auto px-4 text-center text-sm flex flex-col gap-3">
+                    {{ template "component-external-link" dict
+                        "Href" "https://github.com/memagu/mums"
+                        "IconPath" "/static/icons/invertocat.svg"
+                        "IconClass" "size-5"
+                        "Class" "text-footer-content-highlight font-semibold"
+                        "Text" "GitHub Repository"
+                    }}  
+                    <p>
+                        &copy;&nbsp;2025
+                        {{ template "component-external-link" dict
+                            "Href" "https://www.mewi.dev"
+                            "Class" "text-footer-content-highlight font-semibold"
+                            "Text" "Melker Widén"
+                        -}}
+                        . All rights reserved.
+                    </p>
+                </div>
+            </footer>
+        </body>
+    </html>
 {{ end }}

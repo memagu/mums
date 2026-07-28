@@ -1,91 +1,104 @@
 {{ define "home" }}
-{{ template "base" . }}
+    {{ template "base" . }}
 {{ end }}
 
-{{ block "title" . }}mums | Home{{ end }}
+{{ define "title" }}mums | Home{{ end }}
 
 {{ define "content" }}
-<div class="flex flex-col">
+    <div class="flex flex-col gap-6">
 
-    <p class="text-center text-2xl max-w-lg mt-8 {{ if .UserPhaddergruppSummaries }} mb-12 {{ end }}">
-        Welcome back {{- if .UserProfileName }} <span class="flex-shrink-0 max-w-lg truncate border-b-2 border-d">{{ .UserProfileName }}</span> {{- end }}!
-    </p>
+        <h1 class="text-center text-2xl">
+            Welcome back {{- if .UserProfileName }} <span class="inline-block align-bottom max-w-full truncate border-b-2 border-brand-primary -mb-[2px]">{{ .UserProfileName }}</span> {{- end }}!
+        </h1>
 
-    {{ if .UserPhaddergruppSummaries }}
-    <div class="max-w-sm sm:max-w-3xl mx-auto space-y-3 px-4">
+        <div class="self-center max-w-full flex flex-col items-center gap-6">
 
-        {{ $root := . }}
-        {{ range $i, $s := .UserPhaddergruppSummaries }}
-        <a href="/phaddergrupp/{{ .ID }}" class="flex items-center w-full p-4
-        bg-white rounded-xl shadow-sm border-l-4 border-[{{ .PrimaryColor }}]
-        hover:bg-gray-50 hover:shadow-lg hover:border-[{{ .SecondaryColor }}]
-        focus:bg-gray-50 focus:shadow-lg focus:border-[{{ .SecondaryColor }}]
-        transition-all duration-200 text-gray-900">
+        {{ if .UserPhaddergruppSummaries }}
+            <ul class="flex flex-col gap-3 w-full">
 
-            {{ if $s.LogoPath.Valid }}
-            <div class="flex-shrink-0 mr-4">
-                <img src="/phaddergrupp/{{ $s.ID }}/logo" alt="Logo for {{ $s.Name }}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
-            </div>
+            {{ $root := . }}
+            {{ range $i, $s := .UserPhaddergruppSummaries }}
+                <li class="flex flex-col gap-3">
+                    <a href="/phaddergrupp/{{ .ID }}" class="flex items-center gap-4 w-full min-w-0 p-4
+                       bg-card rounded-xl shadow-sm border-l-4 border-[{{ .PrimaryColor }}]
+                       hover:bg-gray-50 hover:shadow-lg hover:border-[{{ .SecondaryColor }}]
+                       active:bg-gray-50 active:shadow-lg active:border-[{{ .SecondaryColor }}]
+                       transition-all duration-200 text-card-content">
+
+                        {{ if $s.LogoPath.Valid }}
+                            <div class="shrink-0">
+                                <img src="/phaddergrupp/{{ $s.ID }}/logo" alt="Logo for {{ $s.Name }}" class="size-12 rounded-full object-cover border-2 border-card-border">
+                            </div>
+                        {{ end }}
+
+                        <p class="flex-1 min-w-0 text-lg max-w-full truncate">{{ $s.Name }}</p>
+
+                        <div class="flex shrink-0 items-center gap-1 text-sm">
+
+                            <span class="flex items-center gap-1 text-card-content-muted rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "phadder" }} shadow-md border-[{{ $s.PrimaryColor }}] {{ else }} border-transparent {{ end }}" title="Phaddrar">
+                                <img src="/static/icons/student-cap.svg" alt="Phadder count" class="size-5" />
+                                <span class="font-semibold w-[2ch] text-right">{{ $s.PhadderCount }}</span>
+                            </span>
+                            
+                            <span class="flex items-center gap-1 text-card-content-muted rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "n0lla" }} shadow-md border-[{{ $s.SecondaryColor }}] {{ else }} border-transparent {{ end }}" title="N0llor">
+                                <img src="/static/icons/cap.svg" alt="N0lla count" class="size-5" />
+                                <span class="font-semibold w-[2ch] text-right">{{ $s.N0llaCount }}</span>
+                            </span>
+                            
+                            <span class="flex items-center gap-1 text-card-content-highlight" title="Your mums">
+                                <img src="/static/icons/mums.svg" alt="Mums available" class="size-5" />
+                                <output class="font-bold w-[2ch]">{{ $s.MumsAvailable }}</output>
+                            </span>
+
+                        </div>
+
+                    </a>
+                    {{ if and ($root.HasMoreThanOneUserPhaddergruppSummary) (eq $i 0) }}
+                        <p class="text-xs text-center text-backdrop-content-muted">󱞽 Current 󱞿</p>
+                    {{ end }}
+                </li>
             {{ end }}
 
-            <div class="flex-1 min-w-0 mr-4">
-                <p class="text-lg truncate">{{ $s.Name }}</p>
-            </div>
-
-            <div class="flex flex-shrink-0 items-center space-x-3 text-sm">
-
-                <span class="flex items-center text-gray-600 rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "phadder" }} shadow-md border-[{{ $s.PrimaryColor }}] {{ else }} border-transparent {{ end }}" title="Phaddrar">
-                    <img src="/static/icons/student-cap.svg" alt="Phadder count" class="w-5 h-5 mr-1" />
-                    <span class="font-semibold w-[2ch] text-right">{{ $s.PhadderCount }}</span>
-                </span>
-                
-                <span class="flex items-center text-gray-600 rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "n0lla" }} shadow-md border-[{{ $s.SecondaryColor }}] {{ else }} border-transparent {{ end }}" title="N0llor">
-                    <img src="/static/icons/cap.svg" alt="N0lla count" class="w-5 h-5 mr-1" />
-                    <span class="font-semibold w-[2ch] text-right">{{ $s.N0llaCount }}</span>
-                </span>
-                
-                <span class="flex items-center text-indigo-600" title="Your mums">
-                    <img src="/static/icons/mums.svg" alt="Mums available" class="w-5 h-5 mr-1" />
-                    <span class="font-bold w-[2ch]">{{ $s.MumsAvailable }}</span>
-                </span>
-
-            </div>
-
-        </a>
-        {{ if and ($root.HasMoreThanOneUserPhaddergruppSummary) (eq $i 0) }} <p class="text-xs text-center text-gray-400">󱞽 Current 󱞿</p> {{ end }}
+            </ul>
+        {{ else }}
+            <p class="text-center text-backdrop-content-muted">
+                You're not part of a phaddergrupp yet. Ask a phadder for an invite, or start your own below.
+            </p>
         {{ end }}
 
+        {{ template "component-divider" dict "Class" "border-brand-primary" }}
+
+        <h2 class="text-center text-xl font-semibold text-backdrop-content">Create a new phaddergrupp</h2>
+        <form hx-post="/" hx-target="#form-fields" hx-swap="outerHTML" class="w-full flex flex-col gap-6">
+            {{ template "fragment-form-fields" . }}
+            {{ template "component-primary-button" dict "Text" "Create phaddergrupp" }}
+        </form>
+
+        </div>
+
     </div>
-    {{ end }}
-
-    <form hx-post="/" hx-target="#form-fields" hx-swap="outerHTML" class="max-w-md mx-auto p-4 my-8 border-t-2 border-d">
-        {{ template "fragment-form-fields" . }}
-        {{ template "component-form-submit-button" dict "Text" "Create phaddergrupp" }}
-    </form>
-
-</div>
 {{ end }}
 
 {{ define "fragment-form-fields" }}
-<div id="form-fields">
-    {{ template "component-form-input-field" dict
-        "ID" "phaddergrupp-name-field"
-        "Label" "Phaddergrupp name"
-        "Name" "phaddergrupp-name"
-        "Type" "text"
-        "Required" true
-        "Value" .PhaddergruppName
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "swish-recipient-number-field"
-        "Label" "Swish recipient's number"
-        "InfoLabel" "Format example: 0704201337"
-        "Name" "swish-recipient-number"
-        "Type" "tel"
-        "Pattern" .SwishRecipientNumberPattern
-        "Required" true
-        "Value" .SwishRecipientNumber
-    }}
-    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
-</div>
+    <div id="form-fields" class="flex flex-col gap-6">
+        {{ template "component-form-input-field" dict
+            "ID" "phaddergrupp-name-field"
+            "Label" "Phaddergrupp name"
+            "Name" "phaddergrupp-name"
+            "Type" "text"
+            "Required" true
+            "Value" .PhaddergruppName
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "swish-recipient-number-field"
+            "Label" "Swish recipient's number"
+            "InfoLabel" "Format example: 0704201337"
+            "Name" "swish-recipient-number"
+            "Type" "tel"
+            "Pattern" .SwishRecipientNumberPattern
+            "Required" true
+            "Value" .SwishRecipientNumber
+        }}
+        {{ template "component-generic-errors" . }}
+    </div>
 {{ end }}

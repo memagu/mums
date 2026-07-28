@@ -1,46 +1,39 @@
 {{ define "login" }}
-{{ template "base" . }}
+    {{ template "base" . }}
 {{ end }}
 
-{{ block "title" . }}mums | Login{{ end }}
+{{ define "title" }}mums | Login{{ end }}
 
 {{ define "content" }}
-<div class="flex flex-col mb-24">
-    <p class="text-center text-2xl mb-12">
-        <img src="/static/icons/mums.svg" alt="Logo" class="mx-auto w-24 h-24 mb-4" />
-        <span>Feelin' thirsty?</span>
-    </p>
+    <div class="self-center max-w-full flex flex-col items-center gap-12 mb-24">
+        <h1 class="flex flex-col items-center gap-4 text-2xl">
+            <img src="/static/icons/mums.svg" alt="Logo" class="size-24" />
+            <span>Feelin' thirsty?</span>
+        </h1>
 
-    <form hx-post="/login" hx-target="#form-fields" hx-swap="outerHTML" class="max-w-md mx-auto px-4">
-        {{ template "fragment-form-fields" . }}
-        {{ template "component-form-submit-button" dict "Text" "Login" }}
-        <p class="mt-6 text-center text-sm text-gray-600">
-            Not have an account yet?
-            <a href="/register" class="text-indigo-600 hover:underline">Register</a>
-        </p>
-    </form>
-</div>
+        <form hx-post="/login" hx-target="#form-fields" hx-swap="outerHTML" class="flex flex-col gap-6">
+            {{ template "fragment-form-fields" . }}
+            {{ template "component-primary-button" dict "Text" "Login" }}
+            <p class="text-center text-sm text-backdrop-content-muted">
+                Don't have an account yet?
+                <a href="/register" class="text-backdrop-content-highlight hover:underline">Register</a>
+            </p>
+        </form>
+    </div>
 {{ end }}
 
 {{ define "fragment-form-fields" }}
-<div id="form-fields">
-    {{ template "component-form-input-field" dict
-        "ID" "email-field"
-        "Label" "Email address"
-        "Name" "email"
-        "Type" "email"
-        "Autocomplete" "email"
-        "Required" true
-        "Value" .Email
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "password-field"
-        "Label" "Password"
-        "Name" "password"
-        "Type" "password"
-        "Autocomplete" "current-password"
-        "Required" true
-    }}
-    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
-</div>
+    <div id="form-fields" class="flex flex-col gap-6">
+        {{ template "component-form-input-field" dict
+            "ID" "email-field"
+            "Label" "Email address"
+            "Name" "email"
+            "Type" "email"
+            "Autocomplete" "email"
+            "Required" true
+            "Value" .Email
+        }}
+        {{ template "component-password-field" dict "Autocomplete" "current-password" }}
+        {{ template "component-generic-errors" . }}
+    </div>
 {{ end }}

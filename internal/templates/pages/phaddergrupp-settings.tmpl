@@ -1,132 +1,132 @@
 {{ define "phaddergrupp-settings" }}
-{{ template "base" . }}
+    {{ template "base" . }}
 {{ end }}
 
-{{ block "title" . }}mums | Phaddergrupp Settings{{ end }}
+{{ define "title" }}mums | Phaddergrupp Settings{{ end }}
 
 {{ define "head" }}
-{{ template "import-toastr" . }}
+    {{ template "import-toastr" . }}
 {{ end }}
 
 {{ define "content" }}
-<div class="w-full max-w-xs md:max-w-md flex flex-col justify-center">
-    <p class="text-center text-2xl max-w-xs md:max-w-md mt-8">
-        Fine-tuning 
-        <span class="inline-block max-w-xs md:max-w-md truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] align-middle">
-            {{- .Name -}}
-        </span> 
-         vibes!
-    </p>
+    <div class="self-center max-w-full flex flex-col justify-center gap-6">
+        <h1 class="text-center text-2xl">
+            Fine-tuning 
+            <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
+                {{- .Name -}}
+            </span> 
+            vibes!
+        </h1>
 
-    <form
-        hx-patch="/phaddergrupp/{{ .PhaddergruppID }}/settings"
-        hx-target="#form-fields"
-        hx-swap="outerHTML"
-        hx-on::after-on-load="
-            toastr.options.timeOut = 2000;
-            toastr.options.positionClass = 'toast-top-center';
-            toastr.options.progressBar = true;
-            if (event.detail.xhr.status === 200) {
-                toastr.success('Settings saved');
-            } else {
-                toastr.error('Failed to save settings');
-            }
-        "
-        class="w-full mx-auto my-8">
-        {{ template "fragment-form-fields" . }}
-        {{ template "component-form-submit-button" dict "Text" "Save" }}
-    </form>
+        <form
+            hx-patch="/phaddergrupp/{{ .PhaddergruppID }}/settings"
+            hx-target="#form-fields"
+            hx-swap="outerHTML"
+            class="flex flex-col gap-6"
+            hx-on::after-on-load="
+                toastr.options.timeOut = 2000;
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.progressBar = true;
+                if (event.detail.xhr.status === 200) {
+                    toastr.success('Settings saved');
+                } else if (event.detail.xhr.status >= 500) {
+                    toastr.error('Failed to save settings');
+                }
+            "
+        >
+            {{ template "fragment-form-fields" . }}
+            <button type="submit" class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}]">Save</button>
+        </form>
 
-    <button
-        hx-delete="/phaddergrupp/{{ .PhaddergruppID }}"
-        hx-confirm="Are you sure you want to delete {{ .Name }}?"
-        class="w-full mx-auto py-2 rounded-md text-lg text-white font-semibold bg-red-600
-               border-2 border-dashed border-yellow-400 shadow-lg hover:bg-red-700
-               focus:bg-red-700"
-    >Delete phaddergrupp</button>
+        <button
+            hx-delete="/phaddergrupp/{{ .PhaddergruppID }}"
+            hx-confirm="Are you sure you want to delete {{ .Name }}?"
+            class="w-full py-2 rounded-md text-lg text-error-content font-semibold bg-error
+                   border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight
+                   active:bg-error-highlight"
+        >Delete phaddergrupp</button>
 
-    <div class="w-full flex justify-center mt-6 pt-6 border-t-2 border-[{{ .PrimaryColor }}]">
+        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
         <a 
             href="/phaddergrupp/{{ .PhaddergruppID }}"
-            class="w-full bg-[{{ .PrimaryColor }}] text-white text-center px-6 py-2
+            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
                    rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
-                   focus:bg-[{{ .SecondaryColor }}] truncate"
+                   active:bg-[{{ .SecondaryColor }}] truncate"
         >󰌑 Return to {{ .Name }}</a>
     </div>
-</div>
 {{ end }}
 
 {{ define "fragment-form-fields" }}
-<div id="form-fields" class="grid grid-cols-1 md:grid-cols-2 md:gap-x-6">
-    {{ template "component-form-input-field" dict
-        "ID" "name-field"
-        "Label" "Phaddergrupp name"
-        "Name" "name"
-        "Type" "text"
-        "Required" true
-        "Value" .Name
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "primary-color-field"
-        "Label" "Primary color"
-        "Name" "primary-color"
-        "Type" "color"
-        "Required" true
-        "Value" .PrimaryColor
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "secondary-color-field"
-        "Label" "Secondary color"
-        "Name" "secondary-color"
-        "Type" "color"
-        "Required" true
-        "Value" .SecondaryColor
-    }}
-    {{ $currencyInfo := printf "Currency: %s" .MumsCurrency }}
-    {{ template "component-form-input-field" dict
-        "ID" "mums-price-n0lla-field"
-        "Label" "Mums price (N0lla)"
-        "InfoLabel" $currencyInfo
-        "Name" "mums-price-n0lla"
-        "Type" "number"
-        "Min" 0
-        "Step" 0.01
-        "Required" true
-        "Value" .MumsPriceN0lla
-        "Errors" .Errors.MumsPriceN0lla
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "mums-price-phadder-field"
-        "Label" "Mums price (Phadder)"
-        "InfoLabel" $currencyInfo
-        "Name" "mums-price-phadder"
-        "Type" "number"
-        "Min" 0
-        "Step" 0.01
-        "Required" true
-        "Value" .MumsPricePhadder
-        "Errors" .Errors.MumsPricePhadder
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "swish-recipient-number-field"
-        "Label" "Swish recipient's number"
-        "InfoLabel" "Format example: 0704201337"
-        "Name" "swish-recipient-number"
-        "Type" "tel"
-        "Pattern" .SwishRecipientNumberPattern
-        "Required" true
-        "Value" .SwishRecipientNumber
-    }}
-    {{ template "component-form-input-field" dict
-        "ID" "mums-capacity-per-user-field"
-        "Label" "Mums capacity per user"
-        "Name" "mums-capacity-per-user"
-        "Type" "number"
-        "Min" 0
-        "Required" true
-        "Value" .MumsCapacityPerUser
-        "Errors" .Errors.MumsCapacityPerUser
-    }}
-    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
-</div>
+    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col sm:grid-rows-4 sm:gap-x-6 gap-y-6">
+        {{ template "component-form-input-field" dict
+            "ID" "name-field"
+            "Label" "Phaddergrupp name"
+            "Name" "name"
+            "Type" "text"
+            "Required" true
+            "Value" .Name
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "swish-recipient-number-field"
+            "Label" "Swish recipient's number"
+            "InfoLabel" "Format example: 0704201337"
+            "Name" "swish-recipient-number"
+            "Type" "tel"
+            "Pattern" .SwishRecipientNumberPattern
+            "Required" true
+            "Value" .SwishRecipientNumber
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "primary-color-field"
+            "Label" "Primary color"
+            "Name" "primary-color"
+            "Type" "color"
+            "Required" true
+            "Value" .PrimaryColor
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "secondary-color-field"
+            "Label" "Secondary color"
+            "Name" "secondary-color"
+            "Type" "color"
+            "Required" true
+            "Value" .SecondaryColor
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-capacity-per-user-field"
+            "Label" "Mums capacity per user"
+            "Name" "mums-capacity-per-user"
+            "Type" "number"
+            "Min" 0
+            "Required" true
+            "Value" .MumsCapacityPerUser
+            "Errors" .Errors.MumsCapacityPerUser
+        }}
+        {{ $currencyInfo := printf "Currency: %s" .MumsCurrency }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-price-n0lla-field"
+            "Label" "Mums price (N0lla)"
+            "InfoLabel" $currencyInfo
+            "Name" "mums-price-n0lla"
+            "Type" "number"
+            "Min" 0
+            "Step" 0.01
+            "Required" true
+            "Value" .MumsPriceN0lla
+            "Errors" .Errors.MumsPriceN0lla
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-price-phadder-field"
+            "Label" "Mums price (Phadder)"
+            "InfoLabel" $currencyInfo
+            "Name" "mums-price-phadder"
+            "Type" "number"
+            "Min" 0
+            "Step" 0.01
+            "Required" true
+            "Value" .MumsPricePhadder
+            "Errors" .Errors.MumsPricePhadder
+        }}
+        {{ template "component-generic-errors" . }}
+    </div>
 {{ end }}

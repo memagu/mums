@@ -1,270 +1,294 @@
 {{ define "phaddergrupp" }}
-{{ template "base" . }}
+    {{ template "base" . }}
 {{ end }}
 
-{{ block "title" . }}mums | Phaddergrupp{{ end }}
+{{ define "title" }}mums | Phaddergrupp{{ end }}
 
 {{ define "head" }}
-{{ template "import-htmx-sse" . }}
+    {{ template "import-htmx-sse" . }}
 {{ end }}
 
 {{ define "content" }}
-<div
-    hx-ext="sse"
-    sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
-    class="w-full flex flex-col items-center"
->
-
-    <div class="max-w-sm flex flex-col justify-center">
-        {{ if .LogoFilePath.Valid }}
-        <img src="{{ .LogoFilePath.String }}" alt="Logo" class="w-24 h-24 mb-4" />
-        {{ end }}
-
-        <p class="flex-shrink-0 text-center text-5xl break-words text-gray-900">{{ .PhaddergruppData.Name }}</p>
-
-        <div class="flex justify-center items-center text-center font-semibold text-xl text-gray-500">
-            -&nbsp;
-            {{ if .IsPhadder }} 
-            <img src="/static/icons/student-cap.svg" alt="Phadder role" class="w-5 h-5 mr-1.5" />
-            <span>Phadder</span>
-            {{ else }} 
-            <img src="/static/icons/cap.svg" alt="N0lla role" class="w-5 h-5 mr-1.5" />
-            <span>N0lla</span>
+    <div
+        hx-ext="sse"
+        sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
+        class="flex flex-col gap-6 w-full"
+    >
+        <div class="flex flex-col items-center gap-2 text-center w-full">
+            {{ if .LogoFilePath.Valid }}
+                <img src="{{ .LogoFilePath.String }}" alt="Logo" class="size-24" />
             {{ end }}
-            &nbsp;-
+
+            <hgroup class="flex flex-col items-center gap-1 w-full">
+                <h1 class="text-5xl font-bold break-words max-w-full text-backdrop-content">
+                    {{ .PhaddergruppData.Name }}
+                </h1>
+
+                <p class="flex items-center gap-1.5 text-xl font-semibold text-backdrop-content-muted">
+                    <span aria-hidden="true">-</span>
+                    {{- if .IsPhadder }} 
+                        <img src="/static/icons/student-cap.svg" alt="" class="size-5" />
+                        <span>Phadder</span>
+                    {{ else }} 
+                        <img src="/static/icons/cap.svg" alt="" class="size-5" />
+                        <span>N0lla</span>
+                    {{ end -}}
+                    <span aria-hidden="true">-</span>
+                </p>
+            </hgroup>
+
+            <p class="max-w-full text-3xl break-words text-backdrop-content">
+                {{ .UserProfileData.Name }}
+            </p>
         </div>
 
-        <p class="flex-shrink-0 text-center text-3xl break-words text-gray-700 truncate mt-2">{{ .UserProfileData.Name }}</p>
+        <div class="self-center max-w-full flex flex-col items-center gap-6">
+            {{ if .IsPhadder }}
+                {{ template "fragment-member-lists" . }}
+            {{ end }}
+
+            {{ if not .IsPhadder }}
+                {{ template "fragment-mums-available-widget" . }}
+            {{ end }}
+
+            {{ if .IsPhadder }}
+                {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+                <div class="w-full flex flex-col items-center gap-3">
+                    {{ template "fragment-invite-link" dict
+                        "ID" "invite-phadder"
+                        "Label" "Invite Phaddrar"
+                        "URL" .InviteURLPhadder
+                    }}
+                    {{ template "fragment-invite-link" dict
+                        "ID" "invite-n0lla"
+                        "Label" "Invite N0llor"
+                        "URL" .InviteURLN0lla
+                    }}
+                </div>
+
+                {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+                <a
+                    href="/phaddergrupp/{{ .PhaddergruppID }}/settings"
+                    class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}] truncate"
+                > Settings</a>
+            {{ end }}
+        </div>
     </div>
-
-    {{ if .IsPhadder }}
-    {{ template "fragment-member-lists" . }}
-    {{ end }}
-
-    {{ if not .IsPhadder }}
-    {{ template "fragment-mums-available-widget" . }}
-    {{ end }}
-
-    {{ if .IsPhadder }}
-    <div class="w-full max-w-xs flex flex-col items-center mt-6 pt-3 space-y-3 border-t-2 border-[{{ .PrimaryColor }}]">
-        {{ template "fragment-invite-link" dict
-            "Label" "Invite Phaddrar"
-            "URL" .InviteURLPhadder
-        }}
-        {{ template "fragment-invite-link" dict
-            "Label" "Invite N0llor"
-            "URL" .InviteURLN0lla
-        }}
-    </div>
-
-    <div class="w-full max-w-xs flex justify-center mt-6 pt-6 border-t-2 border-[{{ .PrimaryColor }}]">
-        <a 
-            href="/phaddergrupp/{{ .PhaddergruppID }}/settings"
-            class="bg-[{{ .PrimaryColor }}] text-white text-center w-full max-w-xs py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] focus:bg-[{{ .SecondaryColor }}]"
-        > Settings</a>
-    </div>
-    {{ end }}
-
-</div>
 {{ end }}
 
 {{ define "fragment-member-lists" }}
-<div 
-    sse-swap="mums-available-badge-update"
-    hx-swap="none"
-    class="mt-8 pb-3 space-y-3"
->
-    {{ if .PhaddergruppUserSummaries.N0llas }}
-    <div>
-        <p class="text-xs text-center text-gray-400 mb-1">󱞡 N0llor 󱞣</p>
-        {{ template "fragment-member-list" dict 
-            "PhaddergruppID" .PhaddergruppID
-            "UserSummaries" .PhaddergruppUserSummaries.N0llas
-            "Color" .PrimaryColor
-        }}
-        <p class="text-xs text-center text-gray-400 mt-1">󱞽 N0llor 󱞿</p>
+    <div 
+        sse-swap="mums-available-badge-update"
+        hx-swap="none"
+        class="flex flex-col gap-3 w-full"
+    >
+        {{ if .PhaddergruppUserSummaries.N0llas }}
+            {{ template "fragment-member-section" dict
+                "PhaddergruppID" .PhaddergruppID
+                "UserSummaries" .PhaddergruppUserSummaries.N0llas
+                "Color" .PrimaryColor
+                "Label" "N0llor"
+            }}
+        {{ end }}
+        {{ if .PhaddergruppUserSummaries.Phadders }}
+            {{ template "fragment-member-section" dict
+                "PhaddergruppID" .PhaddergruppID
+                "UserSummaries" .PhaddergruppUserSummaries.Phadders
+                "Color" .SecondaryColor
+                "Label" "Phaddrar"
+            }}
+        {{ end }}
     </div>
-    {{ end }}
-    {{ if .PhaddergruppUserSummaries.Phadders }}
+{{ end }}
+
+{{ define "fragment-member-section" }}
     <div>
-        <p class="text-xs text-center text-gray-400 mb-1">󱞡 Phaddrar 󱞣</p>
+        <h2 class="text-xs text-center text-backdrop-content-muted">󱞡 {{ .Label }} 󱞣</h2>
         {{ template "fragment-member-list" dict
             "PhaddergruppID" .PhaddergruppID
-            "UserSummaries" .PhaddergruppUserSummaries.Phadders
-            "Color" .SecondaryColor
+            "UserSummaries" .UserSummaries
+            "Color" .Color
         }}
-        <p class="text-xs text-center text-gray-400 mt-1">󱞽 Phaddrar 󱞿</p>
+        <p class="text-xs text-center text-backdrop-content-muted">󱞽 {{ .Label }} 󱞿</p>
     </div>
-    {{ end }}
-</div>
 {{ end }}
 
 {{ define "fragment-member-list" }}
-<div class="max-w-sm sm:max-w-3xl space-y-3 px-4">
-    {{ $root := . }}
-    {{ range $_, $s := .UserSummaries }}
-    {{ template "fragment-member-summary-card" dict 
-        "Color" $root.Color
-        "PhaddergruppID" $root.PhaddergruppID
-        "MemberSummary" $s
-    }}
-    {{ end }}
-</div>
+    <ul class="flex flex-col gap-3">
+        {{ $root := . }}
+        {{ range $_, $s := .UserSummaries }}
+            <li>{{ template "fragment-member-summary-card" dict 
+                "Color" $root.Color
+                "PhaddergruppID" $root.PhaddergruppID
+                "MemberSummary" $s
+            }}</li>
+        {{ end }}
+    </ul>
 {{ end }}
 
 {{ define "fragment-member-summary-card" }}
-<div
-    id="member-summary-card-{{ .MemberSummary.UserAccountID }}"
-    class="flex items-center w-full p-4
-           bg-white rounded-xl shadow-sm border-l-4 border-[{{ .Color }}]
-           text-gray-900"
->
+    <div
+        id="member-summary-card-{{ .MemberSummary.UserAccountID }}"
+        class="flex items-center gap-4 w-full min-w-0 p-4
+               bg-card rounded-xl shadow-sm border-l-4 border-[{{ .Color }}]
+               text-card-content"
+    >
 
-    <div class="flex-1 min-w-0 space-y-1 mr-4">
-        <p class="text-lg truncate whitespace-nowrap overflow-hidden">{{ .MemberSummary.UserProfileName }}</p>
-        
-        <div class="flex items-center">
-            <button 
-                hx-post="/phaddergrupp/{{ .PhaddergruppID }}/kick?user-account-id={{ .MemberSummary.UserAccountID }}"
-                hx-confirm="Are you sure you want to kick {{ .MemberSummary.UserProfileName }} from this phaddergrupp?"
-                hx-swap="delete"
-                hx-target="#member-summary-card-{{ .MemberSummary.UserAccountID }}"
-                class="rounded-full px-4 py-1 bg-red-600 border-2 border-dashed border-yellow-400 shadow-lg hover:bg-red-700 focus:bg-red-700"
-                title="Kick user from phaddergrupp"   
-            > 
-                <img src="/static/icons/kick.svg" alt="Kick user" class="w-5 h-5 invert" />
-            </button>
+        <div class="flex flex-col flex-1 min-w-0 gap-1">
+            <p class="text-lg max-w-full truncate">{{ .MemberSummary.UserProfileName }}</p>
+            
+            <div class="flex items-center flex-wrap gap-2">
+                <button 
+                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/kick?user-account-id={{ .MemberSummary.UserAccountID }}"
+                    hx-confirm="Are you sure you want to kick {{ .MemberSummary.UserProfileName }} from this phaddergrupp?"
+                    hx-swap="delete"
+                    hx-target="#member-summary-card-{{ .MemberSummary.UserAccountID }}"
+                    class="rounded-full px-4 py-1 bg-error border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight active:bg-error-highlight"
+                    title="Kick user from phaddergrupp"   
+                > 
+                    <img src="/static/icons/kick.svg" alt="Kick user" class="size-5 invert" />
+                </button>
 
-            {{ template "fragment-mums-available-badge" dict
-                "UserAccountID" .MemberSummary.UserAccountID
-                "DoOOB" false
-                "MumsAvailable" .MemberSummary.MumsAvailable
-            }}
+                {{ template "fragment-mums-available-badge" dict
+                    "UserAccountID" .MemberSummary.UserAccountID
+                    "DoOOB" false
+                    "MumsAvailable" .MemberSummary.MumsAvailable
+                }}
+            </div>
         </div>
+
+        <div class="flex shrink-0 items-center gap-4">
+
+            {{ template "fragment-adjust-button" dict
+                "PhaddergruppID" .PhaddergruppID
+                "UserAccountID" .MemberSummary.UserAccountID
+                "Delta" 1
+                "IconPath" "/static/icons/plus.svg"
+                "AltText" "Increment user's mums"
+            }}
+            
+            {{ template "fragment-adjust-button" dict
+                "PhaddergruppID" .PhaddergruppID
+                "UserAccountID" .MemberSummary.UserAccountID
+                "Delta" -1
+                "IconPath" "/static/icons/minus.svg"
+                "AltText" "Decrement user's mums"
+            }}
+
+        </div>
+
     </div>
+{{ end }}
 
-    <div class="flex flex-shrink-0 ml-auto items-center space-x-4">
-
-        <button
-            hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mums/adjust?user-account-id={{ .MemberSummary.UserAccountID }}&delta=1"
-            hx-swap="none"
-            hx-on::after-request="this.blur()"
-            class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 focus:bg-gray-100 p-2" title="Increment user's mums"
-        > 
-            <img src="/static/icons/plus.svg" alt="Increment mums" class="w-12 h-12" />
-        </button>
-        
-        <button
-            hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mums/adjust?user-account-id={{ .MemberSummary.UserAccountID }}&delta=-1"
-            hx-swap="none"
-            hx-on::after-request="this.blur()"
-            class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 focus:bg-gray-100 p-2" title="Decrement user's mums"
-        > 
-            <img src="/static/icons/minus.svg" alt="Decrement mums" class="w-12 h-12" />
-        </button>
-
-    </div>
-
-</div>
+{{ define "fragment-adjust-button" }}
+    <button
+        hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mums/adjust?user-account-id={{ .UserAccountID }}&delta={{ .Delta }}"
+        hx-swap="none"
+        class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 active:bg-gray-100 p-2"
+        title="{{ .AltText }}"
+    >
+        <img src="{{ .IconPath }}" alt="{{ .AltText }}" class="size-12" />
+    </button>
 {{ end }}
 
 {{ define "fragment-mums-available-badge" }}
-<div class="flex mx-auto items-center text-indigo-600 " title="User's mums">
-    <img src="/static/icons/mums.svg" alt="Mums available" class="w-8 h-8 mr-1" />
-    <span 
-    id="mums-available-badge-{{ .UserAccountID }}"
-    {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
-    class="font-bold text-2xl text-right w-[2ch]"
-    >{{ .MumsAvailable }}</span>
-</div>
+    <div class="flex items-center gap-1 text-card-content-highlight" title="User's mums">
+        <img src="/static/icons/mums.svg" alt="Mums available" class="size-8" />
+        <output 
+            id="mums-available-badge-{{ .UserAccountID }}"
+            {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
+            class="font-bold text-2xl text-right w-[2ch]"
+        >{{ .MumsAvailable }}</output>
+    </div>
 {{ end }}
 
 {{ define "fragment-mums-available-widget" }}
-<div
-    id="mums-available-widget"
-    sse-swap="mums-available-widget-update"
-    hx-swap="outerHTML"
->
-    <div id="mums-available" class="text-center text-[192px] leading-tight {{ if .MumsCapacityReached }} text-red-700 {{ else }} text-gray-900 {{ end }}">
-        {{- .MumsAvailable -}}
-    </div>
+    <div
+        id="mums-available-widget"
+        sse-swap="mums-available-widget-update"
+        hx-swap="outerHTML"
+    >
+        <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
+            {{- .MumsAvailable -}}
+        </output>
 
-    <div class="flex flex-row justify-center gap-6 w-full">
-        {{ if not .MumsCapacityReached }}
-        <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-white gap-3 bg-inherit">
-            <button type="submit" class="flex justify-center items-center
-                     gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md 
-                     text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
-                     focus:bg-[{{ .SecondaryColor }}]"
-            >
-                <img src="/static/icons/cart.svg" class="w-6 h-6 invert" alt="Purchase mums"/>
-                <span class="font-semibold">Buy</span>
-            </button>
+        <div class="flex flex-wrap justify-center gap-6">
+            {{ if not .MumsCapacityReached }}
+                <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content gap-3">
+                    <button type="submit" class="flex justify-center items-center
+                               gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md 
+                               text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
+                               active:bg-[{{ .SecondaryColor }}]"
+                    >
+                        <img src="/static/icons/cart.svg" class="size-6 invert" alt=""/>
+                        <span>Buy</span>
+                    </button>
+                    
+                    <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
+                    <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-md px-2 py-3 text-xl w-16">
+                        {{ range .MumsPurchaseQuantities }}
+                            <option>{{ . }}</option>
+                        {{ end }}
+                    </select>
+                </form>
+            {{ end }}
             
-            <select name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-md px-2 py-3 text-xl w-16">
-                {{ range .MumsPurchaseQuantities }}
-                <option>{{ . }}</option>
-                {{ end }}
-            </select>
-        </form>
-        {{ end }}
-        
-        {{ if .HasMumsAvailable }}
-        <button 
-            hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa" 
-            hx-target="#mums-available-widget"
-            hx-swap="outerHTML"
-            hx-confirm="Are you sure you want to consume one mums?"
-            class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-white
-                   px-6 py-3 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
-                   focus:bg-[{{ .SecondaryColor }}] shadow-md"
-        >
-            <img src="/static/icons/drink.svg" class="w-6 h-6 invert" alt="Mumsa"/>
-            <span class="font-semibold">Mumsa</span>
-        </button>
-        {{ end }}
+            {{ if .HasMumsAvailable }}
+                <button 
+                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa" 
+                    hx-confirm="Are you sure you want to consume one mums?"
+                    class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
+                           px-6 py-3 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
+                           active:bg-[{{ .SecondaryColor }}] shadow-md"
+                >
+                    <img src="/static/icons/drink.svg" class="size-6 invert" alt=""/>
+                    <span>Mumsa</span>
+                </button>
+            {{ end }}
 
+        </div>
     </div>
-</div>
 {{ end }}
 
 {{ define "fragment-invite-link" }}
-<div class="w-full">
-    <label class="block text-sm font-medium text-gray-400 mb-1">
-        {{ .Label }}
-    </label>
-    <input
-        type="text"
-        data-url="{{ .URL }}"
-        value="{{ .URL }}"
-        readonly
-        hx-trigger="click"
-        hx-on:click="
-            navigator.clipboard.writeText(this.dataset.url)
-                .then(() => {
-                    this.value = '- Copied -';
-                    const copyStyleAdd = [
-                        'text-center',
-                        'text-green-600',
-                        'font-semibold',
-                        'border-green-600'
-                    ];
-                    const copyStyleRemove = [
-                        'border-gray-300'
-                    ];
-                    this.classList.add(...copyStyleAdd);
-                    this.classList.remove(...copyStyleRemove);
-                    setTimeout(() => {
-                        this.value = this.dataset.url;
-                        this.classList.remove(...copyStyleAdd);
-                        this.classList.add(...copyStyleRemove);
-                    }, 1000);
-                })
-                .catch(err => console.error('Failed to copy: ', err))
-        "
-        class="w-full rounded-md border-2 border-gray-300 px-3 py-2 text-sm text-gray-900
-               cursor-pointer caret-transparent truncate select-all focus:outline-none"
-        title="Click to copy"
-    />
-</div>
+    <div class="flex flex-col gap-1 w-full">
+        <label for="{{ .ID }}" class="block text-sm font-medium text-backdrop-content-muted">
+            {{ .Label }}
+        </label>
+        <input
+            id="{{ .ID }}"
+            type="text"
+            data-url="{{ .URL }}"
+            value="{{ .URL }}"
+            readonly
+            hx-on:click="
+                navigator.clipboard.writeText(this.dataset.url)
+                    .then(() => {
+                        this.value = '- Copied -';
+                        const copyStyleAdd = [
+                            'text-center',
+                            'text-success',
+                            'font-semibold',
+                            'border-success'
+                        ];
+                        const copyStyleRemove = [
+                            'text-input-content',
+                            'border-input-border-muted'
+                        ];
+                        this.classList.add(...copyStyleAdd);
+                        this.classList.remove(...copyStyleRemove);
+                        setTimeout(() => {
+                            this.value = this.dataset.url;
+                            this.classList.remove(...copyStyleAdd);
+                            this.classList.add(...copyStyleRemove);
+                        }, 1000);
+                    })
+                    .catch(err => console.error('Failed to copy: ', err))
+            "
+            class="w-full bg-input text-input-content rounded-md border-2 border-input-border-muted px-3 py-2 text-sm cursor-pointer caret-transparent truncate select-all focus:outline-none"
+            title="Click to copy"
+        />
+    </div>
 {{ end }}

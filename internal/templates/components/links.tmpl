@@ -1,0 +1,22 @@
+{{- define "component-nav-link" }}
+<a
+    href="{{ .Href }}"
+    class="text-sm text-backdrop-content-muted hover:text-backdrop-content active:text-backdrop-content inline-flex items-center px-1 pt-0.5 border-b-2 border-transparent hover:border-brand-primary active:border-brand-primary"
+>
+    {{- .Text -}}
+</a>
+{{- end }}
+
+{{- define "component-external-link" }}
+<a 
+    href="{{ .Href }}"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="hover:underline active:underline{{ if .IconPath }} inline-flex justify-center gap-2{{ end }}{{ if .Class }} {{ .Class }}{{ end }}"
+>
+    {{ if .IconPath }}
+    <img src="{{ .IconPath }}" alt="" aria-hidden="true"{{ if .IconClass }} class="{{ .IconClass }}"{{ end }} />
+    {{ end }}
+    {{- .Text -}}
+</a>
+{{- end }}

@@ -1,39 +1,52 @@
 {{ define "about" }}
-{{ template "base" . }}
+    {{ template "base" . }}
 {{ end }}
 
-{{ block "title" . }}mums | About{{ end }}
+{{ define "title" }}mums | About{{ end }}
 
 {{ define "content" }}
-<div class="px-4 py-12 text-center">
+    <div class="self-center max-w-full flex flex-col items-center gap-6">
 
-    <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
-        mums
-    </h1>
-    
-    <p class="mt-2 text-lg text-gray-600">
-        Serving beverages since 1337!
-    </p>
+        <hgroup class="flex flex-col items-center gap-2 w-full">
+            <h1 class="text-3xl font-extrabold tracking-tight text-backdrop-content">
+                mums
+            </h1>
+            
+            <p class="text-lg text-backdrop-content-muted">
+                Serving beverages since 1337!
+            </p>
+        </hgroup>
 
-    <div class="mx-auto mt-8 max-w-xl space-y-6 text-left">
+        <div class="flex flex-col gap-6 w-full text-sm leading-relaxed text-backdrop-content">
+            <p>
+                <strong>mums</strong> is a web application designed to easily track and manage
+                <em>mums</em> throughout the introductory period.
+            </p>
 
-        <p class="text-sm leading-relaxed text-gray-800">
-            mums is a web application designed to easily track and manage <i>mums</i> throughout the introductory period.
-        </p>
-
-        <p class="text-sm leading-relaxed text-gray-800">
-            This project is built with simplicity at its core, deliberately avoiding the
-            build steps that are common in modern web development. It combines
-            <a href="https://htmx.org/" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:text-indigo-900 focus:text-indigo-900 hover:underline">HTMX</a> on the frontend with
-            <a href="https://echo.labstack.com/" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:text-indigo-900 focus:text-indigo-900 hover:underline">Echo</a> on the backend to create a lightweight,
-            server-driven architecture. Core features like authentication, session
-            management, and routing are implemented from scratch, giving full control while
-            keeping complexity to a minimum. All data is stored in a lightweight
-            <a href="https://www.sqlite.org/" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:text-indigo-900 focus:text-indigo-900 hover:underline focus:underline">SQLite</a> database, making the setup easy to run and
-            maintain.
-        </p>
+            <p>
+                This project is built with simplicity at its core, deliberately avoiding the
+                build steps that are common in modern web development. It combines
+                {{ template "component-external-link" dict
+                    "Href" "https://htmx.org/"
+                    "Class" "font-semibold text-backdrop-content-highlight"
+                    "Text" "HTMX"
+                }} on the frontend with
+                {{ template "component-external-link" dict
+                    "Href" "https://echo.labstack.com/"
+                    "Class" "font-semibold text-backdrop-content-highlight"
+                    "Text" "Echo"
+                }} on the backend to create a lightweight
+                server-driven architecture. Core features like authentication, session
+                management, and routing are implemented from scratch, giving full control while
+                keeping complexity to a minimum. All data is stored in a lightweight
+                {{ template "component-external-link" dict
+                    "Href" "https://www.sqlite.org/"
+                    "Class" "font-semibold text-backdrop-content-highlight"
+                    "Text" "SQLite"
+                }} database, making the setup easy to run and
+                maintain.
+            </p>
+        </div>
 
     </div>
-
-</div>
 {{ end }}

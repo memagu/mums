@@ -1,43 +1,49 @@
 {{ define "component-form-input-field" }}
-<div class="mb-6">
-    {{ if or .Label .InfoLabel }}
-    <label for="{{ .ID }}" class="block font-medium mb-1">
-        {{ if .Label }} <p class="text-sm text-gray-700">{{ .Label }}</p> {{ end }}
-        {{ if .InfoLabel }} <p class="text-xs text-gray-400">{{ .InfoLabel }}</p> {{ end }}
-    </label>
-    {{ end }}
-    <input
-        id="{{ .ID }}"
-        name="{{ .Name }}"
-        type="{{ .Type }}"
-        {{ if .Pattern }} pattern="{{ .Pattern }}" {{ end }}
-        {{ if hasKey . "Min" }} min="{{ .Min }}" {{ end }}
-        {{ if hasKey . "Max" }} max="{{ .Max }}" {{ end }}
-        {{ if hasKey . "Step" }} step="{{ .Step }}" {{ end }}
-        {{ if .Autocomplete }} autocomplete="{{ .Autocomplete }}" {{ end }}
-        {{ if .Required }} required {{ end }}
-        {{ if hasKey . "Value" }} value="{{ .Value }}" {{ end }}
-        class="w-full rounded-md border-2 border-gray-300 px-3 py-2 shadow-sm placeholder-gray-400 focus:border-c focus:outline-none"
-    >
-    {{ template "component-form-errors" . }}
-</div>
+        <div class="flex flex-col gap-1">
+        {{ if or .Label .InfoLabel }}
+            <label for="{{ .ID }}" class="block font-medium">
+                {{ if .Label }} <p class="text-sm text-backdrop-content-muted">{{ .Label }}</p> {{ end }}
+                {{ if .InfoLabel }} <p class="text-xs text-backdrop-content-muted">{{ .InfoLabel }}</p> {{ end }}
+            </label>
+        {{ end }}
+        <input
+            id="{{ .ID }}"
+            name="{{ .Name }}"
+            type="{{ .Type }}"
+            {{ if .Pattern }} pattern="{{ .Pattern }}" {{ end }}
+            {{ if hasKey . "Min" }} min="{{ .Min }}" {{ end }}
+            {{ if hasKey . "Max" }} max="{{ .Max }}" {{ end }}
+            {{ if hasKey . "Step" }} step="{{ .Step }}" {{ end }}
+            {{ if .Autocomplete }} autocomplete="{{ .Autocomplete }}" {{ end }}
+            {{ if .Required }} required {{ end }}
+            {{ if hasKey . "Value" }} value="{{ .Value }}" {{ end }}
+            class="w-full rounded-md border-2 border-input-border-muted bg-input px-3 py-2 shadow-sm placeholder-input-content-muted focus:border-input-border focus:outline-none"
+        >
+        {{ template "component-form-errors" . }}
+    </div>
 {{ end }}
 
 {{ define "component-form-errors" }}
-{{ if .Errors }}
-<div class="mt-1 space-y-1">
-    {{ range .Errors }}
-    <p class="text-xs text-red-600">{{ . }}</p>
+    {{ if .Errors }}
+        <ul role="alert" class="flex flex-col gap-1">
+            {{ range .Errors }}
+                <li class="text-xs text-error">{{ . }}</li>
+            {{ end }}
+        </ul>
     {{ end }}
-</div>
-{{ end }}
 {{ end }}
 
-{{ define "component-form-submit-button" }}
-<button
-    type="submit"
-    class="w-full bg-d text-white py-2 rounded-md text-lg font-semibold hover:bg-c focus:bg-c"
->
-    {{ .Text }}
-</button>
+{{ define "component-password-field" }}
+    {{ template "component-form-input-field" dict
+        "ID" "password-field"
+        "Label" "Password"
+        "Name" "password"
+        "Type" "password"
+        "Autocomplete" .Autocomplete
+        "Required" true
+    }}
+{{ end }}
+
+{{ define "component-generic-errors" }}
+    {{ template "component-form-errors" dict "Errors" .Errors.Generic }}
 {{ end }}
