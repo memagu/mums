@@ -106,11 +106,14 @@ func GetPhaddergruppEventStream(c echo.Context) error {
 	subID, events := database.Subscribe(16)
 	defer database.Unsubscribe(subID)
 
+	timer := time.NewTimer(config.Server.SSETimeout)
+	defer timer.Stop()
+
 	for {
 		select {
 		case <-c.Request().Context().Done():
 			return nil
-		case <-time.After(config.Server.SSETimeout):
+		case <-timer.C:
 			return nil
 		case event, ok := <-events:
 			if !ok {
@@ -118,6 +121,14 @@ func GetPhaddergruppEventStream(c echo.Context) error {
 			}
 
 			handlePhaddergruppEvent(c, event)
+
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+			timer.Reset(config.Server.SSETimeout)
 		}
 	}
 }
