@@ -16,6 +16,9 @@ func main() {
 
 	e := echo.New()
 
+	e.Server.ReadHeaderTimeout = config.Server.ReadHeaderTimeout
+	e.Server.IdleTimeout = config.Server.IdleTimeout
+
 	e.Use(middleware.Logger())
 
 	database, err := db.NewDB(config.DB.FilePath)
