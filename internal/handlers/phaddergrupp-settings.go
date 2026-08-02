@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -11,6 +12,8 @@ import (
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/loaders"
 )
+
+var hexColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3,8}$`)
 
 type phaddergruppSettingsTemplateData struct {
 	basePageData
@@ -47,10 +50,18 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		updatedPhaddergruppData.Name = strVal
 	}
 	if strVal := c.FormValue("primary-color"); strVal != "" {
-		updatedPhaddergruppData.PrimaryColor = strVal
+		if !hexColorPattern.MatchString(strVal) {
+			formErrors["PrimaryColor"] = []string{"Must be a valid hex color (e.g. #f280a1)"}
+		} else {
+			updatedPhaddergruppData.PrimaryColor = strVal
+		}
 	}
 	if strVal := c.FormValue("secondary-color"); strVal != "" {
-		updatedPhaddergruppData.SecondaryColor = strVal
+		if !hexColorPattern.MatchString(strVal) {
+			formErrors["SecondaryColor"] = []string{"Must be a valid hex color (e.g. #f280a1)"}
+		} else {
+			updatedPhaddergruppData.SecondaryColor = strVal
+		}
 	}
 	if strVal := c.FormValue("mums-price-n0lla"); strVal != "" {
 		val, err := strconv.ParseFloat(strVal, 64)
