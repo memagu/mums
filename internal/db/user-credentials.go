@@ -1,6 +1,9 @@
 package db
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 const SchemaUserCredentials = `
 CREATE TABLE IF NOT EXISTS user_credentials (
@@ -61,7 +64,7 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 
 	var exists bool
 	err := row.Scan(&exists)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	} else if err != nil {
 		return false, err

@@ -2,6 +2,7 @@ package loaders
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -47,7 +48,7 @@ func PhaddergruppMiddleware() echo.MiddlewareFunc {
 
 			phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
 			if err != nil {
-				if err == sql.ErrNoRows {
+				if errors.Is(err, sql.ErrNoRows) {
 					return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
 				}
 				c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
