@@ -3,7 +3,6 @@ package loaders
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -27,7 +26,7 @@ func UserProfileMiddleware() echo.MiddlewareFunc {
 			userProfileData, err := database.ReadUserProfileByUserAccountID(database, userAccountID)
 			if err != nil {
 				c.Logger().Errorf("Database error during user profile read: %v", err)
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				return echo.NewHTTPError(http.StatusInternalServerError, "An unexpected error occurred. Please try again.")
 			}
 			c.Set(ctxKeyUserProfile, userProfileData)
 
@@ -51,8 +50,7 @@ func PhaddergruppMiddleware() echo.MiddlewareFunc {
 				if errors.Is(err, sql.ErrNoRows) {
 					return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
 				}
-				c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				return httpx.InternalError(c, "phaddergrupp read", err)
 			}
 			c.Set(ctxKeyPhaddergrupp, phaddergruppData)
 

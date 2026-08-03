@@ -3,7 +3,6 @@ package auth
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -28,7 +27,8 @@ func UserAccountRBACMiddleware() echo.MiddlewareFunc {
 			database := db.GetDB(c)
 			userAccountRoles, err := database.ReadUserAccountRoles(database, GetUserAccountID(c))
 			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				c.Logger().Errorf("Database error during user account roles read: %v", err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "An unexpected error occurred. Please try again.")
 			}
 			c.Set(ctxKeyUserAccountRoles, userAccountRoles)
 
@@ -83,7 +83,7 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 				if errors.Is(err, sql.ErrNoRows) {
 					return echo.NewHTTPError(http.StatusForbidden, "Forbidden: User account does not have access to this phaddergrupp")
 				}
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Internal Server Error: %v", err))
+				return httpx.InternalError(c, "phaddergrupp role read", err)
 			}
 
 			c.Set(ctxKeyPhaddergruppID, phaddergruppID)
