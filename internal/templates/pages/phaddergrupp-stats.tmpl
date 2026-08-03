@@ -1,0 +1,78 @@
+{{ define "phaddergrupp-stats" }}
+    {{ template "base" . }}
+{{ end }}
+
+{{ define "title" }}mums | Phaddergrupp Stats{{ end }}
+
+{{ define "head" }}
+    {{ template "import-htmx-sse" . }}
+{{ end }}
+
+{{ define "content" }}
+    <div
+        hx-ext="sse"
+        sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
+        class="self-center max-w-full flex flex-col items-center gap-6"
+    >
+        <h1 class="text-center text-2xl">
+            The
+            <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
+                {{- .Name -}}
+            </span>
+            thirst report
+        </h1>
+
+        {{ template "fragment-phaddergrupp-stats" . }}
+
+        <a
+            href="/phaddergrupp/{{ .PhaddergruppID }}"
+            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
+                   rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
+                   active:bg-[{{ .SecondaryColor }}] truncate"
+        >󰌑 Return to {{ .Name }}</a>
+    </div>
+{{ end }}
+
+{{ define "fragment-phaddergrupp-stats" }}
+    <div
+        id="phaddergrupp-stats"
+        sse-swap="phaddergrupp-stats-update"
+        hx-swap="outerHTML"
+        class="w-full flex flex-col gap-6"
+    >
+        <p class="text-center text-sm text-backdrop-content-muted">
+            Informal record, may not reflect actual consumption.
+        </p>
+
+        <div class="w-full flex flex-col gap-3">
+            {{ range .Members }}
+                <div class="flex items-center justify-between gap-4 w-full min-w-0 p-4
+                            bg-card rounded-xl shadow-sm border-l-4 border-[{{ $.PrimaryColor }}]
+                            text-card-content">
+                    <p class="flex-1 min-w-0 max-w-full truncate">{{ .UserProfileName }}</p>
+                    <div class="flex shrink-0 items-center gap-4 text-sm">
+                        <span class="flex items-center gap-1" title="Mumsat">
+                            <img src="/static/icons/drink.svg" alt="Mumsat" class="size-4" />
+                            <output>{{ .Mumsat }}</output>
+                        </span>
+                        <span class="flex items-center gap-1" title="Bought">
+                            <img src="/static/icons/cart.svg" alt="Bought" class="size-4" />
+                            <output>{{ .Bought }}</output>
+                        </span>
+                    </div>
+                </div>
+            {{ end }}
+        </div>
+
+        <div class="w-full flex items-center justify-center gap-6 text-card-content-muted">
+            <span class="flex items-center gap-1">
+                <img src="/static/icons/drink.svg" alt="" class="size-4" />
+                Total mumsningar: <output>{{ .TotalMumsat }}</output>
+            </span>
+            <span class="flex items-center gap-1">
+                <img src="/static/icons/cart.svg" alt="" class="size-4" />
+                Total bought: <output>{{ .TotalBought }}</output>
+            </span>
+        </div>
+    </div>
+{{ end }}
