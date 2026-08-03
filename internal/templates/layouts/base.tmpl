@@ -53,6 +53,7 @@
                         </ul>
                         <div class="flex flex-1 items-center justify-end gap-4">
                             {{ if .IsLoggedIn }}
+                                <a href="/settings" class="text-sm text-backdrop-content-muted hover:text-backdrop-content active:text-backdrop-content hover:underline active:underline">Account</a>
                                 <a hx-post="/logout" href="#" class="text-sm text-backdrop-content-highlight hover:text-backdrop-content-highlight active:text-backdrop-content-highlight hover:underline active:underline">Logout</a>
                             {{ else }}
                                 <a href="/login" class="text-sm text-backdrop-content-muted hover:text-backdrop-content active:text-backdrop-content hover:underline active:underline">Login</a>

@@ -1,0 +1,90 @@
+{{ define "account-settings" }}
+    {{ template "base" . }}
+{{ end }}
+
+{{ define "title" }}mums | Account Settings{{ end }}
+
+{{ define "head" }}
+    {{ template "import-toastr" . }}
+{{ end }}
+
+{{ define "content" }}
+    <div class="self-center max-w-full flex flex-col justify-center gap-6">
+        <h1 class="text-center text-2xl">
+            Making you, you!
+        </h1>
+
+        <form
+            hx-patch="/settings"
+            hx-target="#form-fields"
+            hx-swap="outerHTML"
+            class="flex flex-col gap-6"
+            hx-on::after-on-load="
+                toastr.options.timeOut = 2000;
+                toastr.options.positionClass = 'toast-top-center';
+                toastr.options.progressBar = true;
+                if (event.detail.xhr.status === 200) {
+                    toastr.success(event.detail.xhr.getResponseHeader('X-Settings-Message') || 'Settings saved');
+                } else if (event.detail.xhr.status >= 500) {
+                    toastr.error('Failed to save settings');
+                }
+            "
+        >
+            {{ template "fragment-form-fields" . }}
+            <button type="submit" class="w-full bg-brand-primary text-brand-primary-content py-2 rounded-md text-lg font-semibold hover:bg-brand-secondary active:bg-brand-secondary">Save</button>
+        </form>
+    </div>
+{{ end }}
+
+{{ define "fragment-form-fields" }}
+    <div id="form-fields" class="flex flex-col gap-6">
+        {{ template "component-form-input-field" dict
+            "ID" "name-field"
+            "Label" "Name"
+            "Name" "name"
+            "Type" "text"
+            "Autocomplete" "name"
+            "Required" true
+            "Value" .Name
+            "Errors" .Errors.Name
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "email-field"
+            "Label" "Email address"
+            "Name" "email"
+            "Type" "email"
+            "Autocomplete" "email"
+            "Required" true
+            "Value" .Email
+            "Errors" .Errors.Email
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "new-password-field"
+            "Label" "New password"
+            "Name" "new-password"
+            "Type" "password"
+            "Autocomplete" "new-password"
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "confirm-password-field"
+            "Label" "Confirm new password"
+            "Name" "confirm-password"
+            "Type" "password"
+            "Autocomplete" "new-password"
+            "Errors" .Errors.PasswordConfirm
+        }}
+
+        {{ template "component-divider" dict "Class" "border-brand-primary" }}
+
+        {{ template "component-form-input-field" dict
+            "ID" "current-password-field"
+            "Label" "Current password"
+            "InfoLabel" "Required to save changes"
+            "Name" "current-password"
+            "Type" "password"
+            "Autocomplete" "current-password"
+            "Errors" .Errors.CurrentPassword
+        }}
+        {{ template "component-generic-errors" . }}
+    </div>
+{{ end }}

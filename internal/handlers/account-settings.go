@@ -1,0 +1,147 @@
+package handlers
+
+import (
+	"database/sql"
+	"errors"
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/memagu/mums/internal/auth"
+	"github.com/memagu/mums/internal/db"
+	"github.com/memagu/mums/internal/loaders"
+	"github.com/memagu/mums/pkg/password"
+)
+
+type accountSettingsPageData struct {
+	basePageData
+	Name   string
+	Email  string
+	Errors map[string][]string
+}
+
+func GetAccountSettings(c echo.Context) error {
+	database := db.GetDB(c)
+	userAccountID := auth.GetUserAccountID(c)
+
+	credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+	if err != nil {
+		return handleDBError(c, "account settings read", err)
+	}
+
+	pageData := accountSettingsPageData{
+		basePageData: basePageData{
+			IsLoggedIn:        auth.GetIsLoggedIn(c),
+			AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusBadRequest},
+			CSRFToken:         csrfToken(c),
+		},
+		Name:  loaders.GetUserProfile(c).Name,
+		Email: credentials.Email,
+	}
+	return c.Render(http.StatusOK, "account-settings", pageData)
+}
+
+func PatchAccountSettings(c echo.Context) error {
+	name := c.FormValue("name")
+	email := c.FormValue("email")
+	currentPassword := c.FormValue("current-password")
+	newPassword := c.FormValue("new-password")
+	confirmPassword := c.FormValue("confirm-password")
+
+	formErrors := make(map[string][]string)
+
+	if name == "" {
+		formErrors["Name"] = []string{"Name is required."}
+	}
+	if email == "" {
+		formErrors["Email"] = []string{"Email address is required."}
+	}
+	if newPassword != confirmPassword {
+		formErrors["PasswordConfirm"] = []string{"Passwords do not match."}
+	}
+
+	database := db.GetDB(c)
+	userAccountID := auth.GetUserAccountID(c)
+
+	credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+	if err != nil {
+		return handleDBError(c, "account settings read", err)
+	}
+
+	nameChanged := name != loaders.GetUserProfile(c).Name
+	emailChanged := email != credentials.Email
+	passwordChanged := newPassword != ""
+	changesPending := nameChanged || emailChanged || passwordChanged
+
+	if changesPending {
+		if currentPassword == "" {
+			formErrors["CurrentPassword"] = []string{"Current password is required."}
+		} else if !password.Check(currentPassword, credentials.Hashword) {
+			formErrors["CurrentPassword"] = []string{"Current password is incorrect."}
+		}
+	}
+
+	if emailChanged {
+		_, _, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, email)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+		case err != nil:
+			return handleDBError(c, "email conflict check", err)
+		default:
+			formErrors["Email"] = []string{"Account with email already exists."}
+		}
+	}
+
+	var hashword string
+	if passwordChanged && len(formErrors) == 0 {
+		hashword, err = password.HashSecure(newPassword)
+		if err == bcrypt.ErrPasswordTooLong {
+			formErrors["PasswordConfirm"] = []string{"Password length exceeds 72."}
+		} else if err != nil {
+			c.Logger().Errorf("Password could not be hashed: %v", err)
+			return handleDBError(c, "account settings password hash", err)
+		}
+	}
+
+	if len(formErrors) > 0 {
+		return c.Render(http.StatusBadRequest, "account-settings#fragment-form-fields", accountSettingsPageData{
+			Name:   name,
+			Email:  email,
+			Errors: formErrors,
+		})
+	}
+
+	err = db.WithTx(database, func(e db.Execer) error {
+		if nameChanged {
+			if err := database.UpdateUserProfileName(e, userAccountID, name); err != nil {
+				return err
+			}
+		}
+		if emailChanged {
+			if err := database.UpdateUserCredentialsEmail(e, credentials.ID, email); err != nil {
+				return err
+			}
+		}
+		if passwordChanged {
+			if err := database.UpdateUserCredentialsHashword(e, credentials.ID, hashword); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return handleDBError(c, "account settings update", err)
+	}
+
+	settingsMessage := "Settings saved."
+	if !changesPending {
+		settingsMessage = "No changes to save."
+	}
+	c.Response().Header().Set("X-Settings-Message", settingsMessage)
+
+	return c.Render(http.StatusOK, "account-settings#fragment-form-fields", accountSettingsPageData{
+		Name:  name,
+		Email: email,
+	})
+}
