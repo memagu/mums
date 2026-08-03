@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -60,10 +61,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 			return c.Render(http.StatusInternalServerError, "login#fragment-form-fields", pageData)
 		}
 
-		database := db.GetDB(c)
-
-		userCredentialsID, hashword, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
-		if err == sql.ErrNoRows || !password.Check(userPassword, hashword) {
+		invalidCredentials := func() error {
 			pageData := loginPageData{
 				basePageData: basePageData{IsLoggedIn: false},
 				Email:        userEmail,
@@ -71,9 +69,18 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 			}
 			return c.Render(http.StatusUnauthorized, "login#fragment-form-fields", pageData)
 		}
-		if err != nil {
+
+		database := db.GetDB(c)
+
+		userCredentialsID, hashword, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return invalidCredentials()
+		case err != nil:
 			c.Logger().Errorf("Database error during login for email %s: %v", userEmail, err)
 			return unexpectedError()
+		case !password.Check(userPassword, hashword):
+			return invalidCredentials()
 		}
 
 		userAccountID, err := database.ReadUserAccountIDByUserCredentialsID(database, userCredentialsID)
