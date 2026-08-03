@@ -17,7 +17,7 @@
             {{ if .Autocomplete }} autocomplete="{{ .Autocomplete }}" {{ end }}
             {{ if .Required }} required {{ end }}
             {{ if hasKey . "Value" }} value="{{ .Value }}" {{ end }}
-            class="w-full rounded-md border-2 border-input-border-muted bg-input px-3 py-2 shadow-sm placeholder-input-content-muted focus:border-input-border focus:outline-none"
+            class="w-full rounded-md border-2 border-input-border-muted bg-input px-3 py-2 shadow-sm placeholder-input-content-muted focus:border-input-border focus:outline-none{{ if .Class }} {{ .Class }}{{ end }}"
         >
         {{ template "component-form-errors" . }}
     </div>

@@ -57,10 +57,11 @@
 {{ end }}
 
 {{ define "fragment-form-fields" }}
-    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col sm:grid-rows-4 sm:gap-x-6 gap-y-6">
+    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col sm:grid-rows-6 sm:gap-x-6 gap-y-6">
         {{ template "component-form-input-field" dict
             "ID" "name-field"
             "Label" "Phaddergrupp name"
+            "InfoLabel" "Shown on cards and the group page"
             "Name" "name"
             "Type" "text"
             "Required" true
@@ -79,8 +80,10 @@
         {{ template "component-form-input-field" dict
             "ID" "primary-color-field"
             "Label" "Primary color"
+            "InfoLabel" "Main color across the group"
             "Name" "primary-color"
             "Type" "color"
+            "Class" "h-11"
             "Required" true
             "Value" .PrimaryColor
             "Errors" .Errors.PrimaryColor
@@ -88,61 +91,13 @@
         {{ template "component-form-input-field" dict
             "ID" "secondary-color-field"
             "Label" "Secondary color"
+            "InfoLabel" "Hover and accent color"
             "Name" "secondary-color"
             "Type" "color"
+            "Class" "h-11"
             "Required" true
             "Value" .SecondaryColor
             "Errors" .Errors.SecondaryColor
-        }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-capacity-per-user-field"
-            "Label" "Mums capacity per user"
-            "Name" "mums-capacity-per-user"
-            "Type" "number"
-            "Min" 0
-            "Required" true
-            "Value" .MumsCapacityPerUser
-            "Errors" .Errors.MumsCapacityPerUser
-        }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-min-purchase-quantity-field"
-            "Label" "Mums min purchase quantity"
-            "Name" "mums-min-purchase-quantity"
-            "Type" "number"
-            "Min" 1
-            "Required" true
-            "Value" .MumsMinPurchaseQuantity
-            "Errors" .Errors.MumsMinPurchaseQuantity
-        }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-max-purchase-quantity-field"
-            "Label" "Mums max purchase quantity"
-            "Name" "mums-max-purchase-quantity"
-            "Type" "number"
-            "Min" 1
-            "Required" true
-            "Value" .MumsMaxPurchaseQuantity
-            "Errors" .Errors.MumsMaxPurchaseQuantity
-        }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-purchase-quantity-step-field"
-            "Label" "Mums purchase step"
-            "Name" "mums-purchase-quantity-step"
-            "Type" "number"
-            "Min" 1
-            "Required" true
-            "Value" .MumsPurchaseQuantityStep
-            "Errors" .Errors.MumsPurchaseQuantityStep
-        }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-default-purchase-quantity-field"
-            "Label" "Mums default purchase quantity"
-            "Name" "mums-default-purchase-quantity"
-            "Type" "number"
-            "Min" 1
-            "Required" true
-            "Value" .MumsDefaultPurchaseQuantity
-            "Errors" .Errors.MumsDefaultPurchaseQuantity
         }}
         {{ $currencyInfo := printf "Currency: %s" .MumsCurrency }}
         {{ template "component-form-input-field" dict
@@ -168,6 +123,61 @@
             "Required" true
             "Value" .MumsPricePhadder
             "Errors" .Errors.MumsPricePhadder
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-min-purchase-quantity-field"
+            "Label" "Mums min purchase quantity"
+            "InfoLabel" "Lowest amount a member can buy"
+            "Name" "mums-min-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsMinPurchaseQuantity
+            "Errors" .Errors.MumsMinPurchaseQuantity
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-max-purchase-quantity-field"
+            "Label" "Mums max purchase quantity"
+            "InfoLabel" "Highest amount a member can buy"
+            "Name" "mums-max-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsMaxPurchaseQuantity
+            "Errors" .Errors.MumsMaxPurchaseQuantity
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-purchase-quantity-step-field"
+            "Label" "Mums purchase step"
+            "InfoLabel" "Buyable amounts increase by this"
+            "Name" "mums-purchase-quantity-step"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsPurchaseQuantityStep
+            "Errors" .Errors.MumsPurchaseQuantityStep
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-default-purchase-quantity-field"
+            "Label" "Mums default purchase quantity"
+            "InfoLabel" "Preselected amount when buying"
+            "Name" "mums-default-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsDefaultPurchaseQuantity
+            "Errors" .Errors.MumsDefaultPurchaseQuantity
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-capacity-per-user-field"
+            "Label" "Mums capacity per user"
+            "InfoLabel" "Mums a member can hold at once"
+            "Name" "mums-capacity-per-user"
+            "Type" "number"
+            "Min" 0
+            "Required" true
+            "Value" .MumsCapacityPerUser
+            "Errors" .Errors.MumsCapacityPerUser
         }}
         {{ template "component-generic-errors" . }}
     </div>
