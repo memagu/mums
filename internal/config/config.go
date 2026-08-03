@@ -22,13 +22,14 @@ type dbConfig struct {
 }
 
 type mumsDefaults struct {
-	CapacityPerUser      int64
-	Currency             string
-	MaxPurchaseQuantity  int
-	MinPurchaseQuantity  int
-	PriceN0lla           float64
-	PricePhadder         float64
-	StepPurchaseQuantity int
+	CapacityPerUser         int64
+	Currency                string
+	DefaultPurchaseQuantity int
+	MaxPurchaseQuantity     int
+	MinPurchaseQuantity     int
+	PriceN0lla              float64
+	PricePhadder            float64
+	StepPurchaseQuantity    int
 }
 
 type phaddergruppDefaults struct {
@@ -59,13 +60,14 @@ var (
 	DB       dbConfig
 	Defaults = defaultsConfig{
 		Mums: mumsDefaults{
-			CapacityPerUser:      10,
-			Currency:             "SEK",
-			MaxPurchaseQuantity:  10,
-			MinPurchaseQuantity:  1,
-			PriceN0lla:           10.0,
-			PricePhadder:         10.0,
-			StepPurchaseQuantity: 1,
+			CapacityPerUser:         10,
+			Currency:                "SEK",
+			DefaultPurchaseQuantity: 5,
+			MaxPurchaseQuantity:     10,
+			MinPurchaseQuantity:     1,
+			PriceN0lla:              10.0,
+			PricePhadder:            10.0,
+			StepPurchaseQuantity:    1,
 		},
 		Phaddergrupp: phaddergruppDefaults{
 			PrimaryColor:   "#F280A1",
