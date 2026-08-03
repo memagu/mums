@@ -215,7 +215,7 @@
         </output>
 
         <div class="flex flex-wrap justify-center gap-6">
-            {{ if not .MumsCapacityReached }}
+            {{ if .HasMumsPurchaseQuantities }}
                 <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content gap-3">
                     <button type="submit" class="flex justify-center items-center
                                gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md 
@@ -229,7 +229,7 @@
                     <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
                     <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-md px-2 py-3 text-xl w-16">
                         {{ range .MumsPurchaseQuantities }}
-                            <option>{{ . }}</option>
+                            <option {{ if eq . $.MumsDefaultPurchaseQuantity }}selected{{ end }}>{{ . }}</option>
                         {{ end }}
                     </select>
                 </form>

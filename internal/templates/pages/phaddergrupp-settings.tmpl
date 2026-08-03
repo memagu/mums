@@ -104,6 +104,46 @@
             "Value" .MumsCapacityPerUser
             "Errors" .Errors.MumsCapacityPerUser
         }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-min-purchase-quantity-field"
+            "Label" "Mums min purchase quantity"
+            "Name" "mums-min-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsMinPurchaseQuantity
+            "Errors" .Errors.MumsMinPurchaseQuantity
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-max-purchase-quantity-field"
+            "Label" "Mums max purchase quantity"
+            "Name" "mums-max-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsMaxPurchaseQuantity
+            "Errors" .Errors.MumsMaxPurchaseQuantity
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-purchase-quantity-step-field"
+            "Label" "Mums purchase step"
+            "Name" "mums-purchase-quantity-step"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsPurchaseQuantityStep
+            "Errors" .Errors.MumsPurchaseQuantityStep
+        }}
+        {{ template "component-form-input-field" dict
+            "ID" "mums-default-purchase-quantity-field"
+            "Label" "Mums default purchase quantity"
+            "Name" "mums-default-purchase-quantity"
+            "Type" "number"
+            "Min" 1
+            "Required" true
+            "Value" .MumsDefaultPurchaseQuantity
+            "Errors" .Errors.MumsDefaultPurchaseQuantity
+        }}
         {{ $currencyInfo := printf "Currency: %s" .MumsCurrency }}
         {{ template "component-form-input-field" dict
             "ID" "mums-price-n0lla-field"

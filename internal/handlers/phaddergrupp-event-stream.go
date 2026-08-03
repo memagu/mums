@@ -17,24 +17,26 @@ import (
 type templateDataMumsAvailableWidget struct {
 	PhaddergruppID int64
 	db.PhaddergruppData
-	MumsAvailable          int64
-	HasMumsAvailable       bool
-	MumsCapacityReached    bool
-	MumsPurchaseQuantities []int
+	MumsAvailable             int64
+	HasMumsAvailable          bool
+	HasMumsPurchaseQuantities bool
+	MumsCapacityReached       bool
+	MumsPurchaseQuantities    []int64
 }
 
 func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpdate) error {
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
-	purchaseQuantities := mumsPurchaseQuantities(eventData.MumsAvailable, phaddergruppData.MumsCapacityPerUser)
+	purchaseQuantities := mumsPurchaseQuantities(eventData.MumsAvailable, phaddergruppData)
 
 	templateData := templateDataMumsAvailableWidget{
-		PhaddergruppID:         phaddergruppID,
-		PhaddergruppData:       phaddergruppData,
-		MumsAvailable:          eventData.MumsAvailable,
-		HasMumsAvailable:       eventData.MumsAvailable > 0,
-		MumsCapacityReached:    eventData.MumsAvailable >= phaddergruppData.MumsCapacityPerUser,
-		MumsPurchaseQuantities: purchaseQuantities,
+		PhaddergruppID:            phaddergruppID,
+		PhaddergruppData:          phaddergruppData,
+		MumsAvailable:             eventData.MumsAvailable,
+		HasMumsAvailable:          eventData.MumsAvailable > 0,
+		HasMumsPurchaseQuantities: len(purchaseQuantities) > 0,
+		MumsCapacityReached:       eventData.MumsAvailable >= phaddergruppData.MumsCapacityPerUser,
+		MumsPurchaseQuantities:    purchaseQuantities,
 	}
 
 	var sb strings.Builder

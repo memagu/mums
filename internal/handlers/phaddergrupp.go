@@ -15,25 +15,30 @@ import (
 
 type phaddergruppPageData struct {
 	basePageData
-	PhaddergruppID int64
-	IsPhadder      bool
-	MumsAvailable  int64
+	PhaddergruppID            int64
+	IsPhadder                 bool
+	MumsAvailable             int64
+	HasMumsPurchaseQuantities bool
 	db.UserProfileData
 	db.PhaddergruppData
 	PhaddergruppUserSummaries db.PhaddergruppUserSummaries
 	HasMumsAvailable          bool
 	MumsCapacityReached       bool
-	MumsPurchaseQuantities    []int
+	MumsPurchaseQuantities    []int64
 	InviteURLN0lla            string
 	InviteURLPhadder          string
 }
 
-func mumsPurchaseQuantities(mumsAvailable, mumsCapacityPerUser int64) []int {
-	remainingMumsCapacity := mumsCapacityPerUser - mumsAvailable
-	maxQty := min(config.Defaults.Mums.MaxPurchaseQuantity, int(remainingMumsCapacity))
+func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64 {
+	remaining := pd.MumsCapacityPerUser - mumsAvailable
+	capMax := min(pd.MumsMaxPurchaseQuantity, remaining)
+	if capMax < pd.MumsMinPurchaseQuantity {
+		return nil
+	}
+	largest := capMax - ((capMax - pd.MumsMinPurchaseQuantity) % pd.MumsPurchaseQuantityStep)
 
-	var purchaseQuantities []int
-	for qty := maxQty; qty >= 1; qty-- {
+	var purchaseQuantities []int64
+	for qty := largest; qty >= pd.MumsMinPurchaseQuantity; qty -= pd.MumsPurchaseQuantityStep {
 		purchaseQuantities = append(purchaseQuantities, qty)
 	}
 
@@ -57,7 +62,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
-	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData.MumsCapacityPerUser)
+	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData)
 
 	inviteTokens, err := database.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
@@ -76,6 +81,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		PhaddergruppID:            phaddergruppID,
 		IsPhadder:                 phaddergruppRole == roles.Phadder,
 		MumsAvailable:             mumsAvailable,
+		HasMumsPurchaseQuantities: len(purchaseQuantities) > 0,
 		UserProfileData:           loaders.GetUserProfile(c),
 		PhaddergruppData:          loaders.GetPhaddergrupp(c),
 		PhaddergruppUserSummaries: phaddergruppUserSummaries,

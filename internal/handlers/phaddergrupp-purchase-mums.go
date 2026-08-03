@@ -40,6 +40,17 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 		return handleDBError(c, "mums available read", err)
 	}
 
+	if mumsPurchaseQuantity < phaddergruppData.MumsMinPurchaseQuantity ||
+		mumsPurchaseQuantity > phaddergruppData.MumsMaxPurchaseQuantity ||
+		(mumsPurchaseQuantity-phaddergruppData.MumsMinPurchaseQuantity)%phaddergruppData.MumsPurchaseQuantityStep != 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
+			"Purchase quantity must be within %d-%d in steps of %d",
+			phaddergruppData.MumsMinPurchaseQuantity,
+			phaddergruppData.MumsMaxPurchaseQuantity,
+			phaddergruppData.MumsPurchaseQuantityStep,
+		))
+	}
+
 	if mumsPurchaseQuantity+mumsAvailable > phaddergruppData.MumsCapacityPerUser {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
 			"Purchase exceeds allowed limit: current=%d, requested=%d, max=%d",

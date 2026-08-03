@@ -91,6 +91,57 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 			updatedPhaddergruppData.MumsCapacityPerUser = val
 		}
 	}
+	if strVal := c.FormValue("mums-min-purchase-quantity"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsMinPurchaseQuantity"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsMinPurchaseQuantity = val
+		}
+	}
+	if strVal := c.FormValue("mums-max-purchase-quantity"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsMaxPurchaseQuantity"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsMaxPurchaseQuantity = val
+		}
+	}
+	if strVal := c.FormValue("mums-purchase-quantity-step"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsPurchaseQuantityStep"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsPurchaseQuantityStep = val
+		}
+	}
+	if strVal := c.FormValue("mums-default-purchase-quantity"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsDefaultPurchaseQuantity"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsDefaultPurchaseQuantity = val
+		}
+	}
+
+	if updatedPhaddergruppData.MumsMinPurchaseQuantity < 1 {
+		formErrors["MumsMinPurchaseQuantity"] = []string{"Must be at least 1"}
+	}
+	if updatedPhaddergruppData.MumsPurchaseQuantityStep < 1 {
+		formErrors["MumsPurchaseQuantityStep"] = []string{"Must be at least 1"}
+	}
+	if updatedPhaddergruppData.MumsMaxPurchaseQuantity < updatedPhaddergruppData.MumsMinPurchaseQuantity {
+		formErrors["MumsMaxPurchaseQuantity"] = []string{"Must be greater than or equal to the min purchase quantity"}
+	}
+	if updatedPhaddergruppData.MumsMaxPurchaseQuantity > updatedPhaddergruppData.MumsCapacityPerUser {
+		formErrors["MumsMaxPurchaseQuantity"] = []string{"Must not exceed the mums capacity per user"}
+	}
+	if d := updatedPhaddergruppData.MumsDefaultPurchaseQuantity; d < updatedPhaddergruppData.MumsMinPurchaseQuantity ||
+		d > updatedPhaddergruppData.MumsMaxPurchaseQuantity ||
+		(updatedPhaddergruppData.MumsPurchaseQuantityStep >= 1 &&
+			(d-updatedPhaddergruppData.MumsMinPurchaseQuantity)%updatedPhaddergruppData.MumsPurchaseQuantityStep != 0) {
+		formErrors["MumsDefaultPurchaseQuantity"] = []string{"Must be within min-max and on the step size"}
+	}
 
 	err := database.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData)
 	if err != nil {
