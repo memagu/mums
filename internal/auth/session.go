@@ -95,6 +95,16 @@ func (ss *SessionStore) deleteSession(sessionToken string) {
 	ss.Unlock()
 }
 
+func (ss *SessionStore) DeleteSessionsByUserAccountID(userAccountID int64) {
+	ss.Lock()
+	defer ss.Unlock()
+	for sessionToken, s := range ss.sessions {
+		if s.userAccountID == userAccountID {
+			delete(ss.sessions, sessionToken)
+		}
+	}
+}
+
 func setSessionCookie(c echo.Context, sessionToken string, expiresAt time.Time) {
 	sc := new(http.Cookie)
 	sc.Name = config.Auth.SessionCookie

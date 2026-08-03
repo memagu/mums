@@ -105,3 +105,32 @@ func (db *DB) ReadUserCredentialsByUserAccountID(q queryer, userAccountID int64)
 
 	return ucd, nil
 }
+
+func (db *DB) DeleteUserAccount(e execer, userAccountID int64) error {
+	const sqlQuery = `
+		UPDATE user_accounts
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND deleted_at IS NULL
+	`
+
+	result, err := e.Exec(sqlQuery, userAccountID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return nil
+	}
+
+	e.Emit(DBEvent{
+		Table: "user_accounts",
+		Type:  DBDelete,
+		Data:  nil,
+	})
+
+	return nil
+}
