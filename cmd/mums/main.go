@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -26,6 +28,16 @@ func main() {
 		panic(err)
 	}
 	e.Use(db.DBMiddleware(database))
+
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		ContextKey:     "csrf",
+		CookieName:     "_csrf",
+		CookiePath:     "/",
+		CookieHTTPOnly: true,
+		CookieSecure:   config.Server.CookieSecure,
+		CookieSameSite: http.SameSiteLaxMode,
+		TokenLookup:    "header:HX-CSRF-Token",
+	}))
 
 	templates.LoadTemplates(e)
 

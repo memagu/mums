@@ -40,6 +40,7 @@ func GetHome(c echo.Context) error {
 		basePageData: basePageData{
 			IsLoggedIn:        auth.GetIsLoggedIn(c),
 			AllowedErrorCodes: []int{http.StatusInternalServerError},
+			CSRFToken:         csrfToken(c),
 		},
 		UserProfileName:                       userProfile.Name,
 		UserPhaddergruppSummaries:             userPhaddergruppSummaries,

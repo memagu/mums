@@ -14,7 +14,10 @@ type aboutPageData struct {
 
 func GetAbout(c echo.Context) error {
 	pageData := aboutPageData{
-		basePageData: basePageData{IsLoggedIn: auth.GetIsLoggedIn(c)},
+		basePageData: basePageData{
+			IsLoggedIn: auth.GetIsLoggedIn(c),
+			CSRFToken:  csrfToken(c),
+		},
 	}
 	return c.Render(http.StatusOK, "about", pageData)
 }

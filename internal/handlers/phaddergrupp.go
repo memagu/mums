@@ -71,6 +71,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		basePageData: basePageData{
 			IsLoggedIn:        auth.GetIsLoggedIn(c),
 			AllowedErrorCodes: []int{http.StatusInternalServerError},
+			CSRFToken:         csrfToken(c),
 		},
 		PhaddergruppID:            phaddergruppID,
 		IsPhadder:                 phaddergruppRole == roles.Phadder,

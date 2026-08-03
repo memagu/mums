@@ -23,6 +23,7 @@ func GetRegister(c echo.Context) error {
 		basePageData: basePageData{
 			IsLoggedIn:        auth.GetIsLoggedIn(c),
 			AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusConflict, http.StatusBadRequest},
+			CSRFToken:         csrfToken(c),
 		},
 	}
 	return c.Render(http.StatusOK, "register", pageData)

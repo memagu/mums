@@ -8,6 +8,17 @@
             <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
             {{ template "import-htmx" . }}
             {{ template "import-tailwind" . }}
+            <meta name="csrf-token" content="{{ .CSRFToken }}" />
+            <script type="text/javascript">
+                document.addEventListener("DOMContentLoaded", (_) => {
+                    document.body.addEventListener("htmx:configRequest", function(event) {
+                        const meta = document.querySelector('meta[name="csrf-token"]');
+                        if (meta) {
+                            event.detail.headers["HX-CSRF-Token"] = meta.content;
+                        }
+                    });
+                });
+            </script>
             {{ if .AllowedErrorCodes }}
                 <script type="text/javascript">
                     document.addEventListener("DOMContentLoaded", (_) => {

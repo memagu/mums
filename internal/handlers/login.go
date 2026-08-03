@@ -24,6 +24,7 @@ func GetLogin(c echo.Context) error {
 	pageData := loginPageData{
 		basePageData: basePageData{
 			AllowedErrorCodes: []int{http.StatusUnauthorized, http.StatusInternalServerError},
+			CSRFToken:         csrfToken(c),
 		},
 	}
 	return c.Render(http.StatusOK, "login", pageData)
