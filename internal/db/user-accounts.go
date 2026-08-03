@@ -78,3 +78,30 @@ func (db *DB) ReadUserProfileByUserAccountID(q queryer, userAccountID int64) (Us
 
 	return upd, nil
 }
+
+func (db *DB) ReadUserCredentialsByUserAccountID(q queryer, userAccountID int64) (UserCredentialsData, error) {
+	row := q.QueryRow(`
+		SELECT c.id, c.email, c.hashword
+		FROM user_credentials AS c
+		JOIN user_accounts AS a ON c.id = a.user_credentials_id
+		WHERE a.id = ? AND a.deleted_at IS NULL`,
+		userAccountID,
+	)
+
+	var ucd UserCredentialsData
+	if err := row.Scan(
+		&ucd.ID,
+		&ucd.Email,
+		&ucd.Hashword,
+	); err != nil {
+		return UserCredentialsData{}, err
+	}
+
+	q.Emit(DBEvent{
+		Table: "user_credentials",
+		Type:  DBRead,
+		Data:  nil,
+	})
+
+	return ucd, nil
+}
