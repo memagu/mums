@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -92,7 +93,9 @@ func envOrParsed[T any](key string, fallback T, parse func(string) (T, error)) T
 }
 
 func Load() {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file or error loading:", err)
+	}
 
 	Auth = authConfig{
 		InviteTokenSize:  envOrParsed("MUMS_INVITE_TOKEN_SIZE", 32, strconv.Atoi),
