@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,7 +12,9 @@ import (
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/loaders"
+	"github.com/memagu/mums/pkg/httpx"
 	"github.com/memagu/mums/pkg/password"
+	"github.com/memagu/mums/pkg/token"
 )
 
 type accountSettingsPageData struct {
@@ -144,4 +147,50 @@ func PatchAccountSettings(c echo.Context) error {
 		Name:  name,
 		Email: email,
 	})
+}
+
+func DeleteAccount(ss *auth.SessionStore) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		database := db.GetDB(c)
+		userAccountID := auth.GetUserAccountID(c)
+
+		credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		if err != nil {
+			return handleDBError(c, "account read for deletion", err)
+		}
+
+		currentPassword := c.FormValue("current-password")
+		invalidPassword := func(message string) error {
+			return c.Render(http.StatusBadRequest, "account-settings#fragment-form-fields", accountSettingsPageData{
+				Name:   loaders.GetUserProfile(c).Name,
+				Email:  credentials.Email,
+				Errors: map[string][]string{"CurrentPassword": {message}},
+			})
+		}
+		if currentPassword == "" {
+			return invalidPassword("Current password is required.")
+		}
+		if !password.Check(currentPassword, credentials.Hashword) {
+			return invalidPassword("Current password is incorrect.")
+		}
+
+		anonymousEmail := fmt.Sprintf("deleted-%d-%s@invalid.local", userAccountID, token.MustGenerateSecure(16))
+		err = db.WithTx(database, func(e db.Execer) error {
+			if err := database.UpdateUserCredentialsEmail(e, credentials.ID, anonymousEmail); err != nil {
+				return err
+			}
+			if err := database.UpdateUserProfileName(e, userAccountID, "Deleted user"); err != nil {
+				return err
+			}
+			return database.DeleteUserAccount(e, userAccountID)
+		})
+		if err != nil {
+			return handleDBError(c, "account deletion", err)
+		}
+
+		ss.DeleteSessionsByUserAccountID(userAccountID)
+		auth.LogoutUser(c, ss)
+
+		return httpx.Redirect(c, http.StatusSeeOther, "/login")
+	}
 }

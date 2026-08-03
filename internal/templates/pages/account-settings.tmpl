@@ -33,6 +33,17 @@
             {{ template "fragment-form-fields" . }}
             <button type="submit" class="w-full bg-brand-primary text-brand-primary-content py-2 rounded-md text-lg font-semibold hover:bg-brand-secondary active:bg-brand-secondary">Save</button>
         </form>
+
+        <button
+            hx-delete="/settings"
+            hx-confirm="Are you sure you want to delete your account? All your mums and memberships will be removed."
+            hx-include="#current-password-field"
+            hx-target="#form-fields"
+            hx-swap="outerHTML"
+            class="w-full py-2 rounded-md text-lg text-error-content font-semibold bg-error
+                   border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight
+                   active:bg-error-highlight"
+        >Delete account</button>
     </div>
 {{ end }}
 
