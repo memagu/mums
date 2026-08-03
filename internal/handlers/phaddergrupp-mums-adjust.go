@@ -50,7 +50,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 	})
 	if err != nil {
 		if isNotMember {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Bad Request: User account %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("User account %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID))
 		}
 		if errors.Is(err, sql.ErrNoRows) {
 			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Too large negative adjustment or user not member in phaddergrupp")

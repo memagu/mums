@@ -61,7 +61,7 @@ func RequireUserAccountRole(allowedUserAccountRoles ...roles.UserAccountRole) ec
 				}
 			}
 
-			return echo.NewHTTPError(http.StatusForbidden, "Forbidden: User is missing a required user account role")
+			return echo.NewHTTPError(http.StatusForbidden, "User is missing a required user account role")
 		}
 	}
 }
@@ -71,17 +71,17 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			phaddergruppIDString := c.Param("id")
 			if phaddergruppIDString == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, "Bad Request: Missing phaddergrupp-id parameter")
+				return echo.NewHTTPError(http.StatusBadRequest, "Missing phaddergrupp-id parameter")
 			}
 			phaddergruppID, err := strconv.ParseInt(phaddergruppIDString, 10, 64)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest, "Bad Request: Invalid phaddergrupp-id")
+				return echo.NewHTTPError(http.StatusBadRequest, "Invalid phaddergrupp-id")
 			}
 			database := db.GetDB(c)
 			phaddergruppRole, err := database.ReadPhaddergruppRole(database, GetUserAccountID(c), phaddergruppID)
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
-					return echo.NewHTTPError(http.StatusForbidden, "Forbidden: User account does not have access to this phaddergrupp")
+					return echo.NewHTTPError(http.StatusForbidden, "User account does not have access to this phaddergrupp")
 				}
 				return httpx.InternalError(c, "phaddergrupp role read", err)
 			}
@@ -113,7 +113,7 @@ func RequirePhaddergruppRole(allowedPhaddergruppRoles ...roles.PhaddergruppRole)
 				return next(c)
 			}
 
-			return echo.NewHTTPError(http.StatusForbidden, "Forbidden: User is missing a required phaddergrupp role")
+			return echo.NewHTTPError(http.StatusForbidden, "User is missing a required phaddergrupp role")
 		}
 	}
 }
