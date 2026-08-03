@@ -98,6 +98,7 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 	if auth.GetPhaddergruppRole(c) == roles.Phadder {
 		emitMumsAvailableBadgeUpdate(c, eventData)
 		emitPhaddergruppStatsUpdate(c)
+		emitPhaddergruppAuditUpdate(c)
 	}
 }
 

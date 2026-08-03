@@ -51,4 +51,5 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 	phaddergrupp.GET("/settings", handlers.GetPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
 	phaddergrupp.PATCH("/settings", handlers.PatchPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
 	phaddergrupp.GET("/stats", handlers.GetPhaddergruppStats, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.GET("/audit", handlers.GetPhaddergruppAuditLog, auth.RequirePhaddergruppRole(roles.Phadder))
 }

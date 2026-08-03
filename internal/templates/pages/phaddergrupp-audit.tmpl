@@ -1,0 +1,71 @@
+{{ define "phaddergrupp-audit" }}
+    {{ template "base" . }}
+{{ end }}
+
+{{ define "title" }}mums | Phaddergrupp Audit Log{{ end }}
+
+{{ define "head" }}
+    {{ template "import-htmx-sse" . }}
+{{ end }}
+
+{{ define "content" }}
+    <div
+        hx-ext="sse"
+        sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
+        class="self-center max-w-full flex flex-col items-center gap-6"
+    >
+        <h1 class="text-center text-2xl">
+            The
+            <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
+                {{- .Name -}}
+            </span>
+            receipts
+        </h1>
+
+        <a
+            href="/phaddergrupp/{{ .PhaddergruppID }}"
+            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
+                   rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
+                   active:bg-[{{ .SecondaryColor }}] truncate"
+        >󰌑 Return to {{ .Name }}</a>
+
+        {{ template "fragment-audit-log" . }}
+
+        <a
+            href="/phaddergrupp/{{ .PhaddergruppID }}"
+            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
+                   rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
+                   active:bg-[{{ .SecondaryColor }}] truncate"
+        >󰌑 Return to {{ .Name }}</a>
+    </div>
+{{ end }}
+
+{{ define "fragment-audit-log" }}
+    <table
+        id="phaddergrupp-audit-log"
+        sse-swap="phaddergrupp-audit-update"
+        hx-swap="outerHTML"
+        class="w-full text-sm"
+    >
+        <thead>
+            <tr class="text-xs text-backdrop-content-muted">
+                <th class="px-2 py-1 font-normal text-left">Name</th>
+                <th class="px-2 py-1 font-normal text-right"><span class="inline-flex items-center"><span>Δ</span><img src="/static/icons/mums.svg" alt="" aria-hidden="true" class="size-3" /></span></th>
+                <th class="px-2 py-1 font-normal text-right">time</th>
+            </tr>
+        </thead>
+        <tbody class="text-card-content">
+            {{ range .Transactions }}
+                <tr class="odd:bg-card">
+                    <td class="px-2 py-1 max-w-[10rem] truncate">{{ .Name }}</td>
+                    <td class="px-2 py-1 text-right tabular-nums">{{ if gt .Delta 0 }}+{{ end }}{{ .Delta }}</td>
+                    <td class="px-2 py-1 text-right text-card-content-muted">{{ .Time.Local.Format "2006-01-02 15:04:05" }}</td>
+                </tr>
+            {{ else }}
+                <tr>
+                    <td colspan="3" class="py-2 text-center text-card-content-muted">No transactions yet.</td>
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+{{ end }}
