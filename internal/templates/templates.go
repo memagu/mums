@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -40,10 +41,32 @@ func hasKey(m map[string]any, key string) bool {
 	return ok
 }
 
+func relTime(t time.Time) string {
+	elapsed := time.Since(t)
+	switch {
+	case elapsed < time.Minute:
+		return fmt.Sprintf("%ds", int(elapsed.Seconds()))
+	case elapsed < time.Hour:
+		return fmt.Sprintf("%dm", int(elapsed.Minutes()))
+	case elapsed < 24*time.Hour:
+		return fmt.Sprintf("%dh", int(elapsed.Hours()))
+	case elapsed < 365*24*time.Hour:
+		return fmt.Sprintf("%dd", int(elapsed.Hours()/24))
+	default:
+		return fmt.Sprintf("%dy", int(elapsed.Hours()/(24*365)))
+	}
+}
+
+func rfc3339(t time.Time) string {
+	return t.Format(time.RFC3339)
+}
+
 func NewTemplateRenderer() *TemplateRenderer {
 	funcMap := template.FuncMap{
-		"dict":   dict,
-		"hasKey": hasKey,
+		"dict":    dict,
+		"hasKey":  hasKey,
+		"relTime": relTime,
+		"rfc3339": rfc3339,
 	}
 	templates := make(map[string]*template.Template)
 

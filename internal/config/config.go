@@ -29,6 +29,7 @@ type mumsDefaults struct {
 	MinPurchaseQuantity     int
 	PriceN0lla              float64
 	PricePhadder            float64
+	RecentTransactionRuns   int
 	StepPurchaseQuantity    int
 }
 
@@ -67,6 +68,7 @@ var (
 			MinPurchaseQuantity:     1,
 			PriceN0lla:              10.0,
 			PricePhadder:            10.0,
+			RecentTransactionRuns:   10,
 			StepPurchaseQuantity:    1,
 		},
 		Phaddergrupp: phaddergruppDefaults{

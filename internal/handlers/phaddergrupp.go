@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -19,6 +20,8 @@ type phaddergruppPageData struct {
 	IsPhadder                 bool
 	MumsAvailable             int64
 	HasMumsPurchaseQuantities bool
+	RecentTransactions        []transactionLogEntry
+	HasRecentTransactions     bool
 	db.UserProfileData
 	db.PhaddergruppData
 	PhaddergruppUserSummaries db.PhaddergruppUserSummaries
@@ -45,6 +48,42 @@ func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64
 	return purchaseQuantities
 }
 
+func phaddergruppPreviewRuns(database *db.DB, phaddergruppID int64) ([]transactionLogEntry, error) {
+	rows, err := database.ReadPhaddergruppTransactions(database, phaddergruppID, 0, roles.N0lla, "")
+	if err != nil {
+		return nil, err
+	}
+	runs := rleTransactions(rows)
+	if limit := config.Defaults.Mums.RecentTransactionRuns; limit > 0 && len(runs) > limit {
+		runs = runs[:limit]
+	}
+	return runs, nil
+}
+
+func emitPhaddergruppPreviewUpdate(c echo.Context) {
+	database := db.GetDB(c)
+	phaddergruppID := auth.GetPhaddergruppID(c)
+
+	runs, err := phaddergruppPreviewRuns(database, phaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp transaction read: %v", err)
+		return
+	}
+
+	templateData := phaddergruppPageData{
+		RecentTransactions:    runs,
+		HasRecentTransactions: len(runs) > 0,
+	}
+
+	var sb strings.Builder
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-transaction-log", templateData, c); err != nil {
+		c.Logger().Errorf("template render error: %v", err)
+		return
+	}
+
+	_ = httpx.EmitSSE(c, "phaddergrupp-preview-update", sb.String())
+}
+
 func GetPhaddergrupp(c echo.Context) error {
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
@@ -64,6 +103,15 @@ func GetPhaddergrupp(c echo.Context) error {
 
 	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData)
 
+	recentTransactions := []transactionLogEntry{}
+	if phaddergruppRole == roles.Phadder {
+		runs, err := phaddergruppPreviewRuns(database, phaddergruppID)
+		if err != nil {
+			return handleDBError(c, "phaddergrupp transaction read", err)
+		}
+		recentTransactions = runs
+	}
+
 	inviteTokens, err := database.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "invite tokens read", err)
@@ -82,6 +130,8 @@ func GetPhaddergrupp(c echo.Context) error {
 		IsPhadder:                 phaddergruppRole == roles.Phadder,
 		MumsAvailable:             mumsAvailable,
 		HasMumsPurchaseQuantities: len(purchaseQuantities) > 0,
+		RecentTransactions:        recentTransactions,
+		HasRecentTransactions:     len(recentTransactions) > 0,
 		UserProfileData:           loaders.GetUserProfile(c),
 		PhaddergruppData:          loaders.GetPhaddergrupp(c),
 		PhaddergruppUserSummaries: phaddergruppUserSummaries,

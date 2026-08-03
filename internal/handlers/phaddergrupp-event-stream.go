@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"strings"
 	"time"
 
@@ -52,17 +53,31 @@ type mumsAvailableBadgeTemplateData struct {
 	UserAccountID int64
 	DoOOB         bool
 	MumsAvailable int64
+	LastMumsaAt   sql.NullTime
 }
 
 func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpdate) {
+	database := db.GetDB(c)
+
+	lastMumsaAt, err := database.ReadMemberLastMumsaAt(database, eventData.UserAccountID, eventData.PhaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during last mumsa read: %v", err)
+		return
+	}
+
 	templateData := mumsAvailableBadgeTemplateData{
 		UserAccountID: eventData.UserAccountID,
 		DoOOB:         true,
 		MumsAvailable: eventData.MumsAvailable,
+		LastMumsaAt:   lastMumsaAt,
 	}
 
 	var sb strings.Builder
 	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-mums-available-badge", templateData, c); err != nil {
+		c.Logger().Errorf("template render error: %v", err)
+		return
+	}
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-mums-recency", templateData, c); err != nil {
 		c.Logger().Errorf("template render error: %v", err)
 		return
 	}
@@ -99,6 +114,7 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 		emitMumsAvailableBadgeUpdate(c, eventData)
 		emitPhaddergruppStatsUpdate(c)
 		emitPhaddergruppAuditUpdate(c)
+		emitPhaddergruppPreviewUpdate(c)
 	}
 }
 

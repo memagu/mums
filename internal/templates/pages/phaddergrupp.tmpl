@@ -6,6 +6,26 @@
 
 {{ define "head" }}
     {{ template "import-htmx-sse" . }}
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", (_) => {
+            if (!document.querySelector(".mums-recency")) {
+                return;
+            }
+            const relTime = (iso) => {
+                const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+                if (seconds < 60) return seconds + "s";
+                if (seconds < 3600) return Math.floor(seconds / 60) + "m";
+                if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
+                if (seconds < 31536000) return Math.floor(seconds / 86400) + "d";
+                return Math.floor(seconds / 31536000) + "y";
+            };
+            setInterval(() => {
+                document.querySelectorAll(".mums-recency[data-last-mumsa]").forEach((el) => {
+                    el.textContent = relTime(el.getAttribute("data-last-mumsa"));
+                });
+            }, 1000);
+        });
+    </script>
 {{ end }}
 
 {{ define "content" }}
@@ -73,6 +93,21 @@
                     href="/phaddergrupp/{{ .PhaddergruppID }}/settings"
                     class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}] truncate"
                 > Settings</a>
+
+                <div class="w-full flex gap-3">
+                    <a
+                        href="/phaddergrupp/{{ .PhaddergruppID }}/stats"
+                        class="flex-1 bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}] truncate"
+                    > Stats</a>
+                    <a
+                        href="/phaddergrupp/{{ .PhaddergruppID }}/audit"
+                        class="flex-1 bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}] truncate"
+                    > Audit log</a>
+                </div>
+
+                {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+                {{ template "fragment-transaction-log" . }}
             {{ end }}
         </div>
     </div>
@@ -116,7 +151,7 @@
 {{ end }}
 
 {{ define "fragment-member-list" }}
-    <ul class="flex flex-col gap-3">
+    <ul class="flex flex-col gap-3 w-full">
         {{ $root := . }}
         {{ range $_, $s := .UserSummaries }}
             <li>{{ template "fragment-member-summary-card" dict 
@@ -137,9 +172,19 @@
     >
 
         <div class="flex flex-col flex-1 min-w-0 gap-1">
-            <p class="text-lg max-w-full truncate">{{ .MemberSummary.UserProfileName }}</p>
+            <div class="flex items-center justify-between gap-1 min-w-0">
+                <p class="min-w-0 max-w-full truncate">{{ .MemberSummary.UserProfileName }}</p>
+                <span class="flex shrink-0 items-center gap-0.5">
+                    <img src="/static/icons/drink.svg" alt="" aria-hidden="true" class="size-3" />
+                    {{ template "fragment-mums-recency" dict
+                        "UserAccountID" .MemberSummary.UserAccountID
+                        "DoOOB" false
+                        "LastMumsaAt" .MemberSummary.LastMumsaAt
+                    }}
+                </span>
+            </div>
             
-            <div class="flex items-center flex-wrap gap-2">
+            <div class="flex items-center justify-between flex-wrap gap-1">
                 <button 
                     hx-post="/phaddergrupp/{{ .PhaddergruppID }}/kick?user-account-id={{ .MemberSummary.UserAccountID }}"
                     hx-confirm="Are you sure you want to kick {{ .MemberSummary.UserProfileName }} from this phaddergrupp?"
@@ -202,6 +247,15 @@
             class="font-bold text-2xl text-right w-[2ch]"
         >{{ .MumsAvailable }}</output>
     </div>
+{{ end }}
+
+{{ define "fragment-mums-recency" }}
+    <span
+        id="mums-recency-{{ .UserAccountID }}"
+        {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
+        class="mums-recency w-[3ch] text-center text-[10px] leading-none text-card-content-muted"
+        {{ if .LastMumsaAt.Valid }}data-last-mumsa="{{ rfc3339 .LastMumsaAt.Time }}"{{ end }}
+    >{{ if .LastMumsaAt.Valid }}{{ relTime .LastMumsaAt.Time }}{{ else }}∞{{ end }}</span>
 {{ end }}
 
 {{ define "fragment-mums-available-widget" }}
@@ -290,5 +344,38 @@
             class="w-full bg-input text-input-content rounded-md border-2 border-input-border-muted px-3 py-2 text-sm cursor-pointer caret-transparent truncate select-all focus:outline-none"
             title="Click to copy"
         />
+    </div>
+{{ end }}
+
+{{ define "fragment-transaction-log" }}
+    <div
+        id="phaddergrupp-transaction-preview"
+        sse-swap="phaddergrupp-preview-update"
+        hx-swap="outerHTML"
+        class="w-full flex flex-col gap-1"
+    >
+        <h2 class="text-center text-xl font-semibold text-backdrop-content">Latest slurps n' burps (n0llor)</h2>
+        {{ if .HasRecentTransactions }}
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-backdrop-content-muted">
+                        <th class="px-2 py-1 font-normal text-left">Name</th>
+                        <th class="px-2 py-1 font-normal text-right"><span class="inline-flex items-center"><span>Δ</span><img src="/static/icons/mums.svg" alt="" aria-hidden="true" class="size-3" /></span></th>
+                        <th class="px-2 py-1 font-normal text-right">Δt</th>
+                    </tr>
+                </thead>
+                <tbody class="text-card-content">
+                    {{ range .RecentTransactions }}
+                        <tr class="odd:bg-card">
+                            <td class="px-2 py-1 max-w-[6rem] truncate">{{ .Name }}</td>
+                            <td class="px-2 py-1 text-right tabular-nums">{{ if gt .Delta 0 }}+{{ end }}{{ .Delta }}</td>
+                            <td class="px-2 py-1 text-right text-card-content-muted">{{ relTime .Time }}</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        {{ else }}
+            <p class="text-center text-card-content-muted">No transactions yet.</p>
+        {{ end }}
     </div>
 {{ end }}

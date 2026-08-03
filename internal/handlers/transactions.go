@@ -29,3 +29,21 @@ func normalizeTransactions(rows []db.MumsTransaction) []transactionLogEntry {
 	}
 	return entries
 }
+
+func rleTransactions(rows []db.MumsTransaction) []transactionLogEntry {
+	entries := normalizeTransactions(rows)
+	if len(entries) == 0 {
+		return entries
+	}
+
+	runs := []transactionLogEntry{entries[0]}
+	for _, entry := range entries[1:] {
+		last := &runs[len(runs)-1]
+		if last.UserAccountID == entry.UserAccountID {
+			last.Delta += entry.Delta
+			continue
+		}
+		runs = append(runs, entry)
+	}
+	return runs
+}
