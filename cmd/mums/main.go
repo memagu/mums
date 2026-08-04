@@ -12,6 +12,7 @@ import (
 	"github.com/memagu/mums/internal/routes"
 	"github.com/memagu/mums/internal/templates"
 	"github.com/memagu/mums/pkg/email"
+	"github.com/memagu/mums/pkg/httpx"
 )
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+	e.Use(httpx.SecurityHeaders())
 
 	database, err := db.NewDB(config.DB.FilePath)
 	if err != nil {
