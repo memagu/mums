@@ -7,8 +7,9 @@
 {{ define "content" }}
     <div class="self-center max-w-full flex flex-col items-center gap-12">
 
-        <h1 class="text-center text-2xl">
-            Welcome to mums!
+        <h1 class="flex flex-col items-center gap-4 text-2xl">
+            <img src="/static/icons/mums.svg" alt="Logo" class="size-24" />
+            <span>Welcome to mums!</span>
         </h1>
 
         <form hx-post="/register" hx-target="#form-fields" hx-swap="outerHTML" class="flex flex-col gap-6">
