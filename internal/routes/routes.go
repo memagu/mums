@@ -22,6 +22,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 	e.POST("/password-reset", handlers.PostPasswordReset(rts, sender))
 	e.GET("/password-reset/:token", handlers.GetPasswordResetConfirm(rts))
 	e.POST("/password-reset/:token", handlers.PostPasswordResetConfirm(ss, rts))
+	e.GET("/static/manifest.webmanifest", handlers.GetManifest)
 
 	protected := e.Group(
 		"",
