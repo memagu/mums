@@ -10,7 +10,6 @@ import (
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/db"
-	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
 )
@@ -26,8 +25,13 @@ type templateDataMumsAvailableWidget struct {
 }
 
 func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpdate) error {
+	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
-	phaddergruppData := loaders.GetPhaddergrupp(c)
+	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
+		return nil
+	}
 	purchaseQuantities := mumsPurchaseQuantities(eventData.MumsAvailable, phaddergruppData)
 
 	templateData := templateDataMumsAvailableWidget{
@@ -85,9 +89,113 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 	_ = httpx.EmitSSE(c, "mums-available-badge-update", sb.String())
 }
 
+func emitPhaddergruppMemberListsUpdate(c echo.Context) {
+	database := db.GetDB(c)
+	phaddergruppID := auth.GetPhaddergruppID(c)
+
+	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
+		return
+	}
+	summaries, err := database.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp user summary read: %v", err)
+		return
+	}
+
+	templateData := phaddergruppPageData{
+		PhaddergruppID:            phaddergruppID,
+		PhaddergruppData:          phaddergruppData,
+		PhaddergruppUserSummaries: summaries,
+	}
+
+	var sb strings.Builder
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-member-lists", templateData, c); err != nil {
+		c.Logger().Errorf("template render error: %v", err)
+		return
+	}
+
+	_ = httpx.EmitSSE(c, "phaddergrupp-member-lists-update", sb.String())
+}
+
+func emitPhaddergruppHeaderUpdate(c echo.Context) {
+	database := db.GetDB(c)
+	phaddergruppID := auth.GetPhaddergruppID(c)
+
+	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
+		return
+	}
+
+	templateData := phaddergruppPageData{
+		PhaddergruppID:   phaddergruppID,
+		PhaddergruppData: phaddergruppData,
+	}
+
+	var sb strings.Builder
+	if err := c.Echo().Renderer.Render(&sb, "phaddergrupp#fragment-group-name", templateData, c); err != nil {
+		c.Logger().Errorf("template render error: %v", err)
+		return
+	}
+
+	_ = httpx.EmitSSE(c, "phaddergrupp-header-update", sb.String())
+}
+
 func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
+	phaddergruppID := auth.GetPhaddergruppID(c)
+
 	if event.Type == db.DBDelete && event.Table == "phaddergrupps" {
 		httpx.EmitSSE(c, "phaddergrupp-deleted", "")
+		return
+	}
+
+	if event.Type == db.DBUpdate && event.Table == "phaddergrupps" {
+		emitPhaddergruppHeaderUpdate(c)
+		if auth.GetPhaddergruppRole(c) == roles.Phadder {
+			emitPhaddergruppMemberListsUpdate(c)
+		} else {
+			database := db.GetDB(c)
+			mumsAvailable, err := database.ReadMumsAvailable(database, auth.GetUserAccountID(c), phaddergruppID)
+			if err != nil {
+				c.Logger().Errorf("Database error during mums available read: %v", err)
+			} else {
+				emitMumsAvailableWidgetUpdate(c, db.MumsAvailableUpdate{
+					UserAccountID:  auth.GetUserAccountID(c),
+					PhaddergruppID: phaddergruppID,
+					MumsAvailable:  mumsAvailable,
+				})
+			}
+		}
+		return
+	}
+
+	if event.Type == db.DBUpdate && event.Table == "user_profiles" {
+		if auth.GetPhaddergruppRole(c) == roles.Phadder {
+			emitPhaddergruppMemberListsUpdate(c)
+			emitPhaddergruppStatsUpdate(c)
+			emitPhaddergruppAuditUpdate(c)
+			emitPhaddergruppPreviewUpdate(c)
+		}
+		return
+	}
+
+	if event.Table == "phaddergrupp_mappings" && (event.Type == db.DBCreate || event.Type == db.DBDelete) {
+		mappingEvent, ok := event.Data.(db.PhaddergruppMappingEvent)
+		if !ok || mappingEvent.PhaddergruppID != phaddergruppID {
+			return
+		}
+		if event.Type == db.DBDelete && mappingEvent.UserAccountID == auth.GetUserAccountID(c) {
+			httpx.EmitSSE(c, "phaddergrupp-kicked", "")
+			return
+		}
+		if auth.GetPhaddergruppRole(c) == roles.Phadder {
+			emitPhaddergruppMemberListsUpdate(c)
+			emitPhaddergruppStatsUpdate(c)
+			emitPhaddergruppAuditUpdate(c)
+			emitPhaddergruppPreviewUpdate(c)
+		}
 		return
 	}
 
@@ -99,8 +207,6 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 	if !ok {
 		return
 	}
-
-	phaddergruppID := auth.GetPhaddergruppID(c)
 
 	if eventData.PhaddergruppID != phaddergruppID {
 		return

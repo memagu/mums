@@ -23,6 +23,11 @@ type MumsAvailableUpdate struct {
 	MumsAvailable  int64
 }
 
+type PhaddergruppMappingEvent struct {
+	UserAccountID  int64
+	PhaddergruppID int64
+}
+
 func (db *DB) Subscribe(bufferSize int) (int64, <-chan DBEvent) {
 	db.Lock()
 	defer db.Unlock()

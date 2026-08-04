@@ -38,7 +38,10 @@ func (db *DB) CreatePhaddergruppMapping(e execer, userAccountID, phaddergruppID 
 	e.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBCreate,
-		Data:  nil,
+		Data: PhaddergruppMappingEvent{
+			UserAccountID:  userAccountID,
+			PhaddergruppID: phaddergruppID,
+		},
 	})
 
 	return nil
@@ -423,7 +426,10 @@ func (db *DB) DeletePhaddergruppMapping(e execer, userAccountID, phaddergruppID 
 	e.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBDelete,
-		Data:  nil,
+		Data: PhaddergruppMappingEvent{
+			UserAccountID:  userAccountID,
+			PhaddergruppID: phaddergruppID,
+		},
 	})
 
 	return nil
