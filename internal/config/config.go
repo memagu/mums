@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -137,5 +138,9 @@ func Load() {
 	}
 	Swish = swishConfig{
 		NumberPattern: envOr("MUMS_SWISH_NUMBER_PATTERN", `^(\+46 ?(\(0\))?|0) ?7[02369]-?\d{3} ?\d{2} ?\d{2}$`),
+	}
+
+	if Server.CookieSecure && strings.HasPrefix(Server.Origin, "http://") {
+		log.Println("WARNING: MUMS_COOKIE_SECURE=true with an http:// MUMS_APP_URL — secure cookies will not be sent over plain HTTP")
 	}
 }
