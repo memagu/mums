@@ -235,12 +235,20 @@ func GetPhaddergruppEventStream(c echo.Context) error {
 	timer := time.NewTimer(config.Server.SSETimeout)
 	defer timer.Stop()
 
+	heartbeat := time.NewTicker(config.Server.SSEHeartbeatInterval)
+	defer heartbeat.Stop()
+
 	for {
 		select {
 		case <-c.Request().Context().Done():
 			return nil
 		case <-timer.C:
 			return nil
+		case <-heartbeat.C:
+			if err := httpx.EmitSSEHeartbeat(c); err != nil {
+				c.Logger().Errorf("failed to write SSE heartbeat: %v", err)
+				return nil
+			}
 		case event, ok := <-events:
 			if !ok {
 				return nil

@@ -48,3 +48,18 @@ func EmitSSE(c echo.Context, eventName, payload string) error {
 	flusher.Flush()
 	return nil
 }
+
+func EmitSSEHeartbeat(c echo.Context) error {
+	flusher, ok := c.Response().Writer.(http.Flusher)
+	if !ok {
+		c.Logger().Error("streaming unsupported: http.ResponseWriter does not implement http.Flusher")
+		return echo.NewHTTPError(http.StatusInternalServerError, "streaming unsupported")
+	}
+
+	if _, err := c.Response().Write([]byte(": ping\n\n")); err != nil {
+		return err
+	}
+
+	flusher.Flush()
+	return nil
+}

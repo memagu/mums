@@ -50,12 +50,13 @@ type defaultsConfig struct {
 }
 
 type serverConfig struct {
-	Address           string
-	CookieSecure      bool
-	IdleTimeout       time.Duration
-	Origin            string
-	ReadHeaderTimeout time.Duration
-	SSETimeout        time.Duration
+	Address              string
+	CookieSecure         bool
+	IdleTimeout          time.Duration
+	Origin               string
+	ReadHeaderTimeout    time.Duration
+	SSEHeartbeatInterval time.Duration
+	SSETimeout           time.Duration
 }
 
 type swishConfig struct {
@@ -122,12 +123,13 @@ func Load() {
 		BusyTimeout: envOrParsed("MUMS_DB_BUSY_TIMEOUT", 5*time.Second, time.ParseDuration),
 	}
 	Server = serverConfig{
-		Address:           envOr("MUMS_ADDRESS", ":11337"),
-		CookieSecure:      envOrParsed("MUMS_COOKIE_SECURE", true, strconv.ParseBool),
-		IdleTimeout:       envOrParsed("MUMS_IDLE_TIMEOUT", 120*time.Second, time.ParseDuration),
-		Origin:            envOr("MUMS_APP_URL", "http://127.0.0.1:11337"),
-		ReadHeaderTimeout: envOrParsed("MUMS_READ_HEADER_TIMEOUT", 10*time.Second, time.ParseDuration),
-		SSETimeout:        envOrParsed("MUMS_SSE_TIMEOUT", 666*time.Second, time.ParseDuration),
+		Address:              envOr("MUMS_ADDRESS", ":11337"),
+		CookieSecure:         envOrParsed("MUMS_COOKIE_SECURE", true, strconv.ParseBool),
+		IdleTimeout:          envOrParsed("MUMS_IDLE_TIMEOUT", 120*time.Second, time.ParseDuration),
+		Origin:               envOr("MUMS_APP_URL", "http://127.0.0.1:11337"),
+		ReadHeaderTimeout:    envOrParsed("MUMS_READ_HEADER_TIMEOUT", 10*time.Second, time.ParseDuration),
+		SSEHeartbeatInterval: envOrParsed("MUMS_SSE_HEARTBEAT_INTERVAL", 30*time.Second, time.ParseDuration),
+		SSETimeout:           envOrParsed("MUMS_SSE_TIMEOUT", 666*time.Second, time.ParseDuration),
 	}
 	SMTP = email.SMTPConfig{
 		From:     envOr("MUMS_SMTP_FROM", ""),
