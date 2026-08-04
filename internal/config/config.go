@@ -143,4 +143,7 @@ func Load() {
 	if Server.CookieSecure && strings.HasPrefix(Server.Origin, "http://") {
 		log.Println("WARNING: MUMS_COOKIE_SECURE=true with an http:// MUMS_APP_URL — secure cookies will not be sent over plain HTTP")
 	}
+	if !Server.CookieSecure && strings.HasPrefix(Server.Origin, "https://") {
+		log.Println("WARNING: MUMS_COOKIE_SECURE=false with an https:// MUMS_APP_URL — cookies will not be Secure over HTTPS")
+	}
 }
