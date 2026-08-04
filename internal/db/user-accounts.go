@@ -54,6 +54,29 @@ func (db *DB) ReadUserAccountIDByUserCredentialsID(q queryer, userCredentialsID 
 	return userAccountID, nil
 }
 
+func (db *DB) ReadActiveUserAccountIDByEmail(q queryer, email string) (int64, error) {
+	row := q.QueryRow(`
+		SELECT a.id
+		FROM user_accounts AS a
+		JOIN user_credentials AS c ON a.user_credentials_id = c.id
+		WHERE c.email = ? AND a.deleted_at IS NULL`,
+		email,
+	)
+
+	var userAccountID int64
+	if err := row.Scan(&userAccountID); err != nil {
+		return 0, err
+	}
+
+	q.Emit(DBEvent{
+		Table: "user_accounts",
+		Type:  DBRead,
+		Data:  userAccountID,
+	})
+
+	return userAccountID, nil
+}
+
 func (db *DB) ReadUserProfileByUserAccountID(q queryer, userAccountID int64) (UserProfileData, error) {
 	row := q.QueryRow(`
 		SELECT p.name
