@@ -18,7 +18,8 @@ type authConfig struct {
 }
 
 type dbConfig struct {
-	FilePath string
+	FilePath    string
+	BusyTimeout time.Duration
 }
 
 type mumsDefaults struct {
@@ -109,7 +110,8 @@ func Load() {
 		SessionTokenSize: envOrParsed("MUMS_SESSION_TOKEN_SIZE", 32, strconv.Atoi),
 	}
 	DB = dbConfig{
-		FilePath: envOr("MUMS_DB_PATH", "mums.sqlite3"),
+		FilePath:    envOr("MUMS_DB_PATH", "mums.sqlite3"),
+		BusyTimeout: envOrParsed("MUMS_DB_BUSY_TIMEOUT", 5*time.Second, time.ParseDuration),
 	}
 	Server = serverConfig{
 		Address:           envOr("MUMS_ADDRESS", ":11337"),

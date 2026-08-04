@@ -7,6 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	_ "modernc.org/sqlite"
+
+	"github.com/memagu/mums/internal/config"
 )
 
 const ctxKeyDB = "db"
@@ -87,6 +89,10 @@ func NewDB(dbFilePath string) (*DB, error) {
 	_, err = sqlDB.Exec(`PRAGMA foreign_keys = ON;`)
 	if err != nil {
 		return nil, fmt.Errorf("enabling foreign_keys failed: %w", err)
+	}
+	_, err = sqlDB.Exec(fmt.Sprintf(`PRAGMA busy_timeout = %d;`, config.DB.BusyTimeout.Milliseconds()))
+	if err != nil {
+		return nil, fmt.Errorf("enabling busy_timeout failed: %w", err)
 	}
 
 	for _, schema := range schemas {
