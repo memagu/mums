@@ -10,11 +10,13 @@ import (
 )
 
 type authConfig struct {
-	InviteTokenSize  int
-	SessionCleanup   time.Duration
-	SessionCookie    string
-	SessionTTL       time.Duration
-	SessionTokenSize int
+	InviteTokenSize        int
+	PasswordResetTokenSize int
+	PasswordResetTTL       time.Duration
+	SessionCleanup         time.Duration
+	SessionCookie          string
+	SessionTTL             time.Duration
+	SessionTokenSize       int
 }
 
 type dbConfig struct {
@@ -53,6 +55,14 @@ type serverConfig struct {
 	SSETimeout        time.Duration
 }
 
+type smtpConfig struct {
+	From     string
+	Host     string
+	Password string
+	Port     int
+	Username string
+}
+
 type swishConfig struct {
 	NumberPattern string
 }
@@ -78,6 +88,7 @@ var (
 		},
 	}
 	Server serverConfig
+	SMTP   smtpConfig
 	Swish  swishConfig
 )
 
@@ -103,11 +114,13 @@ func Load() {
 	}
 
 	Auth = authConfig{
-		InviteTokenSize:  envOrParsed("MUMS_INVITE_TOKEN_SIZE", 32, strconv.Atoi),
-		SessionCleanup:   envOrParsed("MUMS_SESSION_CLEANUP", 666*time.Second, time.ParseDuration),
-		SessionCookie:    envOr("MUMS_SESSION_COOKIE", "sessionToken"),
-		SessionTTL:       envOrParsed("MUMS_SESSION_TTL", 1337*time.Hour, time.ParseDuration),
-		SessionTokenSize: envOrParsed("MUMS_SESSION_TOKEN_SIZE", 32, strconv.Atoi),
+		InviteTokenSize:        envOrParsed("MUMS_INVITE_TOKEN_SIZE", 32, strconv.Atoi),
+		PasswordResetTokenSize: envOrParsed("MUMS_PASSWORD_RESET_TOKEN_SIZE", 32, strconv.Atoi),
+		PasswordResetTTL:       envOrParsed("MUMS_PASSWORD_RESET_TTL", 666*time.Second, time.ParseDuration),
+		SessionCleanup:         envOrParsed("MUMS_SESSION_CLEANUP", 666*time.Second, time.ParseDuration),
+		SessionCookie:          envOr("MUMS_SESSION_COOKIE", "sessionToken"),
+		SessionTTL:             envOrParsed("MUMS_SESSION_TTL", 1337*time.Hour, time.ParseDuration),
+		SessionTokenSize:       envOrParsed("MUMS_SESSION_TOKEN_SIZE", 32, strconv.Atoi),
 	}
 	DB = dbConfig{
 		FilePath:    envOr("MUMS_DB_PATH", "mums.sqlite3"),
@@ -120,6 +133,13 @@ func Load() {
 		Origin:            envOr("MUMS_APP_URL", "http://127.0.0.1:11337"),
 		ReadHeaderTimeout: envOrParsed("MUMS_READ_HEADER_TIMEOUT", 10*time.Second, time.ParseDuration),
 		SSETimeout:        envOrParsed("MUMS_SSE_TIMEOUT", 666*time.Second, time.ParseDuration),
+	}
+	SMTP = smtpConfig{
+		From:     envOr("MUMS_SMTP_FROM", ""),
+		Host:     envOr("MUMS_SMTP_HOST", ""),
+		Password: envOr("MUMS_SMTP_PASSWORD", ""),
+		Port:     envOrParsed("MUMS_SMTP_PORT", 587, strconv.Atoi),
+		Username: envOr("MUMS_SMTP_USERNAME", ""),
 	}
 	Swish = swishConfig{
 		NumberPattern: envOr("MUMS_SWISH_NUMBER_PATTERN", `^(\+46 ?(\(0\))?|0) ?7[02369]-?\d{3} ?\d{2} ?\d{2}$`),
