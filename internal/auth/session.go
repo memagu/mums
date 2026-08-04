@@ -114,6 +114,7 @@ func setSessionCookie(c echo.Context, sessionToken string, expiresAt time.Time) 
 	sc.Secure = config.Server.CookieSecure
 	sc.SameSite = http.SameSiteLaxMode
 	sc.Expires = expiresAt
+	sc.MaxAge = int(time.Until(expiresAt).Seconds())
 	c.SetCookie(sc)
 }
 
