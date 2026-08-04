@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -70,8 +71,10 @@ func PostPasswordReset(rts *auth.PasswordResetTokenStore, sender email.Sender) e
 			return handleDBError(c, "password reset request read", err)
 		default:
 			resetToken := rts.Create(userAccountID)
+			sentAt := time.Now()
+			expiresAt := sentAt.Add(config.Auth.PasswordResetTTL)
 			resetURL := config.Server.Origin + "/password-reset/" + resetToken
-			subject, body := passwordResetEmail(resetURL)
+			subject, body := passwordResetEmail(resetURL, sentAt, expiresAt)
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
@@ -184,10 +187,19 @@ func PostPasswordResetConfirm(ss *auth.SessionStore, rts *auth.PasswordResetToke
 
 const passwordResetEmailSubject = "Reset your mums password"
 
-func passwordResetEmail(resetURL string) (string, string) {
-	body := "Hi!\n\n" +
-		"A request to change your mums account password was made.\n\n" +
-		"Open this link to choose a new password:\n" + resetURL + "\n\n" +
+const passwordResetEmailTimeFormat = "2006-01-02 15:04:05"
+
+func passwordResetEmail(resetURL string, sentAt, expiresAt time.Time) (string, string) {
+	body := "Sup dawg!\n" +
+		"\n" +
+		"A request to change your mums account password was made.\n" +
+		"\n" +
+		"Open this link to choose a new password:\n" +
+		resetURL + "\n" +
+		"\n" +
+		"requested at: " + sentAt.Local().Format(passwordResetEmailTimeFormat) + "\n" +
+		"expires at: " + expiresAt.Local().Format(passwordResetEmailTimeFormat) + "\n" +
+		"\n" +
 		"If you didn't request this, you can safely ignore this email."
 	return passwordResetEmailSubject, body
 }
