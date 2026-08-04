@@ -7,9 +7,10 @@ import (
 	"github.com/memagu/mums/internal/handlers"
 	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
+	"github.com/memagu/mums/pkg/email"
 )
 
-func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
+func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordResetTokenStore, sender email.Sender) {
 	e.Use(auth.SessionMiddleware(ss))
 
 	e.GET("/login", handlers.GetLogin)
@@ -17,6 +18,10 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 	e.GET("/register", handlers.GetRegister)
 	e.POST("/register", handlers.PostRegister(ss))
 	e.GET("/about", handlers.GetAbout)
+	e.GET("/password-reset", handlers.GetPasswordReset)
+	e.POST("/password-reset", handlers.PostPasswordReset(rts, sender))
+	e.GET("/password-reset/:token", handlers.GetPasswordResetConfirm(rts))
+	e.POST("/password-reset/:token", handlers.PostPasswordResetConfirm(ss, rts))
 
 	protected := e.Group(
 		"",
@@ -29,8 +34,8 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore) {
 	protected.POST("/", handlers.PostHome)
 	protected.POST("/logout", handlers.PostLogout(ss))
 	protected.GET("/settings", handlers.GetAccountSettings)
-	protected.PATCH("/settings", handlers.PatchAccountSettings)
-	protected.DELETE("/settings", handlers.DeleteAccount(ss))
+	protected.PATCH("/settings", handlers.PatchAccountSettings(rts))
+	protected.DELETE("/settings", handlers.DeleteAccount(ss, rts))
 	protected.GET("/admin", handlers.GetAdmin, auth.RequireUserAccountRole(roles.Admin))
 	protected.POST("/admin", handlers.PostAdmin, auth.RequireUserAccountRole(roles.Admin))
 	protected.GET("/invite/:token", handlers.GetInvite)

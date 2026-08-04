@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+
+	"github.com/memagu/mums/pkg/email"
 )
 
 type authConfig struct {
@@ -55,14 +57,6 @@ type serverConfig struct {
 	SSETimeout        time.Duration
 }
 
-type smtpConfig struct {
-	From     string
-	Host     string
-	Password string
-	Port     int
-	Username string
-}
-
 type swishConfig struct {
 	NumberPattern string
 }
@@ -88,7 +82,7 @@ var (
 		},
 	}
 	Server serverConfig
-	SMTP   smtpConfig
+	SMTP   email.SMTPConfig
 	Swish  swishConfig
 )
 
@@ -134,7 +128,7 @@ func Load() {
 		ReadHeaderTimeout: envOrParsed("MUMS_READ_HEADER_TIMEOUT", 10*time.Second, time.ParseDuration),
 		SSETimeout:        envOrParsed("MUMS_SSE_TIMEOUT", 666*time.Second, time.ParseDuration),
 	}
-	SMTP = smtpConfig{
+	SMTP = email.SMTPConfig{
 		From:     envOr("MUMS_SMTP_FROM", ""),
 		Host:     envOr("MUMS_SMTP_HOST", ""),
 		Password: envOr("MUMS_SMTP_PASSWORD", ""),

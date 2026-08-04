@@ -11,6 +11,7 @@ import (
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/routes"
 	"github.com/memagu/mums/internal/templates"
+	"github.com/memagu/mums/pkg/email"
 )
 
 func main() {
@@ -43,7 +44,9 @@ func main() {
 	templates.LoadTemplates(e)
 
 	ss := auth.NewSessionStore()
-	routes.RegisterRoutes(e, ss)
+	rts := auth.NewPasswordResetTokenStore()
+	sender := email.NewSender(config.SMTP)
+	routes.RegisterRoutes(e, ss, rts, sender)
 
 	e.Static("/static", "web/static")
 
