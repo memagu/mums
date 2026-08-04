@@ -1,0 +1,24 @@
+{
+  "name": "mums",
+  "short_name": "mums",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffbeb",
+  "theme_color": "#f280a1",
+  "description": "Serving beverages since 1337!",
+  "icons": [
+    {
+      "src": "/static/icons/mums-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/mums-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

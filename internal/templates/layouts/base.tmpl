@@ -6,6 +6,13 @@
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <title>{{ block "title" . }}mums{{ end }}</title>
             <link rel="icon" href="/static/favicon.ico" type="image/x-icon"/>
+            <link rel="manifest" href="/static/manifest.webmanifest" />
+            <meta name="theme-color" content="#f280a1" />
+            <meta name="mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+            <meta name="apple-mobile-web-app-title" content="mums" />
+            <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/mums-180.png" />
             {{ template "import-htmx" . }}
             {{ template "import-tailwind" . }}
             <meta name="csrf-token" content="{{ .CSRFToken }}" />
