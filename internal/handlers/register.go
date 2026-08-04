@@ -67,6 +67,9 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 			return fieldError(http.StatusConflict, "Email", []string{"Account with email already exists."})
 		}
 
+		if userPassword == "" {
+			return fieldError(http.StatusBadRequest, "PasswordConfirm", []string{"Password is required."})
+		}
 		if userPassword != userConfirmPassword {
 			return fieldError(http.StatusBadRequest, "PasswordConfirm", []string{"Passwords do not match."})
 		}
