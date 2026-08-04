@@ -143,23 +143,19 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		formErrors["MumsDefaultPurchaseQuantity"] = []string{"Must be within min-max and on the step size"}
 	}
 
-	err := database.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData)
-	if err != nil {
-		return handleDBError(c, "phaddergrupp update", err)
-	}
-
 	templateData := phaddergruppSettingsTemplateData{
 		PhaddergruppData:            updatedPhaddergruppData,
 		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 		Errors:                      formErrors,
 	}
 
-	var statusCode int
-	if len(formErrors) == 0 {
-		statusCode = http.StatusOK
-	} else {
-		statusCode = http.StatusBadRequest
+	if len(formErrors) > 0 {
+		return c.Render(http.StatusBadRequest, "phaddergrupp-settings#fragment-form-fields", templateData)
 	}
 
-	return c.Render(statusCode, "phaddergrupp-settings#fragment-form-fields", templateData)
+	if err := database.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData); err != nil {
+		return handleDBError(c, "phaddergrupp update", err)
+	}
+
+	return c.Render(http.StatusOK, "phaddergrupp-settings#fragment-form-fields", templateData)
 }

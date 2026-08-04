@@ -33,6 +33,9 @@ type phaddergruppPageData struct {
 }
 
 func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64 {
+	if pd.MumsPurchaseQuantityStep < 1 || pd.MumsMinPurchaseQuantity < 1 {
+		return nil
+	}
 	remaining := pd.MumsCapacityPerUser - mumsAvailable
 	capMax := min(pd.MumsMaxPurchaseQuantity, remaining)
 	if capMax < pd.MumsMinPurchaseQuantity {

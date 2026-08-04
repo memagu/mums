@@ -14,6 +14,10 @@ import (
 	"github.com/memagu/mums/pkg/password"
 )
 
+// Dummy hash compared against when a login email is unknown, so the bcrypt
+// cost (and thus response timing) matches the existing-account path.
+const dummyLoginHash = "$2a$10$L4e4vdRfPGB5jirdsZ/ggu5Ob7ODsug23O92oNmA9dp.jnVKUHWza"
+
 type loginPageData struct {
 	basePageData
 	Email  string
@@ -76,6 +80,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 		userCredentialsID, hashword, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
+			password.Check(userPassword, dummyLoginHash)
 			return invalidCredentials()
 		case err != nil:
 			c.Logger().Errorf("Database error during login for email %s: %v", userEmail, err)

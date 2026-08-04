@@ -40,7 +40,8 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 		return handleDBError(c, "mums available read", err)
 	}
 
-	if mumsPurchaseQuantity < phaddergruppData.MumsMinPurchaseQuantity ||
+	if phaddergruppData.MumsPurchaseQuantityStep < 1 ||
+		mumsPurchaseQuantity < phaddergruppData.MumsMinPurchaseQuantity ||
 		mumsPurchaseQuantity > phaddergruppData.MumsMaxPurchaseQuantity ||
 		(mumsPurchaseQuantity-phaddergruppData.MumsMinPurchaseQuantity)%phaddergruppData.MumsPurchaseQuantityStep != 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(

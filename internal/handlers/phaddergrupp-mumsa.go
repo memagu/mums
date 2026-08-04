@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -24,6 +26,9 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 		return err
 	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "No mums available")
+		}
 		return handleDBError(c, "mumsning", err)
 	}
 

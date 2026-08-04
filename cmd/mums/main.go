@@ -22,6 +22,7 @@ func main() {
 	e.Server.IdleTimeout = config.Server.IdleTimeout
 
 	e.Use(middleware.RequestLogger())
+	e.Use(middleware.Recover())
 
 	database, err := db.NewDB(config.DB.FilePath)
 	if err != nil {
