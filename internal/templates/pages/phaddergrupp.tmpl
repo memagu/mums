@@ -395,7 +395,7 @@
                         <tr class="odd:bg-card">
                             <td class="px-2 py-1 max-w-[6rem] truncate">{{ .Name }}</td>
                             <td class="px-2 py-1 text-right tabular-nums">{{ if gt .Delta 0 }}+{{ end }}{{ .Delta }}</td>
-                            <td class="px-2 py-1 text-right text-card-content-muted">{{ relTime .Time }}</td>
+                            <td class="mums-recency px-2 py-1 text-right text-card-content-muted" data-last-mumsa="{{ rfc3339 .Time }}">{{ relTime .Time }}</td>
                         </tr>
                     {{ end }}
                 </tbody>
