@@ -278,16 +278,17 @@
         id="mums-available-widget"
         sse-swap="mums-available-widget-update"
         hx-swap="outerHTML"
+        class="flex flex-col items-center gap-6"
     >
         <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
             {{- .MumsAvailable -}}
         </output>
 
-        <div class="flex flex-wrap justify-center gap-6">
+        <div class="flex flex-wrap justify-center gap-4">
             {{ if .HasMumsPurchaseQuantities }}
-                <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content gap-3">
+                <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content">
                     <button type="submit" class="flex justify-center items-center
-                               gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md
+                               gap-2 bg-[{{ .PrimaryColor }}] p-4 rounded-l-md
                                text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
                                active:bg-[{{ .SecondaryColor }}]"
                     >
@@ -296,7 +297,7 @@
                     </button>
 
                     <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
-                    <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-md px-2 py-3 text-xl w-16">
+                    <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-r-md p-4 text-xl">
                         {{ range .MumsPurchaseQuantities }}
                             <option {{ if eq . $.MumsDefaultPurchaseQuantity }}selected{{ end }}>{{ . }}</option>
                         {{ end }}
@@ -309,7 +310,7 @@
                     hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
                     hx-confirm="Are you sure you want to consume one mums?"
                     class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
-                           px-6 py-3 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
+                           p-4 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
                            active:bg-[{{ .SecondaryColor }}] shadow-md"
                 >
                     <img src="/static/icons/drink.svg" class="size-6 invert" alt=""/>
