@@ -75,7 +75,7 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 		}
 		hashword, err := password.HashSecure(userPassword)
 		if err == bcrypt.ErrPasswordTooLong {
-			return fieldError(http.StatusBadRequest, "PasswordConfirm", []string{"Passwords length exceeds 72."})
+			return fieldError(http.StatusBadRequest, "PasswordConfirm", []string{"Password length exceeds 72."})
 		}
 		if err != nil {
 			c.Logger().Errorf("Password could not be hashed: %v", err)
