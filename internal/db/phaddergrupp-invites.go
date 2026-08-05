@@ -17,12 +17,12 @@ CREATE TABLE IF NOT EXISTS phaddergrupp_invites (
 	phaddergrupp_id INTEGER NOT NULL,
 	phaddergrupp_role TEXT NOT NULL,
 	UNIQUE (phaddergrupp_id, phaddergrupp_role),
-    FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
+	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
 );`
 const IndexPhaddergruppInvitesOnPhaddergruppID = `
-CREATE INDEX IF NOT EXISTS 
-	idx_phaddergrupp_invites_phaddergrupp_id 
-ON 
+CREATE INDEX IF NOT EXISTS
+	idx_phaddergrupp_invites_phaddergrupp_id
+ON
 	phaddergrupp_invites(phaddergrupp_id)
 ;`
 

@@ -9,18 +9,18 @@ import (
 
 const SchemaPhaddergruppMappings = `
 CREATE TABLE IF NOT EXISTS phaddergrupp_mappings (
-    user_account_id INTEGER NOT NULL,
-    phaddergrupp_id INTEGER NOT NULL,
-    phaddergrupp_role TEXT NOT NULL,
-    mums_available INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_account_id, phaddergrupp_id),
-    FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
-    FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
+	user_account_id INTEGER NOT NULL,
+	phaddergrupp_id INTEGER NOT NULL,
+	phaddergrupp_role TEXT NOT NULL,
+	mums_available INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY (user_account_id, phaddergrupp_id),
+	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
+	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
 );`
 const IndexPhaddergruppMappingsOnPhaddergruppID = `
-CREATE INDEX IF NOT EXISTS 
-	idx_phaddergrupp_mappings_phaddergrupp_id 
-ON 
+CREATE INDEX IF NOT EXISTS
+	idx_phaddergrupp_mappings_phaddergrupp_id
+ON
 	phaddergrupp_mappings(phaddergrupp_id)
 ;`
 
@@ -165,8 +165,8 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		WITH GroupCounts AS (
 			SELECT
 				phaddergrupp_id,
-		        SUM(CASE WHEN phaddergrupp_role = 'phadder' THEN 1 ELSE 0 END) AS pc,
-		        SUM(CASE WHEN phaddergrupp_role = 'n0lla' THEN 1 ELSE 0 END) AS nc
+				SUM(CASE WHEN phaddergrupp_role = 'phadder' THEN 1 ELSE 0 END) AS pc,
+				SUM(CASE WHEN phaddergrupp_role = 'n0lla' THEN 1 ELSE 0 END) AS nc
 			FROM
 				phaddergrupp_mappings
 			GROUP BY
@@ -180,7 +180,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 			pg.secondary_color,
 			gc.pc,
 			gc.nc,
-		    pm.phaddergrupp_role,
+			pm.phaddergrupp_role,
 			pm.mums_available
 		FROM
 			phaddergrupp_mappings AS pm
@@ -252,30 +252,30 @@ type PhaddergruppUserSummaries struct {
 
 func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
 	const sqlQuery = `
-        SELECT
-            ua.id,
-            up.name,
-            pm.phaddergrupp_role,
-            pm.mums_available,
-            (
-                SELECT MAX(m2.created_at)
-                FROM mums AS m2
-                WHERE m2.user_account_id = ua.id AND m2.phaddergrupp_id = pm.phaddergrupp_id
-                    AND (m2.mums_type = 'consumption' OR m2.mums_quantity < 0)
-            ) AS last_mumsa_at
-        FROM
-            phaddergrupp_mappings AS pm
-        JOIN
-            phaddergrupps AS pg ON pg.id = pm.phaddergrupp_id AND pg.deleted_at IS NULL
-        JOIN
-            user_accounts AS ua ON ua.id = pm.user_account_id AND ua.deleted_at IS NULL
-        JOIN
-            user_profiles AS up ON up.id = ua.user_profile_id
-        WHERE
-            pm.phaddergrupp_id = ?
-        ORDER BY
-            up.name;
-    `
+		SELECT
+			ua.id,
+			up.name,
+			pm.phaddergrupp_role,
+			pm.mums_available,
+			(
+				SELECT MAX(m2.created_at)
+				FROM mums AS m2
+				WHERE m2.user_account_id = ua.id AND m2.phaddergrupp_id = pm.phaddergrupp_id
+					AND (m2.mums_type = 'consumption' OR m2.mums_quantity < 0)
+			) AS last_mumsa_at
+		FROM
+			phaddergrupp_mappings AS pm
+		JOIN
+			phaddergrupps AS pg ON pg.id = pm.phaddergrupp_id AND pg.deleted_at IS NULL
+		JOIN
+			user_accounts AS ua ON ua.id = pm.user_account_id AND ua.deleted_at IS NULL
+		JOIN
+			user_profiles AS up ON up.id = ua.user_profile_id
+		WHERE
+			pm.phaddergrupp_id = ?
+		ORDER BY
+			up.name;
+	`
 
 	rows, err := q.Query(sqlQuery, phaddergruppID)
 	if err != nil {
@@ -374,11 +374,11 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 // Returns zero if no rows were affected (not found = 0 as well)
 func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID, amount int64) (int64, error) {
 	const sqlQuery = `
-		UPDATE 
+		UPDATE
 			phaddergrupp_mappings
-		SET 
+		SET
 			mums_available = mums_available + ?
-		WHERE 
+		WHERE
 			user_account_id = ? AND phaddergrupp_id = ? AND mums_available + ? >= 0
 		RETURNING
 			mums_available;
