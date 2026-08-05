@@ -146,12 +146,12 @@ func emitPhaddergruppHeaderUpdate(c echo.Context) {
 func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	if event.Type == db.DBDelete && event.Table == "phaddergrupps" {
+	if event.Type == db.DBDelete && event.Table == "phaddergrupper" {
 		httpx.EmitSSE(c, "phaddergrupp-deleted", "")
 		return
 	}
 
-	if event.Type == db.DBUpdate && event.Table == "phaddergrupps" {
+	if event.Type == db.DBUpdate && event.Table == "phaddergrupper" {
 		emitPhaddergruppHeaderUpdate(c)
 		if auth.GetPhaddergruppRole(c) == roles.Phadder {
 			emitPhaddergruppMemberListsUpdate(c)

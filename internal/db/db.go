@@ -18,7 +18,7 @@ var schemas = []string{
 	SchemaUserProfiles,
 	SchemaUserAccounts,
 	SchemaUserAccountRoleMappings,
-	SchemaPhaddergrupps,
+	SchemaPhaddergrupper,
 	SchemaPhaddergruppMappings,
 	SchemaPhaddergruppInvites,
 	SchemaMums,

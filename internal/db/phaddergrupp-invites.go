@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupp_invites (
 	phaddergrupp_id INTEGER NOT NULL,
 	phaddergrupp_role TEXT NOT NULL,
 	UNIQUE (phaddergrupp_id, phaddergrupp_role),
-	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
+	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupper(id) ON DELETE CASCADE
 );`
 const IndexPhaddergruppInvitesOnPhaddergruppID = `
 CREATE INDEX IF NOT EXISTS
@@ -56,7 +56,7 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 		FROM
 			phaddergrupp_invites AS pi
 		JOIN
-			phaddergrupps AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+			phaddergrupper AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		WHERE
 			pi.token = ?
 	`
@@ -92,7 +92,7 @@ func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergru
 		FROM
 			phaddergrupp_invites AS pi
 		JOIN
-			phaddergrupps AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+			phaddergrupper AS pg ON pi.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		WHERE
 			pi.phaddergrupp_id = ?
 	`

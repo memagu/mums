@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS mums (
 	mums_quantity INTEGER NOT NULL,
 	mums_type TEXT NOT NULL,
     FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
-    FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
+    FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupper(id) ON DELETE CASCADE
 );`
 
 const IndexMumsOnPhaddergruppID = `

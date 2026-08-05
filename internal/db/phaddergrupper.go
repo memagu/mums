@@ -24,8 +24,8 @@ type PhaddergruppData struct {
 	MumsDefaultPurchaseQuantity int64
 }
 
-const SchemaPhaddergrupps = `
-CREATE TABLE IF NOT EXISTS phaddergrupps (
+const SchemaPhaddergrupper = `
+CREATE TABLE IF NOT EXISTS phaddergrupper (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	deleted_at DATETIME DEFAULT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupps (
 
 func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (int64, error) {
 	res, err := e.Exec(
-		`INSERT INTO phaddergrupps (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO phaddergrupper (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
 		config.Defaults.Phaddergrupp.PrimaryColor,
 		config.Defaults.Phaddergrupp.SecondaryColor,
@@ -69,7 +69,7 @@ func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (i
 	}
 
 	e.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBCreate,
 		Data:  nil,
 	})
@@ -95,7 +95,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 			mums_purchase_quantity_step,
 			mums_default_purchase_quantity
 		FROM
-			phaddergrupps
+			phaddergrupper
 		WHERE
 			id = ? AND deleted_at IS NULL
 	`
@@ -123,7 +123,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 	}
 
 	q.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
 	})
@@ -133,7 +133,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 
 func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
 	const sqlQuery = `
-		UPDATE phaddergrupps SET
+		UPDATE phaddergrupper SET
 			name = ?,
 			logo_file_path = ?,
 			primary_color = ?,
@@ -181,7 +181,7 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 	}
 
 	e.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBUpdate,
 		Data:  nil,
 	})
@@ -191,7 +191,7 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 
 func (db *DB) DeletePhaddergrupp(e execer, phaddergruppID int64) error {
 	const sqlQuery = `
-		UPDATE phaddergrupps
+		UPDATE phaddergrupper
 		SET deleted_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND deleted_at IS NULL
 	`
@@ -210,7 +210,7 @@ func (db *DB) DeletePhaddergrupp(e execer, phaddergruppID int64) error {
 	}
 
 	e.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBDelete,
 		Data:  nil,
 	})

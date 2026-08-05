@@ -133,18 +133,18 @@
             hx-swap="none"
             class="flex flex-col gap-3 w-full"
         >
-            {{ if .PhaddergruppUserSummaries.N0llas }}
+            {{ if .PhaddergruppUserSummaries.N0llor }}
                 {{ template "fragment-member-section" dict
                     "PhaddergruppID" .PhaddergruppID
-                    "UserSummaries" .PhaddergruppUserSummaries.N0llas
+                    "UserSummaries" .PhaddergruppUserSummaries.N0llor
                     "Color" .PrimaryColor
                     "Label" "N0llor"
                 }}
             {{ end }}
-            {{ if .PhaddergruppUserSummaries.Phadders }}
+            {{ if .PhaddergruppUserSummaries.Phaddrar }}
                 {{ template "fragment-member-section" dict
                     "PhaddergruppID" .PhaddergruppID
-                    "UserSummaries" .PhaddergruppUserSummaries.Phadders
+                    "UserSummaries" .PhaddergruppUserSummaries.Phaddrar
                     "Color" .SecondaryColor
                     "Label" "Phaddrar"
                 }}

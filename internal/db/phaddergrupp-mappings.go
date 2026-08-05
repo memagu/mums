@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupp_mappings (
 	mums_available INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY (user_account_id, phaddergrupp_id),
 	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
-	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupps(id) ON DELETE CASCADE
+	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupper(id) ON DELETE CASCADE
 );`
 const IndexPhaddergruppMappingsOnPhaddergruppID = `
 CREATE INDEX IF NOT EXISTS
@@ -56,7 +56,7 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 				FROM
 					phaddergrupp_mappings AS pm
 				JOIN
-					phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+					phaddergrupper AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 				WHERE
 					pm.user_account_id = ? AND pm.phaddergrupp_id = ?
 			);
@@ -83,7 +83,7 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 		SELECT NOT EXISTS (
 			SELECT 1
 			FROM phaddergrupp_mappings AS pm
-			JOIN phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+			JOIN phaddergrupper AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 			WHERE pm.phaddergrupp_id = ?
 		)
 	`
@@ -108,7 +108,7 @@ func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int6
 	row := q.QueryRow(`
 		SELECT pm.phaddergrupp_role
 		FROM phaddergrupp_mappings AS pm
-		JOIN phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+		JOIN phaddergrupper AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		WHERE pm.user_account_id = ? AND pm.phaddergrupp_id = ?`,
 		userAccountID, phaddergruppID)
 
@@ -185,7 +185,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
-			phaddergrupps AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
+			phaddergrupper AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
 		JOIN
 			GroupCounts AS gc ON pm.phaddergrupp_id = gc.phaddergrupp_id
 		WHERE
@@ -229,7 +229,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		Data:  nil,
 	})
 	q.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
 	})
@@ -246,8 +246,8 @@ type PhaddergruppUserSummary struct {
 }
 
 type PhaddergruppUserSummaries struct {
-	N0llas   []PhaddergruppUserSummary
-	Phadders []PhaddergruppUserSummary
+	N0llor   []PhaddergruppUserSummary
+	Phaddrar []PhaddergruppUserSummary
 }
 
 func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
@@ -266,7 +266,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
-			phaddergrupps AS pg ON pg.id = pm.phaddergrupp_id AND pg.deleted_at IS NULL
+			phaddergrupper AS pg ON pg.id = pm.phaddergrupp_id AND pg.deleted_at IS NULL
 		JOIN
 			user_accounts AS ua ON ua.id = pm.user_account_id AND ua.deleted_at IS NULL
 		JOIN
@@ -305,9 +305,9 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 
 		switch summary.PhaddergruppRole {
 		case roles.N0lla:
-			summaries.N0llas = append(summaries.N0llas, summary)
+			summaries.N0llor = append(summaries.N0llor, summary)
 		case roles.Phadder:
-			summaries.Phadders = append(summaries.Phadders, summary)
+			summaries.Phaddrar = append(summaries.Phaddrar, summary)
 		default:
 			return PhaddergruppUserSummaries{}, fmt.Errorf("unknown phaddergrupp role: %v for user %d", summary.PhaddergruppRole, summary.UserAccountID)
 		}
@@ -343,7 +343,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
-			phaddergrupps AS p ON p.id = pm.phaddergrupp_id AND p.deleted_at IS NULL
+			phaddergrupper AS p ON p.id = pm.phaddergrupp_id AND p.deleted_at IS NULL
 		WHERE
 			pm.user_account_id = ?
 		ORDER BY
@@ -363,7 +363,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		Data:  nil,
 	})
 	q.Emit(DBEvent{
-		Table: "phaddergrupps",
+		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
 	})
