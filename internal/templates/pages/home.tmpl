@@ -88,6 +88,7 @@
             "Type" "text"
             "Required" true
             "Value" .PhaddergruppName
+            "Errors" .Errors.PhaddergruppName
         }}
         {{ template "component-form-input-field" dict
             "ID" "swish-recipient-number-field"
@@ -98,6 +99,7 @@
             "Pattern" .SwishRecipientNumberPattern
             "Required" true
             "Value" .SwishRecipientNumber
+            "Errors" .Errors.SwishRecipientNumber
         }}
         {{ template "component-generic-errors" . }}
     </div>

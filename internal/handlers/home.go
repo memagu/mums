@@ -39,7 +39,7 @@ func GetHome(c echo.Context) error {
 	pageData := homePageData{
 		basePageData: basePageData{
 			IsLoggedIn:        auth.GetIsLoggedIn(c),
-			AllowedErrorCodes: []int{http.StatusInternalServerError},
+			AllowedErrorCodes: []int{http.StatusInternalServerError, http.StatusBadRequest},
 			CSRFToken:         csrfToken(c),
 		},
 		UserProfileName:                       userProfile.Name,
@@ -54,10 +54,30 @@ func PostHome(c echo.Context) error {
 	phaddergruppName := c.FormValue("phaddergrupp-name")
 	swishRecipientNumber := c.FormValue("swish-recipient-number")
 
+	formErrors := make(map[string][]string)
+	if phaddergruppName == "" {
+		formErrors["PhaddergruppName"] = []string{"Phaddergrupp name is required."}
+	}
+	if swishRecipientNumber == "" {
+		formErrors["SwishRecipientNumber"] = []string{"Swish recipient's number is required."}
+	} else if !config.Swish.NumberPatternRegex.MatchString(swishRecipientNumber) {
+		formErrors["SwishRecipientNumber"] = []string{"Must be a valid Swish number"}
+	}
+	if len(formErrors) > 0 {
+		return c.Render(http.StatusBadRequest, "home#fragment-form-fields", homePageData{
+			PhaddergruppName:            phaddergruppName,
+			SwishRecipientNumber:        swishRecipientNumber,
+			SwishRecipientNumberPattern: config.Swish.NumberPattern,
+			Errors:                      formErrors,
+		})
+	}
+
 	unexpectedFormError := func() error {
 		pageData := homePageData{
-			PhaddergruppName: phaddergruppName,
-			Errors:           map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
+			PhaddergruppName:            phaddergruppName,
+			SwishRecipientNumber:        swishRecipientNumber,
+			SwishRecipientNumberPattern: config.Swish.NumberPattern,
+			Errors:                      map[string][]string{"Generic": {"An unexpected error occurred. Please try again."}},
 		}
 		return c.Render(http.StatusInternalServerError, "home#fragment-form-fields", pageData)
 	}

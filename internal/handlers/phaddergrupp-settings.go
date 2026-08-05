@@ -46,7 +46,6 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 	updatedPhaddergruppData := phaddergruppData
 	formErrors := make(map[string][]string)
 
-	// TODO: Validate more!
 	if strVal := c.FormValue("name"); strVal != "" {
 		updatedPhaddergruppData.Name = strVal
 	}
@@ -81,7 +80,11 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		}
 	}
 	if strVal := c.FormValue("swish-recipient-number"); strVal != "" {
-		updatedPhaddergruppData.SwishRecipientNumber = strVal
+		if !config.Swish.NumberPatternRegex.MatchString(strVal) {
+			formErrors["SwishRecipientNumber"] = []string{"Must be a valid Swish number"}
+		} else {
+			updatedPhaddergruppData.SwishRecipientNumber = strVal
+		}
 	}
 	if strVal := c.FormValue("mums-capacity-per-user"); strVal != "" {
 		val, err := strconv.ParseInt(strVal, 10, 64)

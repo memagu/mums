@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -60,7 +61,8 @@ type serverConfig struct {
 }
 
 type swishConfig struct {
-	NumberPattern string
+	NumberPattern      string
+	NumberPatternRegex *regexp.Regexp
 }
 
 var (
@@ -138,8 +140,10 @@ func Load() {
 		Port:     envOrParsed("MUMS_SMTP_PORT", 587, strconv.Atoi),
 		Username: envOr("MUMS_SMTP_USERNAME", ""),
 	}
+	swishNumberPattern := envOr("MUMS_SWISH_NUMBER_PATTERN", `^(\+46 ?(\(0\))?|0) ?7[02369]-?\d{3} ?\d{2} ?\d{2}$`)
 	Swish = swishConfig{
-		NumberPattern: envOr("MUMS_SWISH_NUMBER_PATTERN", `^(\+46 ?(\(0\))?|0) ?7[02369]-?\d{3} ?\d{2} ?\d{2}$`),
+		NumberPattern:      swishNumberPattern,
+		NumberPatternRegex: regexp.MustCompile(swishNumberPattern),
 	}
 
 	if Server.CookieSecure && strings.HasPrefix(Server.Origin, "http://") {
