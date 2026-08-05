@@ -68,6 +68,16 @@
                 {{ template "fragment-member-lists" . }}
             {{ else }}
                 {{ template "fragment-mums-available-widget" . }}
+
+                {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+                <button
+                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/leave"
+                    hx-confirm="Are you sure you want to leave this phaddergrupp?"
+                    class="w-full py-2 rounded-md text-lg text-error-content font-semibold bg-error
+                           border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight
+                           active:bg-error-highlight"
+                >Leave phaddergrupp</button>
             {{ end }}
 
             {{ if .IsPhadder }}

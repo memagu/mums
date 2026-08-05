@@ -54,6 +54,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 	phaddergrupp.POST("/purchase-mums", handlers.PostPhaddergruppPurchaseMums)
 	phaddergrupp.POST("/mumsa", handlers.PostPhaddergruppMumsa)
 	phaddergrupp.POST("/kick", handlers.PostPhaddergruppKick, auth.RequirePhaddergruppRole(roles.Phadder))
+	phaddergrupp.POST("/leave", handlers.PostPhaddergruppLeave)
 	phaddergrupp.POST("/mums/adjust", handlers.PostPhaddergruppMumsAdjust, auth.RequirePhaddergruppRole(roles.Phadder))
 	phaddergrupp.GET("/settings", handlers.GetPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
 	phaddergrupp.PATCH("/settings", handlers.PatchPhaddergruppSettings, auth.RequirePhaddergruppRole(roles.Phadder))
