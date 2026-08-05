@@ -13,6 +13,8 @@ import (
 	"github.com/memagu/mums/pkg/httpx"
 )
 
+var errUserNotPhaddergruppMember = errors.New("user is not a member of phaddergrupp")
+
 func PostPhaddergruppMumsAdjust(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
@@ -30,7 +32,6 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "delta must be non-zero")
 	}
 
-	isNotMember := false
 	err = db.WithTx(database, func(e db.Execer) error {
 		q := e.(db.Queryer)
 		isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(q, userAccountID, phaddergruppID)
@@ -38,8 +39,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 			return err
 		}
 		if !isMember {
-			isNotMember = true
-			return fmt.Errorf("user %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID)
+			return errUserNotPhaddergruppMember
 		}
 		_, err = database.UpdateAdjustMumsAvailable(q, userAccountID, phaddergruppID, delta)
 		if err != nil {
@@ -49,7 +49,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		return err
 	})
 	if err != nil {
-		if isNotMember {
+		if errors.Is(err, errUserNotPhaddergruppMember) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("User account %d is not a member of phaddergrupp %d", userAccountID, phaddergruppID))
 		}
 		if errors.Is(err, sql.ErrNoRows) {

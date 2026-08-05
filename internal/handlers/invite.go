@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/pkg/httpx"
 )
+
+var errUserAlreadyPhaddergruppMember = errors.New("user is already a member of phaddergrupp")
 
 func GetInvite(c echo.Context) error {
 	token := c.Param("token")
@@ -33,13 +36,13 @@ func GetInvite(c echo.Context) error {
 			return err
 		}
 		if userIsAlreadyPhaddergruppMember {
-			return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("User account %d is already a member of phaddergrupp %d", userAccountID, invite.PhaddergruppID))
+			return errUserAlreadyPhaddergruppMember
 		}
 		return database.CreatePhaddergruppMapping(e, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
 	})
 	if err != nil {
-		if httpErr, ok := err.(*echo.HTTPError); ok {
-			return httpErr
+		if errors.Is(err, errUserAlreadyPhaddergruppMember) {
+			return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("User account %d is already a member of phaddergrupp %d", userAccountID, invite.PhaddergruppID))
 		}
 		return handleDBError(c, "phaddergrupp invite", err)
 	}
