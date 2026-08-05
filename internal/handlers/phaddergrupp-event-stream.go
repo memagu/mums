@@ -155,19 +155,19 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 		emitPhaddergruppHeaderUpdate(c)
 		if auth.GetPhaddergruppRole(c) == roles.Phadder {
 			emitPhaddergruppMemberListsUpdate(c)
-		} else {
-			database := db.GetDB(c)
-			mumsAvailable, err := database.ReadMumsAvailable(database, auth.GetUserAccountID(c), phaddergruppID)
-			if err != nil {
-				c.Logger().Errorf("Database error during mums available read: %v", err)
-			} else {
-				emitMumsAvailableWidgetUpdate(c, db.MumsAvailableUpdate{
-					UserAccountID:  auth.GetUserAccountID(c),
-					PhaddergruppID: phaddergruppID,
-					MumsAvailable:  mumsAvailable,
-				})
-			}
+			return
 		}
+		database := db.GetDB(c)
+		mumsAvailable, err := database.ReadMumsAvailable(database, auth.GetUserAccountID(c), phaddergruppID)
+		if err != nil {
+			c.Logger().Errorf("Database error during mums available read: %v", err)
+			return
+		}
+		emitMumsAvailableWidgetUpdate(c, db.MumsAvailableUpdate{
+			UserAccountID:  auth.GetUserAccountID(c),
+			PhaddergruppID: phaddergruppID,
+			MumsAvailable:  mumsAvailable,
+		})
 		return
 	}
 

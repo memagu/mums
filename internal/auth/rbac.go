@@ -79,10 +79,10 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 			}
 			database := db.GetDB(c)
 			phaddergruppRole, err := database.ReadPhaddergruppRole(database, GetUserAccountID(c), phaddergruppID)
+			if errors.Is(err, sql.ErrNoRows) {
+				return echo.NewHTTPError(http.StatusForbidden, "User account does not have access to this phaddergrupp")
+			}
 			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return echo.NewHTTPError(http.StatusForbidden, "User account does not have access to this phaddergrupp")
-				}
 				return httpx.InternalError(c, "phaddergrupp role read", err)
 			}
 

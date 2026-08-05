@@ -46,10 +46,10 @@ func PhaddergruppMiddleware() echo.MiddlewareFunc {
 			database := db.GetDB(c)
 
 			phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+			if errors.Is(err, sql.ErrNoRows) {
+				return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
+			}
 			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
-				}
 				return httpx.InternalError(c, "phaddergrupp read", err)
 			}
 			c.Set(ctxKeyPhaddergrupp, phaddergruppData)

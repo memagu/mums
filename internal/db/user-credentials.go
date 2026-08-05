@@ -72,7 +72,8 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 	err := row.Scan(&exists)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
-	} else if err != nil {
+	}
+	if err != nil {
 		return false, err
 	}
 
