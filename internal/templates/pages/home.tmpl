@@ -39,12 +39,12 @@
                                 <img src="/static/icons/student-cap.svg" alt="Phadder count" class="size-5" />
                                 <span class="font-semibold w-[2ch] text-right">{{ $s.PhadderCount }}</span>
                             </span>
-                            
+
                             <span class="flex items-center gap-1 text-card-content-muted rounded-full border-2 px-2 py-1 {{ if eq $s.PhaddergruppRole "n0lla" }} shadow-md border-[{{ $s.SecondaryColor }}] {{ else }} border-transparent {{ end }}" title="N0llor">
                                 <img src="/static/icons/cap.svg" alt="N0lla count" class="size-5" />
                                 <span class="font-semibold w-[2ch] text-right">{{ $s.N0llaCount }}</span>
                             </span>
-                            
+
                             <span class="flex items-center gap-1 text-card-content-highlight" title="Your mums">
                                 <img src="/static/icons/mums.svg" alt="Mums available" class="size-5" />
                                 <output class="font-bold w-[2ch]">{{ $s.MumsAvailable }}</output>

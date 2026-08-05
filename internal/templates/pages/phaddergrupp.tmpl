@@ -47,10 +47,10 @@
 
                 <p class="flex items-center gap-1.5 text-xl font-semibold text-backdrop-content-muted">
                     <span aria-hidden="true">-</span>
-                    {{- if .IsPhadder }} 
+                    {{- if .IsPhadder }}
                         <img src="/static/icons/student-cap.svg" alt="" class="size-5" />
                         <span>Phadder</span>
-                    {{ else }} 
+                    {{ else }}
                         <img src="/static/icons/cap.svg" alt="" class="size-5" />
                         <span>N0lla</span>
                     {{ end -}}
@@ -66,9 +66,7 @@
         <div class="self-center max-w-full flex flex-col items-center gap-6">
             {{ if .IsPhadder }}
                 {{ template "fragment-member-lists" . }}
-            {{ end }}
-
-            {{ if not .IsPhadder }}
+            {{ else }}
                 {{ template "fragment-mums-available-widget" . }}
             {{ end }}
 
@@ -130,7 +128,7 @@
         hx-swap="outerHTML"
         class="w-full"
     >
-        <div 
+        <div
             sse-swap="mums-available-badge-update"
             hx-swap="none"
             class="flex flex-col gap-3 w-full"
@@ -171,7 +169,7 @@
     <ul class="flex flex-col gap-3 w-full">
         {{ $root := . }}
         {{ range $_, $s := .UserSummaries }}
-            <li>{{ template "fragment-member-summary-card" dict 
+            <li>{{ template "fragment-member-summary-card" dict
                 "Color" $root.Color
                 "PhaddergruppID" $root.PhaddergruppID
                 "MemberSummary" $s
@@ -200,16 +198,16 @@
                     }}
                 </span>
             </div>
-            
+
             <div class="flex items-center justify-between flex-wrap gap-1">
-                <button 
+                <button
                     hx-post="/phaddergrupp/{{ .PhaddergruppID }}/kick?user-account-id={{ .MemberSummary.UserAccountID }}"
                     hx-confirm="Are you sure you want to kick {{ .MemberSummary.UserProfileName }} from this phaddergrupp?"
                     hx-swap="delete"
                     hx-target="#member-summary-card-{{ .MemberSummary.UserAccountID }}"
                     class="rounded-full px-4 py-1 bg-error border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight active:bg-error-highlight"
-                    title="Kick user from phaddergrupp"   
-                > 
+                    title="Kick user from phaddergrupp"
+                >
                     <img src="/static/icons/kick.svg" alt="Kick user" class="size-5 invert" />
                 </button>
 
@@ -230,7 +228,7 @@
                 "IconPath" "/static/icons/plus.svg"
                 "AltText" "Increment user's mums"
             }}
-            
+
             {{ template "fragment-adjust-button" dict
                 "PhaddergruppID" .PhaddergruppID
                 "UserAccountID" .MemberSummary.UserAccountID
@@ -258,7 +256,7 @@
 {{ define "fragment-mums-available-badge" }}
     <div class="flex items-center gap-1 text-card-content-highlight" title="User's mums">
         <img src="/static/icons/mums.svg" alt="Mums available" class="size-8" />
-        <output 
+        <output
             id="mums-available-badge-{{ .UserAccountID }}"
             {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
             class="font-bold text-2xl text-right w-[2ch]"
@@ -289,14 +287,14 @@
             {{ if .HasMumsPurchaseQuantities }}
                 <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content gap-3">
                     <button type="submit" class="flex justify-center items-center
-                               gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md 
+                               gap-2 bg-[{{ .PrimaryColor }}] px-6 py-4 rounded-md
                                text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
                                active:bg-[{{ .SecondaryColor }}]"
                     >
                         <img src="/static/icons/cart.svg" class="size-6 invert" alt=""/>
                         <span>Buy</span>
                     </button>
-                    
+
                     <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
                     <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-md px-2 py-3 text-xl w-16">
                         {{ range .MumsPurchaseQuantities }}
@@ -305,10 +303,10 @@
                     </select>
                 </form>
             {{ end }}
-            
+
             {{ if .HasMumsAvailable }}
-                <button 
-                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa" 
+                <button
+                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
                     hx-confirm="Are you sure you want to consume one mums?"
                     class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
                            px-6 py-3 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]

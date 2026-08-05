@@ -11,10 +11,10 @@
 {{ define "content" }}
     <div class="self-center max-w-full flex flex-col justify-center gap-6">
         <h1 class="text-center text-2xl text-backdrop-content">
-            Fine-tuning 
+            Fine-tuning
             <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
                 {{- .Name -}}
-            </span> 
+            </span>
             vibes!
         </h1>
 
@@ -47,7 +47,7 @@
         >Delete phaddergrupp</button>
 
         {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
-        <a 
+        <a
             href="/phaddergrupp/{{ .PhaddergruppID }}"
             class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
                    rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
