@@ -105,23 +105,18 @@ func (ss *SessionStore) DeleteSessionsByUserAccountID(userAccountID int64) {
 	}
 }
 
-func setSessionCookie(c echo.Context, sessionToken string, expiresAt time.Time) {
-	sc := new(http.Cookie)
-	sc.Name = config.Auth.SessionCookie
-	sc.Value = sessionToken
-	sc.Path = "/"
-	sc.HttpOnly = true
-	sc.Secure = config.Server.CookieSecure
-	sc.SameSite = http.SameSiteLaxMode
-	sc.Expires = expiresAt
-	sc.MaxAge = int(time.Until(expiresAt).Seconds())
-	c.SetCookie(sc)
+func setSessionCookie(c echo.Context, sessionToken string, ttl time.Duration) {
+	httpx.SetCookie(c, config.Auth.SessionCookie, sessionToken, int(ttl.Seconds()), config.Server.CookieSecure)
+}
+
+func clearSessionCookie(c echo.Context) {
+	httpx.ClearCookie(c, config.Auth.SessionCookie, config.Server.CookieSecure)
 }
 
 func LoginUser(c echo.Context, ss *SessionStore, userAccountID int64) {
 	sessionToken := ss.createSession(userAccountID)
 
-	setSessionCookie(c, sessionToken, time.Now().Add(config.Auth.SessionTTL))
+	setSessionCookie(c, sessionToken, config.Auth.SessionTTL)
 }
 
 func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
@@ -149,7 +144,7 @@ func SessionMiddleware(ss *SessionStore) echo.MiddlewareFunc {
 				return setNotLoggedIn()
 			}
 			s.touch()
-			setSessionCookie(c, sessionToken, s.expiresAt)
+			setSessionCookie(c, sessionToken, time.Until(s.expiresAt))
 
 			c.Set(ctxKeySessionToken, sessionToken)
 			c.Set(ctxKeyIsLoggedIn, true)
@@ -187,5 +182,5 @@ func RequireSession() echo.MiddlewareFunc {
 func LogoutUser(c echo.Context, ss *SessionStore) {
 	ss.deleteSession(getSessionToken(c))
 
-	setSessionCookie(c, "", time.Unix(0, 0))
+	clearSessionCookie(c)
 }
