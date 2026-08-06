@@ -152,8 +152,15 @@ type ConsumptionEvent struct {
 	CreatedAt       time.Time
 }
 
-func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64) (PhaddergruppStats, error) {
-	const sqlQuery = `
+func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
+	conditions := []string{"pm.phaddergrupp_id = ?"}
+	args := []any{phaddergruppID}
+	if role != "" {
+		conditions = append(conditions, "pm.phaddergrupp_role = ?")
+		args = append(args, string(role))
+	}
+
+	query := `
 		SELECT
 			ua.id,
 			up.name,
@@ -168,14 +175,14 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64) (Phaddergru
 		LEFT JOIN
 			mums AS m ON m.user_account_id = pm.user_account_id AND m.phaddergrupp_id = pm.phaddergrupp_id
 		WHERE
-			pm.phaddergrupp_id = ?
+			` + strings.Join(conditions, " AND ") + `
 		GROUP BY
 			ua.id, up.name
 		ORDER BY
 			mumsat DESC, up.name
 	`
 
-	rows, err := q.Query(sqlQuery, phaddergruppID)
+	rows, err := q.Query(query, args...)
 	if err != nil {
 		return PhaddergruppStats{}, err
 	}
@@ -210,8 +217,15 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64) (Phaddergru
 	return stats, nil
 }
 
-func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64) ([]ConsumptionEvent, error) {
-	const sqlQuery = `
+func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64, role roles.PhaddergruppRole) ([]ConsumptionEvent, error) {
+	conditions := []string{"m.phaddergrupp_id = ?", "(mums_type = 'consumption' OR mums_quantity < 0)"}
+	args := []any{phaddergruppID}
+	if role != "" {
+		conditions = append(conditions, "pm.phaddergrupp_role = ?")
+		args = append(args, string(role))
+	}
+
+	query := `
 		SELECT
 			up.name,
 			m.created_at
@@ -224,12 +238,12 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64)
 		JOIN
 			user_profiles AS up ON up.id = ua.user_profile_id
 		WHERE
-			m.phaddergrupp_id = ? AND (mums_type = 'consumption' OR mums_quantity < 0)
+			` + strings.Join(conditions, " AND ") + `
 		ORDER BY
 			m.created_at ASC, m.id ASC
 	`
 
-	rows, err := q.Query(sqlQuery, phaddergruppID)
+	rows, err := q.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

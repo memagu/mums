@@ -11,7 +11,7 @@
 {{ define "content" }}
     <div
         hx-ext="sse"
-        sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
+        sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream{{ if .RoleFilter }}?role={{ .RoleFilter }}{{ end }}"
         class="self-center max-w-full flex flex-col items-center gap-6"
     >
         <hgroup class="text-center w-full">
@@ -46,6 +46,15 @@
         hx-swap="outerHTML"
         class="w-full flex flex-col gap-6"
     >
+        <div class="w-full flex items-center justify-center gap-1 text-sm">
+            {{ range .RoleFilters }}
+                <a
+                    href="/phaddergrupp/{{ $.PhaddergruppID }}/stats{{ if .Value }}?role={{ .Value }}{{ end }}"
+                    class="px-3 py-1 rounded-md border-2 {{ if eq $.RoleFilter .Value }}bg-[{{ $.PrimaryColor }}] text-brand-primary-content border-[{{ $.PrimaryColor }}]{{ else }}text-backdrop-content-muted border-backdrop-border hover:text-backdrop-content{{ end }}"
+                >{{ .Label }}</a>
+            {{ end }}
+        </div>
+
         {{ if .TitleCards }}
             <div class="w-full flex flex-col gap-3">
                 <hgroup class="text-center">

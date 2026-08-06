@@ -11,8 +11,20 @@ import (
 	"github.com/memagu/mums/internal/auth"
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/loaders"
+	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
 )
+
+type statsRoleFilter struct {
+	Value roles.PhaddergruppRole
+	Label string
+}
+
+var statsRoleFilters = []statsRoleFilter{
+	{Value: roles.Phadder, Label: "Phadder"},
+	{Value: roles.N0lla, Label: "N0lla"},
+	{Value: "", Label: "All"},
+}
 
 // weekdayLetters indexes Monday=0 (Sunday=6) for the chart's x-axis labels.
 var weekdayLetters = [...]string{"m", "t", "w", "t", "f", "s", "s"}
@@ -46,12 +58,23 @@ type titleCard struct {
 type phaddergruppStatsTemplateData struct {
 	basePageData
 	PhaddergruppID int64
+	RoleFilter     roles.PhaddergruppRole
+	RoleFilters    []statsRoleFilter
 	db.PhaddergruppData
 	db.PhaddergruppStats
 	DailyBars       []dailyMumsatBar
 	WeekdayHourRows []weekdayHourRow
 	WeekdayLetters  []string
 	TitleCards      []titleCard
+}
+
+func resolveStatsRole(c echo.Context) roles.PhaddergruppRole {
+	switch role := roles.PhaddergruppRole(c.QueryParam("role")); role {
+	case roles.Phadder, roles.N0lla:
+		return role
+	default:
+		return ""
+	}
 }
 
 func readPhaddergruppDailyBars(events []db.ConsumptionEvent, loc *time.Location) []dailyMumsatBar {
@@ -174,12 +197,12 @@ func readTitleCards(events []db.ConsumptionEvent, members []db.MemberMumsStats, 
 	return cards
 }
 
-func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID int64, base basePageData) (phaddergruppStatsTemplateData, error) {
-	stats, err := database.ReadPhaddergruppStats(database, phaddergruppID)
+func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID int64, role roles.PhaddergruppRole, base basePageData) (phaddergruppStatsTemplateData, error) {
+	stats, err := database.ReadPhaddergruppStats(database, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}
-	events, err := database.ReadPhaddergruppConsumptionEvents(database, phaddergruppID)
+	events, err := database.ReadPhaddergruppConsumptionEvents(database, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}
@@ -188,6 +211,8 @@ func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID i
 	return phaddergruppStatsTemplateData{
 		basePageData:      base,
 		PhaddergruppID:    phaddergruppID,
+		RoleFilter:        role,
+		RoleFilters:       statsRoleFilters,
 		PhaddergruppData:  loaders.GetPhaddergrupp(c),
 		PhaddergruppStats: stats,
 		DailyBars:         readPhaddergruppDailyBars(events, loc),
@@ -200,8 +225,9 @@ func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID i
 func GetPhaddergruppStats(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
+	role := resolveStatsRole(c)
 
-	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, basePageData{
+	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, role, basePageData{
 		IsLoggedIn:        auth.GetIsLoggedIn(c),
 		AllowedErrorCodes: []int{http.StatusInternalServerError},
 		CSRFToken:         csrfToken(c),
@@ -215,8 +241,9 @@ func GetPhaddergruppStats(c echo.Context) error {
 func emitPhaddergruppStatsUpdate(c echo.Context) {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
+	role := resolveStatsRole(c)
 
-	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, basePageData{})
+	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, role, basePageData{})
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp stats read: %v", err)
 		return
