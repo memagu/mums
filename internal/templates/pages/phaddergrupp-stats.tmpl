@@ -14,13 +14,19 @@
         sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream"
         class="self-center max-w-full flex flex-col items-center gap-6"
     >
-        <h1 class="text-center text-2xl text-backdrop-content">
-            The
-            <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
-                {{- .Name -}}
-            </span>
-            thirst report
-        </h1>
+        <hgroup class="text-center w-full">
+            <h1 class="text-2xl text-backdrop-content">
+                The
+                <span class="inline-block max-w-full align-bottom truncate whitespace-nowrap border-b-2 border-[{{ .PrimaryColor }}] -mb-[2px]">
+                    {{- .Name -}}
+                </span>
+                thirst report
+            </h1>
+
+            <p class="mt-1 text-sm text-backdrop-content-muted">
+                Informal record, adjustments count as mumsa and may not reflect actual consumption
+            </p>
+        </hgroup>
 
         {{ template "fragment-phaddergrupp-stats" . }}
 
@@ -40,10 +46,94 @@
         hx-swap="outerHTML"
         class="w-full flex flex-col gap-6"
     >
-        <p class="text-center text-sm text-backdrop-content-muted">
-            Informal record, may not reflect actual consumption.
-        </p>
+        {{ if .TitleCards }}
+            <div class="w-full flex flex-col gap-3">
+                <hgroup class="text-center">
+                    <h2 class="text-xl font-semibold text-backdrop-content">Hall of Fame</h2>
+                    <p class="text-sm text-backdrop-content-muted">Last day with mums</p>
+                </hgroup>
+                <div class="grid grid-cols-2 gap-3 w-full">
+                    {{ range .TitleCards }}
+                        <div class="flex flex-col items-center gap-6 min-w-0 p-3
+                                    bg-card rounded-xl shadow-sm border-2 border-[{{ $.PrimaryColor }}]
+                                    text-card-content">
+                            <div class="flex flex-col items-center gap-1">
+                                <img src="{{ .Icon }}" alt="" class="size-10" />
+                                <hgroup class="text-center">
+                                    <h3 class="text-base font-semibold">{{ .Title }}</h3>
+                                    <p class="text-xs text-card-content-muted">{{ .Description }}</p>
+                                </hgroup>
+                            </div>
+                            <p class="flex items-center justify-center gap-1 min-w-0 w-full text-sm text-card-content">
+                                <span class="truncate max-w-full">{{ .Name }}</span>
+                                <span class="text-[{{ $.SecondaryColor }}]"> @ </span>
+                                <output class="shrink-0">{{ .Data }}</output>
+                            </p>
+                        </div>
+                    {{ end }}
+                </div>
+            </div>
 
+            {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+        {{ end }}
+
+        <div class="w-full flex flex-col gap-1">
+            <hgroup class="text-center">
+                <h2 class="text-xl font-semibold text-backdrop-content">Last night was a movie!</h2>
+                <p class="text-sm text-backdrop-content-muted">Mumsningar per day, last 14 days</p>
+            </hgroup>
+            <div class="w-full flex items-end justify-center gap-1 h-24 px-2 text-xs">
+                {{ range .DailyBars }}
+                    <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full min-w-0">
+                        <div class="flex-1 w-full flex flex-col items-center justify-end gap-1 min-h-0">
+                            {{ if gt .Count 0 }}
+                                <span class="shrink-0 leading-none text-backdrop-content-muted">{{ .Count }}</span>
+                            {{ end }}
+                            <div
+                                class="w-full max-w-8 grow-0 shrink basis-[{{ .Percent }}%] rounded-t-sm {{ if .IsToday }}bg-[{{ $.PrimaryColor }}]{{ else }}bg-[{{ $.SecondaryColor }}]{{ end }}"
+                                title="{{ .Count }}"
+                            ></div>
+                        </div>
+                        <span class="leading-none text-backdrop-content-muted">{{ .Label }}</span>
+                    </div>
+                {{ end }}
+            </div>
+        </div>
+
+        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+        <div class="w-full flex flex-col gap-1">
+            <hgroup class="text-center">
+                <h2 class="text-xl font-semibold text-backdrop-content">When do we mumsa?</h2>
+                <p class="text-sm text-backdrop-content-muted">Mums heatmap by day and hour, all time</p>
+            </hgroup>
+            <div class="grid grid-cols-[auto_repeat(7,max-content)] gap-1 w-full justify-center text-xs">
+                <span></span>
+                {{ range .WeekdayLetters }}
+                    <span class="text-center leading-none text-backdrop-content-muted">{{ . }}</span>
+                {{ end }}
+                {{ range .WeekdayHourRows }}
+                    <span class="flex items-center justify-end pr-1 leading-none text-backdrop-content-muted">{{ printf "%02d" .Hour }}</span>
+                    {{ range .Cells }}
+                        {{ if gt .Count 0 }}
+                            <div
+                                class="flex items-center justify-center p-1 aspect-square rounded-md text-brand-primary-content bg-[color-mix(in_srgb,{{ $.PrimaryColor }}_{{ .Intensity }}%,{{ $.SecondaryColor }})]"
+                                title="{{ .Count }}"
+                            ><span class="w-[3ch] text-center">{{ .Count }}</span></div>
+                        {{ else }}
+                            <div class="flex items-center justify-center p-1 aspect-square rounded-md bg-backdrop-border"><span class="w-[3ch]"></span></div>
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
+            </div>
+        </div>
+
+        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+        <hgroup>
+            <h2 class="text-center text-xl font-semibold text-backdrop-content">Billboard hot {{ len .Members }}</h2>
+            <p class="text-center text-sm text-backdrop-content-muted">Mums top list</p>
+        </hgroup>
         <div class="w-full flex flex-col gap-3">
             {{ range .Members }}
                 <div class="flex items-center justify-between gap-4 w-full min-w-0 p-4

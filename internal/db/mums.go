@@ -147,6 +147,11 @@ type PhaddergruppStats struct {
 	TotalBought int64
 }
 
+type ConsumptionEvent struct {
+	UserProfileName string
+	CreatedAt       time.Time
+}
+
 func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64) (PhaddergruppStats, error) {
 	const sqlQuery = `
 		SELECT
@@ -203,6 +208,67 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64) (Phaddergru
 	})
 
 	return stats, nil
+}
+
+func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64) ([]ConsumptionEvent, error) {
+	const sqlQuery = `
+		SELECT
+			up.name,
+			m.created_at
+		FROM
+			mums AS m
+		JOIN
+			phaddergrupp_mappings AS pm ON pm.user_account_id = m.user_account_id AND pm.phaddergrupp_id = m.phaddergrupp_id
+		JOIN
+			user_accounts AS ua ON ua.id = m.user_account_id AND ua.deleted_at IS NULL
+		JOIN
+			user_profiles AS up ON up.id = ua.user_profile_id
+		WHERE
+			m.phaddergrupp_id = ? AND (mums_type = 'consumption' OR mums_quantity < 0)
+		ORDER BY
+			m.created_at ASC, m.id ASC
+	`
+
+	rows, err := q.Query(sqlQuery, phaddergruppID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []ConsumptionEvent
+	for rows.Next() {
+		var event ConsumptionEvent
+		if err := rows.Scan(&event.UserProfileName, &event.CreatedAt); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	q.Emit(DBEvent{
+		Table: "phaddergrupp_mappings",
+		Type:  DBRead,
+		Data:  nil,
+	})
+	q.Emit(DBEvent{
+		Table: "mums",
+		Type:  DBRead,
+		Data:  nil,
+	})
+	q.Emit(DBEvent{
+		Table: "user_accounts",
+		Type:  DBRead,
+		Data:  nil,
+	})
+	q.Emit(DBEvent{
+		Table: "user_profiles",
+		Type:  DBRead,
+		Data:  nil,
+	})
+
+	return events, nil
 }
 
 func parseSQLiteTime(src sql.NullString) (sql.NullTime, error) {
