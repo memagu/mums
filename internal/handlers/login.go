@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -52,9 +53,13 @@ func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error
 	}
 
 	var redirectURL string
-	switch phaddergruppID, err := database.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {
+	switch phaddergruppID, createdAt, err := database.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {
 	case nil:
-		redirectURL = fmt.Sprintf("/phaddergrupp/%d", phaddergruppID)
+		if time.Since(createdAt) < config.Auth.LoginRedirectMaxAge {
+			redirectURL = fmt.Sprintf("/phaddergrupp/%d", phaddergruppID)
+		} else {
+			redirectURL = "/"
+		}
 	case sql.ErrNoRows:
 		redirectURL = "/"
 	default:

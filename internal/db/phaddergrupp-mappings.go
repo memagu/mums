@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/memagu/mums/internal/roles"
 )
@@ -336,10 +337,11 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 	return summaries, nil
 }
 
-func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccountID int64) (int64, error) {
+func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccountID int64) (int64, time.Time, error) {
 	const sqlQuery = `
 		SELECT
-			p.id
+			p.id,
+			p.created_at
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
@@ -353,8 +355,9 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 	row := q.QueryRow(sqlQuery, userAccountID)
 
 	var phaddergruppID int64
-	if err := row.Scan(&phaddergruppID); err != nil {
-		return 0, err
+	var createdAt time.Time
+	if err := row.Scan(&phaddergruppID, &createdAt); err != nil {
+		return 0, time.Time{}, err
 	}
 
 	q.Emit(DBEvent{
@@ -368,10 +371,9 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		Data:  nil,
 	})
 
-	return phaddergruppID, nil
-}
+	return phaddergruppID, createdAt, nil
+} // Returns zero if no rows were affected (not found = 0 as well)
 
-// Returns zero if no rows were affected (not found = 0 as well)
 func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID, amount int64) (int64, error) {
 	const sqlQuery = `
 		UPDATE

@@ -15,6 +15,7 @@ import (
 
 type authConfig struct {
 	InviteTokenSize        int
+	LoginRedirectMaxAge    time.Duration
 	PasswordResetTokenSize int
 	PasswordResetTTL       time.Duration
 	PendingInviteCookie    string
@@ -115,6 +116,7 @@ func Load() {
 
 	Auth = authConfig{
 		InviteTokenSize:        envOrParsed("MUMS_INVITE_TOKEN_SIZE", 32, strconv.Atoi),
+		LoginRedirectMaxAge:    envOrParsed("MUMS_LOGIN_REDIRECT_MAX_AGE", 6*30*24*time.Hour, time.ParseDuration),
 		PasswordResetTokenSize: envOrParsed("MUMS_PASSWORD_RESET_TOKEN_SIZE", 32, strconv.Atoi),
 		PasswordResetTTL:       envOrParsed("MUMS_PASSWORD_RESET_TTL", 666*time.Second, time.ParseDuration),
 		PendingInviteCookie:    envOr("MUMS_PENDING_INVITE_COOKIE", "pendingInvite"),
