@@ -66,6 +66,7 @@
         <div class="self-center max-w-full flex flex-col items-center gap-6">
             {{ if .IsPhadder }}
                 {{ template "fragment-member-lists" . }}
+                {{ template "fragment-mums-available-widget" . }}
             {{ else }}
                 {{ template "fragment-mums-available-widget" . }}
 
@@ -290,9 +291,11 @@
         hx-swap="outerHTML"
         class="flex flex-col items-center gap-6"
     >
-        <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
-            {{- .MumsAvailable -}}
-        </output>
+        {{ if not .IsPhadder }}
+            <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
+                {{- .MumsAvailable -}}
+            </output>
+        {{ end }}
 
         <div class="flex flex-wrap justify-center gap-4">
             {{ if .HasMumsPurchaseQuantities }}
@@ -315,7 +318,7 @@
                 </form>
             {{ end }}
 
-            {{ if .HasMumsAvailable }}
+            {{ if and (not .IsPhadder) .HasMumsAvailable }}
                 <button
                     hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
                     hx-confirm="Are you sure you want to consume one mums?"

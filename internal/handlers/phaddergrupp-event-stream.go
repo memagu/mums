@@ -16,6 +16,7 @@ import (
 
 type templateDataMumsAvailableWidget struct {
 	PhaddergruppID int64
+	IsPhadder      bool
 	db.PhaddergruppData
 	MumsAvailable             int64
 	HasMumsAvailable          bool
@@ -36,6 +37,7 @@ func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpd
 
 	templateData := templateDataMumsAvailableWidget{
 		PhaddergruppID:            phaddergruppID,
+		IsPhadder:                 auth.GetPhaddergruppRole(c) == roles.Phadder,
 		PhaddergruppData:          phaddergruppData,
 		MumsAvailable:             eventData.MumsAvailable,
 		HasMumsAvailable:          eventData.MumsAvailable > 0,
