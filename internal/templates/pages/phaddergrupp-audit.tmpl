@@ -59,7 +59,7 @@
                 <tr class="odd:bg-card">
                     <td class="px-2 py-1 max-w-[10rem] truncate">{{ .Name }}</td>
                     <td class="px-2 py-1 text-right tabular-nums">{{ if gt .Delta 0 }}+{{ end }}{{ .Delta }}</td>
-                    <td class="px-2 py-1 text-right text-card-content-muted">{{ .Time.Local.Format "2006-01-02 15:04:05" }}</td>
+                    <td class="px-2 py-1 text-right text-card-content-muted">{{ formatTime .Time $.ClientLocation }}</td>
                 </tr>
             {{ else }}
                 <tr>

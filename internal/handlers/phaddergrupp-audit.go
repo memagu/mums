@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -16,7 +17,8 @@ type phaddergruppAuditTemplateData struct {
 	basePageData
 	PhaddergruppID int64
 	db.PhaddergruppData
-	Transactions []transactionLogEntry
+	ClientLocation *time.Location
+	Transactions   []transactionLogEntry
 }
 
 func GetPhaddergruppAuditLog(c echo.Context) error {
@@ -36,6 +38,7 @@ func GetPhaddergruppAuditLog(c echo.Context) error {
 		},
 		PhaddergruppID:   phaddergruppID,
 		PhaddergruppData: loaders.GetPhaddergrupp(c),
+		ClientLocation:   clientTimeLocation(c),
 		Transactions:     normalizeTransactions(rows),
 	}
 	return c.Render(http.StatusOK, "phaddergrupp-audit", templateData)
@@ -54,6 +57,7 @@ func emitPhaddergruppAuditUpdate(c echo.Context) {
 	templateData := phaddergruppAuditTemplateData{
 		PhaddergruppID:   phaddergruppID,
 		PhaddergruppData: loaders.GetPhaddergrupp(c),
+		ClientLocation:   clientTimeLocation(c),
 		Transactions:     normalizeTransactions(rows),
 	}
 

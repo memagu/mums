@@ -24,6 +24,7 @@ type authConfig struct {
 	SessionCookie          string
 	SessionTTL             time.Duration
 	SessionTokenSize       int
+	TZCookie               string
 }
 
 type dbConfig struct {
@@ -125,6 +126,7 @@ func Load() {
 		SessionCookie:          envOr("MUMS_SESSION_COOKIE", "sessionToken"),
 		SessionTTL:             envOrParsed("MUMS_SESSION_TTL", 1337*time.Hour, time.ParseDuration),
 		SessionTokenSize:       envOrParsed("MUMS_SESSION_TOKEN_SIZE", 32, strconv.Atoi),
+		TZCookie:               envOr("MUMS_TZ_COOKIE", "tz"),
 	}
 	DB = dbConfig{
 		FilePath:    envOr("MUMS_DB_PATH", "mums.sqlite3"),

@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/memagu/mums/internal/config"
 )
 
 //go:embed **/*.tmpl
@@ -61,12 +63,25 @@ func rfc3339(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
+func formatTime(t time.Time, location *time.Location) string {
+	if location == nil {
+		location = time.Local
+	}
+	return t.In(location).Format(time.DateTime)
+}
+
+func tzCookieName() string {
+	return config.Auth.TZCookie
+}
+
 func NewTemplateRenderer() *TemplateRenderer {
 	funcMap := template.FuncMap{
-		"dict":    dict,
-		"hasKey":  hasKey,
-		"relTime": relTime,
-		"rfc3339": rfc3339,
+		"dict":         dict,
+		"hasKey":       hasKey,
+		"relTime":      relTime,
+		"rfc3339":      rfc3339,
+		"formatTime":   formatTime,
+		"tzCookieName": tzCookieName,
 	}
 	templates := make(map[string]*template.Template)
 

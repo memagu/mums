@@ -187,8 +187,6 @@ func PostPasswordResetConfirm(ss *auth.SessionStore, rts *auth.PasswordResetToke
 
 const passwordResetEmailSubject = "Reset your mums password"
 
-const passwordResetEmailTimeFormat = "2006-01-02 15:04:05"
-
 func passwordResetEmail(resetURL string, sentAt, expiresAt time.Time) (string, string) {
 	body := "Sup dawg!\n" +
 		"\n" +
@@ -197,8 +195,8 @@ func passwordResetEmail(resetURL string, sentAt, expiresAt time.Time) (string, s
 		"Open this link to choose a new password:\n" +
 		resetURL + "\n" +
 		"\n" +
-		"requested at: " + sentAt.Local().Format(passwordResetEmailTimeFormat) + "\n" +
-		"expires at: " + expiresAt.Local().Format(passwordResetEmailTimeFormat) + "\n" +
+		"requested at: " + sentAt.Local().Format(time.DateTime) + "\n" +
+		"expires at: " + expiresAt.Local().Format(time.DateTime) + "\n" +
 		"\n" +
 		"If you didn't request this, you can safely ignore this email."
 	return passwordResetEmailSubject, body

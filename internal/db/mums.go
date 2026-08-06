@@ -209,7 +209,7 @@ func parseSQLiteTime(src sql.NullString) (sql.NullTime, error) {
 	if !src.Valid {
 		return sql.NullTime{}, nil
 	}
-	t, err := time.Parse("2006-01-02 15:04:05", src.String)
+	t, err := time.Parse(time.DateTime, src.String)
 	if err != nil {
 		return sql.NullTime{}, err
 	}
