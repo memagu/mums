@@ -68,7 +68,12 @@
 
         {{ template "component-divider" dict "Class" "border-brand-primary" }}
 
-        <h2 class="text-center text-xl font-semibold text-backdrop-content">Create a new phaddergrupp</h2>
+        <hgroup class="text-center">
+            <h2 class="text-xl font-semibold text-backdrop-content">Create a new phaddergrupp</h2>
+            {{ if .UserPhaddergruppSummaries }}
+                <p class="text-sm text-backdrop-content-muted">Joining an existing group? Ask a phadder for an invite link!</p>
+            {{ end }}
+        </hgroup>
         <form hx-post="/" hx-target="#form-fields" hx-swap="outerHTML" class="w-full flex flex-col gap-6">
             {{ template "fragment-form-fields" . }}
             {{ template "component-primary-button" dict "Text" "Create phaddergrupp" }}
