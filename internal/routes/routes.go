@@ -24,6 +24,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 	e.POST("/password-reset/:token", handlers.PostPasswordResetConfirm(ss, rts))
 	e.GET("/static/manifest.webmanifest", handlers.GetManifest)
 	e.GET("/sw.js", handlers.GetServiceWorker)
+	e.GET("/invite/:token", handlers.GetInvite)
 
 	protected := e.Group(
 		"",
@@ -40,7 +41,6 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 	protected.DELETE("/settings", handlers.DeleteAccount(ss, rts))
 	protected.GET("/admin", handlers.GetAdmin, auth.RequireUserAccountRole(roles.Admin))
 	protected.POST("/admin", handlers.PostAdmin, auth.RequireUserAccountRole(roles.Admin))
-	protected.GET("/invite/:token", handlers.GetInvite)
 
 	phaddergrupp := protected.Group(
 		"/phaddergrupp/:id",

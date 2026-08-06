@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
+	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/pkg/httpx"
 	"github.com/memagu/mums/pkg/password"
@@ -38,6 +39,17 @@ func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error
 	auth.LoginUser(c, ss, userAccountID)
 
 	database := db.GetDB(c)
+
+	if pendingInvite, err := c.Cookie(config.Auth.PendingInviteCookie); err == nil {
+		redirectURL, joinErr := joinPhaddergruppInvite(database, userAccountID, pendingInvite.Value)
+		if joinErr != nil && !errors.Is(joinErr, sql.ErrNoRows) {
+			return handleDBError(c, "phaddergrupp invite", joinErr)
+		}
+		clearPendingInviteCookie(c)
+		if joinErr == nil {
+			return httpx.Redirect(c, http.StatusSeeOther, redirectURL)
+		}
+	}
 
 	var redirectURL string
 	switch phaddergruppID, err := database.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {

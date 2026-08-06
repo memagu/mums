@@ -17,6 +17,8 @@ type authConfig struct {
 	InviteTokenSize        int
 	PasswordResetTokenSize int
 	PasswordResetTTL       time.Duration
+	PendingInviteCookie    string
+	PendingInviteTTL       time.Duration
 	SessionCleanup         time.Duration
 	SessionCookie          string
 	SessionTTL             time.Duration
@@ -115,6 +117,8 @@ func Load() {
 		InviteTokenSize:        envOrParsed("MUMS_INVITE_TOKEN_SIZE", 32, strconv.Atoi),
 		PasswordResetTokenSize: envOrParsed("MUMS_PASSWORD_RESET_TOKEN_SIZE", 32, strconv.Atoi),
 		PasswordResetTTL:       envOrParsed("MUMS_PASSWORD_RESET_TTL", 666*time.Second, time.ParseDuration),
+		PendingInviteCookie:    envOr("MUMS_PENDING_INVITE_COOKIE", "pendingInvite"),
+		PendingInviteTTL:       envOrParsed("MUMS_PENDING_INVITE_TTL", 69*time.Minute, time.ParseDuration),
 		SessionCleanup:         envOrParsed("MUMS_SESSION_CLEANUP", 666*time.Second, time.ParseDuration),
 		SessionCookie:          envOr("MUMS_SESSION_COOKIE", "sessionToken"),
 		SessionTTL:             envOrParsed("MUMS_SESSION_TTL", 1337*time.Hour, time.ParseDuration),
