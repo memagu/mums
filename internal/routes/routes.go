@@ -4,10 +4,12 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/auth"
+	"github.com/memagu/mums/internal/config"
 	"github.com/memagu/mums/internal/handlers"
 	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/email"
+	"github.com/memagu/mums/pkg/httpx"
 )
 
 func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordResetTokenStore, sender email.Sender) {
@@ -46,6 +48,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 		"/phaddergrupp/:id",
 		auth.PhaddergruppRBACMiddleware(),
 		loaders.PhaddergruppMiddleware(),
+		httpx.ClientTimeZoneMiddleware(config.Auth.TZCookie),
 	)
 
 	phaddergrupp.GET("", handlers.GetPhaddergrupp)

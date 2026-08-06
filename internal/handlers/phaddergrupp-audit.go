@@ -38,7 +38,7 @@ func GetPhaddergruppAuditLog(c echo.Context) error {
 		},
 		PhaddergruppID:   phaddergruppID,
 		PhaddergruppData: loaders.GetPhaddergrupp(c),
-		ClientLocation:   clientTimeLocation(c),
+		ClientLocation:   httpx.GetClientTimeLocation(c),
 		Transactions:     normalizeTransactions(rows),
 	}
 	return c.Render(http.StatusOK, "phaddergrupp-audit", templateData)
@@ -57,7 +57,7 @@ func emitPhaddergruppAuditUpdate(c echo.Context) {
 	templateData := phaddergruppAuditTemplateData{
 		PhaddergruppID:   phaddergruppID,
 		PhaddergruppData: loaders.GetPhaddergrupp(c),
-		ClientLocation:   clientTimeLocation(c),
+		ClientLocation:   httpx.GetClientTimeLocation(c),
 		Transactions:     normalizeTransactions(rows),
 	}
 
