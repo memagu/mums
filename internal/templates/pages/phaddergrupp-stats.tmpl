@@ -12,6 +12,9 @@
     <div
         hx-ext="sse"
         sse-connect="/phaddergrupp/{{ .PhaddergruppID }}/event-stream{{ if .RoleFilter }}?role={{ .RoleFilter }}{{ end }}"
+        sse-swap="phaddergrupp-deleted,phaddergrupp-kicked"
+        hx-swap="none"
+        hx-on::sse-message="if (event.detail.type === 'phaddergrupp-deleted' || event.detail.type === 'phaddergrupp-kicked') { window.location = '/'; }"
         class="self-center max-w-full flex flex-col items-center gap-6"
     >
         <hgroup class="text-center w-full">
