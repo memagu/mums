@@ -31,20 +31,15 @@ var indexes = []string{
 	IndexMumsOnUserAccountID,
 }
 
-type execer interface {
+// DBTX is the handle database functions run SQL through. Both the connection
+// (*DB) and an in-flight transaction (txWrapper) satisfy it. Its Emit method
+// is buffered by txWrapper (flushed on commit) and broadcast by *DB.
+type DBTX interface {
 	Exec(query string, args ...any) (sql.Result, error)
-	Emit(DBEvent)
-}
-
-type Execer = execer
-
-type queryer interface {
 	Query(query string, args ...any) (*sql.Rows, error)
 	QueryRow(query string, args ...any) *sql.Row
 	Emit(DBEvent)
 }
-
-type Queryer = queryer
 
 type DB struct {
 	*sql.DB
@@ -114,15 +109,15 @@ func NewDB(dbFilePath string) (*DB, error) {
 	return db, nil
 }
 
-func WithTx(db *DB, fn func(e execer) error) error {
+func WithTx(db *DB, fn func(dbtx DBTX) error) error {
 	tx, err := db.DB.Begin()
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
+	defer tx.Rollback()
 
 	tw := &txWrapper{tx: tx}
 	if err := fn(tw); err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 

@@ -26,21 +26,20 @@ func clearPendingInviteCookie(c echo.Context) {
 
 func joinPhaddergruppInvite(database *db.DB, userAccountID int64, token string) (string, error) {
 	var invite db.PhaddergruppInviteData
-	err := db.WithTx(database, func(e db.Execer) error {
-		q := e.(db.Queryer)
+	err := db.WithTx(database, func(dbtx db.DBTX) error {
 		var err error
-		invite, err = database.ReadPhaddergruppInvite(q, token)
+		invite, err = database.ReadPhaddergruppInvite(dbtx, token)
 		if err != nil {
 			return err
 		}
-		userIsAlreadyPhaddergruppMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(q, userAccountID, invite.PhaddergruppID)
+		userIsAlreadyPhaddergruppMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, invite.PhaddergruppID)
 		if err != nil {
 			return err
 		}
 		if userIsAlreadyPhaddergruppMember {
 			return errUserAlreadyPhaddergruppMember
 		}
-		return database.CreatePhaddergruppMapping(e, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
+		return database.CreatePhaddergruppMapping(dbtx, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
 	})
 	if err != nil && !errors.Is(err, errUserAlreadyPhaddergruppMember) {
 		return "", err

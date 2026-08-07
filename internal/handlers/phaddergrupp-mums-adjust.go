@@ -32,20 +32,19 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "delta must be non-zero")
 	}
 
-	err = db.WithTx(database, func(e db.Execer) error {
-		q := e.(db.Queryer)
-		isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(q, userAccountID, phaddergruppID)
+	err = db.WithTx(database, func(dbtx db.DBTX) error {
+		isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err
 		}
 		if !isMember {
 			return errUserNotPhaddergruppMember
 		}
-		_, err = database.UpdateAdjustMumsAvailable(q, userAccountID, phaddergruppID, delta)
+		_, err = database.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, delta)
 		if err != nil {
 			return err
 		}
-		_, err = database.CreateMums(e, userAccountID, phaddergruppID, delta, db.Purchase)
+		_, err = database.CreateMums(dbtx, userAccountID, phaddergruppID, delta, db.Purchase)
 		return err
 	})
 	if err != nil {

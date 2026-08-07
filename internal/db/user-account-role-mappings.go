@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS user_account_role_mappings (
 	UNIQUE (user_account_id, user_account_role)
 );`
 
-func (db *DB) CreateUserAccountRoleMapping(e execer, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
-	res, err := e.Exec(
+func (db *DB) CreateUserAccountRoleMapping(dbtx DBTX, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
+	res, err := dbtx.Exec(
 		`INSERT INTO user_account_role_mappings (user_account_id, user_account_role) VALUES (?, ?)`,
 		userAccountID,
 		string(userAccountRole),
@@ -27,7 +27,7 @@ func (db *DB) CreateUserAccountRoleMapping(e execer, userAccountID int64, userAc
 		return 0, err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_account_role_mappings",
 		Type:  DBCreate,
 		Data:  nil,
@@ -36,8 +36,8 @@ func (db *DB) CreateUserAccountRoleMapping(e execer, userAccountID int64, userAc
 	return id, nil
 }
 
-func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.UserAccountRole, error) {
-	rows, err := q.Query(`
+func (db *DB) ReadUserAccountRoles(dbtx DBTX, userAccountID int64) ([]roles.UserAccountRole, error) {
+	rows, err := dbtx.Query(`
 		SELECT uarm.user_account_role
 		FROM user_account_role_mappings AS uarm
 		JOIN user_accounts AS ua ON uarm.user_account_id = ua.id AND ua.deleted_at IS NULL
@@ -61,7 +61,7 @@ func (db *DB) ReadUserAccountRoles(q queryer, userAccountID int64) ([]roles.User
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_account_role_mappings",
 		Type:  DBRead,
 		Data:  nil,

@@ -86,21 +86,21 @@ func PostHome(c echo.Context) error {
 	userAccountID := auth.GetUserAccountID(c)
 
 	var phaddergruppID int64
-	err := db.WithTx(database, func(e db.Execer) error {
+	err := db.WithTx(database, func(dbtx db.DBTX) error {
 		var err error
-		phaddergruppID, err = database.CreatePhaddergrupp(e, phaddergruppName, swishRecipientNumber)
+		phaddergruppID, err = database.CreatePhaddergrupp(dbtx, phaddergruppName, swishRecipientNumber)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppMapping(e, userAccountID, phaddergruppID, roles.Phadder)
+		err = database.CreatePhaddergruppMapping(dbtx, userAccountID, phaddergruppID, roles.Phadder)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.N0lla)
+		err = database.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.N0lla)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(e, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.Phadder)
+		err = database.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.Phadder)
 		return err
 	})
 	if err != nil {

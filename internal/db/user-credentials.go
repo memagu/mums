@@ -18,8 +18,8 @@ type UserCredentialsData struct {
 	Hashword string
 }
 
-func (db *DB) CreateUserCredentials(e execer, email string, hashword string) (int64, error) {
-	res, err := e.Exec(
+func (db *DB) CreateUserCredentials(dbtx DBTX, email string, hashword string) (int64, error) {
+	res, err := dbtx.Exec(
 		`INSERT INTO user_credentials (email, hashword) VALUES (?, ?)`,
 		email,
 		hashword,
@@ -32,7 +32,7 @@ func (db *DB) CreateUserCredentials(e execer, email string, hashword string) (in
 		return 0, err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBCreate,
 		Data:  nil,
@@ -41,8 +41,8 @@ func (db *DB) CreateUserCredentials(e execer, email string, hashword string) (in
 	return id, nil
 }
 
-func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (int64, string, error) {
-	row := q.QueryRow(
+func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(dbtx DBTX, email string) (int64, string, error) {
+	row := dbtx.QueryRow(
 		`SELECT id, hashword FROM user_credentials WHERE email = ?`,
 		email,
 	)
@@ -53,7 +53,7 @@ func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (
 		return 0, "", err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBRead,
 		Data:  nil,
@@ -62,8 +62,8 @@ func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(q queryer, email string) (
 	return userCredentialsID, hashword, nil
 }
 
-func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, error) {
-	row := q.QueryRow(
+func (db *DB) ReadUserCredentialsExistsByEmail(dbtx DBTX, email string) (bool, error) {
+	row := dbtx.QueryRow(
 		`SELECT 1 FROM user_credentials WHERE email = ?`,
 		email,
 	)
@@ -77,7 +77,7 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 		return false, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBRead,
 		Data:  nil,
@@ -86,13 +86,13 @@ func (db *DB) ReadUserCredentialsExistsByEmail(q queryer, email string) (bool, e
 	return true, nil
 }
 
-func (db *DB) UpdateUserCredentialsEmail(e execer, userCredentialsID int64, email string) error {
+func (db *DB) UpdateUserCredentialsEmail(dbtx DBTX, userCredentialsID int64, email string) error {
 	const sqlQuery = `
 		UPDATE user_credentials
 		SET email = ?
 		WHERE id = ?`
 
-	result, err := e.Exec(sqlQuery, email, userCredentialsID)
+	result, err := dbtx.Exec(sqlQuery, email, userCredentialsID)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (db *DB) UpdateUserCredentialsEmail(e execer, userCredentialsID int64, emai
 		return sql.ErrNoRows
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBUpdate,
 		Data:  nil,
@@ -114,13 +114,13 @@ func (db *DB) UpdateUserCredentialsEmail(e execer, userCredentialsID int64, emai
 	return nil
 }
 
-func (db *DB) UpdateUserCredentialsHashword(e execer, userCredentialsID int64, hashword string) error {
+func (db *DB) UpdateUserCredentialsHashword(dbtx DBTX, userCredentialsID int64, hashword string) error {
 	const sqlQuery = `
 		UPDATE user_credentials
 		SET hashword = ?
 		WHERE id = ?`
 
-	result, err := e.Exec(sqlQuery, hashword, userCredentialsID)
+	result, err := dbtx.Exec(sqlQuery, hashword, userCredentialsID)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (db *DB) UpdateUserCredentialsHashword(e execer, userCredentialsID int64, h
 		return sql.ErrNoRows
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_credentials",
 		Type:  DBUpdate,
 		Data:  nil,

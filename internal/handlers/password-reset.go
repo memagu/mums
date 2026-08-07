@@ -171,8 +171,8 @@ func PostPasswordResetConfirm(ss *auth.SessionStore, rts *auth.PasswordResetToke
 			return handleDBError(c, "password reset credentials read", err)
 		}
 
-		err = db.WithTx(database, func(e db.Execer) error {
-			return database.UpdateUserCredentialsHashword(e, credentials.ID, hashword)
+		err = db.WithTx(database, func(dbtx db.DBTX) error {
+			return database.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword)
 		})
 		if err != nil {
 			return handleDBError(c, "password reset update", err)

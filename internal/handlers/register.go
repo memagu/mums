@@ -83,16 +83,16 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 		}
 
 		var userAccountID int64
-		err = db.WithTx(database, func(e db.Execer) error {
-			userCredentialsID, err := database.CreateUserCredentials(e, userEmail, hashword)
+		err = db.WithTx(database, func(dbtx db.DBTX) error {
+			userCredentialsID, err := database.CreateUserCredentials(dbtx, userEmail, hashword)
 			if err != nil {
 				return err
 			}
-			userProfileID, err := database.CreateUserProfile(e, userName)
+			userProfileID, err := database.CreateUserProfile(dbtx, userName)
 			if err != nil {
 				return err
 			}
-			userAccountID, err = database.CreateUserAccount(e, userCredentialsID, userProfileID)
+			userAccountID, err = database.CreateUserAccount(dbtx, userCredentialsID, userProfileID)
 			return err
 		})
 		if err != nil {

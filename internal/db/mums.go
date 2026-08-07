@@ -32,8 +32,8 @@ CREATE INDEX IF NOT EXISTS idx_mums_phaddergrupp_id ON mums(phaddergrupp_id);`
 const IndexMumsOnUserAccountID = `
 CREATE INDEX IF NOT EXISTS idx_mums_user_account_id ON mums(user_account_id);`
 
-func (db *DB) CreateMums(e execer, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
-	res, err := e.Exec(
+func (db *DB) CreateMums(dbtx DBTX, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
+	res, err := dbtx.Exec(
 		`INSERT INTO mums (user_account_id, phaddergrupp_id, mums_quantity, mums_type) VALUES (?, ?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
@@ -48,7 +48,7 @@ func (db *DB) CreateMums(e execer, userAccountID, phaddergruppID, mumsQuantity i
 		return 0, err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBCreate,
 		Data:  nil,
@@ -65,7 +65,7 @@ type MumsTransaction struct {
 	CreatedAt       time.Time
 }
 
-func (db *DB) ReadPhaddergruppTransactions(q queryer, phaddergruppID, memberID int64, role roles.PhaddergruppRole, mumsType MumsType) ([]MumsTransaction, error) {
+func (db *DB) ReadPhaddergruppTransactions(dbtx DBTX, phaddergruppID, memberID int64, role roles.PhaddergruppRole, mumsType MumsType) ([]MumsTransaction, error) {
 	query := `
 		SELECT
 			m.user_account_id,
@@ -99,7 +99,7 @@ func (db *DB) ReadPhaddergruppTransactions(q queryer, phaddergruppID, memberID i
 
 	query += " WHERE " + strings.Join(conditions, " AND ") + " ORDER BY m.created_at DESC, m.id DESC"
 
-	rows, err := q.Query(query, args...)
+	rows, err := dbtx.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (db *DB) ReadPhaddergruppTransactions(q queryer, phaddergruppID, memberID i
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBRead,
 		Data:  nil,
@@ -156,7 +156,7 @@ type MemberMumsaTime struct {
 	CreatedAt     time.Time
 }
 
-func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
+func (db *DB) ReadPhaddergruppStats(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
 	conditions := []string{"pm.phaddergrupp_id = ?"}
 	args := []any{phaddergruppID}
 	if role != "" {
@@ -186,7 +186,7 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.
 			mumsat DESC, up.name
 	`
 
-	rows, err := q.Query(query, args...)
+	rows, err := dbtx.Query(query, args...)
 	if err != nil {
 		return PhaddergruppStats{}, err
 	}
@@ -212,7 +212,7 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.
 		return PhaddergruppStats{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBRead,
 		Data:  nil,
@@ -221,7 +221,7 @@ func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.
 	return stats, nil
 }
 
-func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64, role roles.PhaddergruppRole) ([]ConsumptionEvent, error) {
+func (db *DB) ReadPhaddergruppConsumptionEvents(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) ([]ConsumptionEvent, error) {
 	conditions := []string{"m.phaddergrupp_id = ?", "(mums_type = 'consumption' OR mums_quantity < 0)"}
 	args := []any{phaddergruppID}
 	if role != "" {
@@ -247,7 +247,7 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64,
 			m.created_at ASC, m.id ASC
 	`
 
-	rows, err := q.Query(query, args...)
+	rows, err := dbtx.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,22 +265,22 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64,
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_accounts",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBRead,
 		Data:  nil,
@@ -289,7 +289,7 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64,
 	return events, nil
 }
 
-func (db *DB) ReadPhaddergruppMumsaTimesSince(q queryer, phaddergruppID int64, since time.Time) ([]MemberMumsaTime, error) {
+func (db *DB) ReadPhaddergruppMumsaTimesSince(dbtx DBTX, phaddergruppID int64, since time.Time) ([]MemberMumsaTime, error) {
 	const sqlQuery = `
 		SELECT
 			m.user_account_id,
@@ -303,7 +303,7 @@ func (db *DB) ReadPhaddergruppMumsaTimesSince(q queryer, phaddergruppID int64, s
 			m.created_at ASC, m.id ASC
 	`
 
-	rows, err := q.Query(sqlQuery, phaddergruppID, since.UTC().Format(time.DateTime))
+	rows, err := dbtx.Query(sqlQuery, phaddergruppID, since.UTC().Format(time.DateTime))
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +321,7 @@ func (db *DB) ReadPhaddergruppMumsaTimesSince(q queryer, phaddergruppID int64, s
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBRead,
 		Data:  nil,
@@ -330,7 +330,7 @@ func (db *DB) ReadPhaddergruppMumsaTimesSince(q queryer, phaddergruppID int64, s
 	return times, nil
 }
 
-func (db *DB) ReadMemberMumsaTimesSince(q queryer, userAccountID, phaddergruppID int64, since time.Time) ([]time.Time, error) {
+func (db *DB) ReadMemberMumsaTimesSince(dbtx DBTX, userAccountID, phaddergruppID int64, since time.Time) ([]time.Time, error) {
 	const sqlQuery = `
 		SELECT
 			m.created_at
@@ -343,7 +343,7 @@ func (db *DB) ReadMemberMumsaTimesSince(q queryer, userAccountID, phaddergruppID
 			m.created_at ASC, m.id ASC
 	`
 
-	rows, err := q.Query(sqlQuery, userAccountID, phaddergruppID, since.UTC().Format(time.DateTime))
+	rows, err := dbtx.Query(sqlQuery, userAccountID, phaddergruppID, since.UTC().Format(time.DateTime))
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func (db *DB) ReadMemberMumsaTimesSince(q queryer, userAccountID, phaddergruppID
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "mums",
 		Type:  DBRead,
 		Data:  nil,

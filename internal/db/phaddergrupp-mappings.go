@@ -25,8 +25,8 @@ ON
 	phaddergrupp_mappings(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppMapping(e execer, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
-	_, err := e.Exec(
+func (db *DB) CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
+	_, err := dbtx.Exec(
 		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role) VALUES (?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
@@ -36,7 +36,7 @@ func (db *DB) CreatePhaddergruppMapping(e execer, userAccountID, phaddergruppID 
 		return err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBCreate,
 		Data: PhaddergruppMappingEvent{
@@ -48,7 +48,7 @@ func (db *DB) CreatePhaddergruppMapping(e execer, userAccountID, phaddergruppID 
 	return nil
 }
 
-func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, phaddergruppID int64) (bool, error) {
+func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(dbtx DBTX, userAccountID, phaddergruppID int64) (bool, error) {
 	const sqlQuery = `
 		SELECT
 			EXISTS (
@@ -63,14 +63,14 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 			);
 	`
 
-	row := q.QueryRow(sqlQuery, userAccountID, phaddergruppID)
+	row := dbtx.QueryRow(sqlQuery, userAccountID, phaddergruppID)
 
 	var exists bool
 	if err := row.Scan(&exists); err != nil {
 		return false, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -79,7 +79,7 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(q queryer, userAccountID, ph
 	return exists, nil
 }
 
-func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, error) {
+func (db *DB) ReadPhaddergruppIsEmpty(dbtx DBTX, phaddergruppID int64) (bool, error) {
 	const sqlQuery = `
 		SELECT NOT EXISTS (
 			SELECT 1
@@ -89,14 +89,14 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 		)
 	`
 
-	row := q.QueryRow(sqlQuery, phaddergruppID)
+	row := dbtx.QueryRow(sqlQuery, phaddergruppID)
 
 	var isEmpty bool
 	if err := row.Scan(&isEmpty); err != nil {
 		return false, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -105,8 +105,8 @@ func (db *DB) ReadPhaddergruppIsEmpty(q queryer, phaddergruppID int64) (bool, er
 	return isEmpty, nil
 }
 
-func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int64) (roles.PhaddergruppRole, error) {
-	row := q.QueryRow(`
+func (db *DB) ReadPhaddergruppRole(dbtx DBTX, userAccountID, phaddergruppID int64) (roles.PhaddergruppRole, error) {
+	row := dbtx.QueryRow(`
 		SELECT pm.phaddergrupp_role
 		FROM phaddergrupp_mappings AS pm
 		JOIN phaddergrupper AS pg ON pm.phaddergrupp_id = pg.id AND pg.deleted_at IS NULL
@@ -118,7 +118,7 @@ func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int6
 		return "", err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -127,20 +127,20 @@ func (db *DB) ReadPhaddergruppRole(q queryer, userAccountID, phaddergruppID int6
 	return phaddergruppRole, nil
 }
 
-func (db *DB) ReadMumsAvailable(q queryer, userAccountID, phaddergruppID int64) (int64, error) {
+func (db *DB) ReadMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID int64) (int64, error) {
 	sqlQuery := `
 		SELECT mums_available
 		FROM phaddergrupp_mappings
 		WHERE user_account_id = ? AND phaddergrupp_id = ?
 	`
-	row := q.QueryRow(sqlQuery, userAccountID, phaddergruppID)
+	row := dbtx.QueryRow(sqlQuery, userAccountID, phaddergruppID)
 
 	var mumsAvailable int64
 	if err := row.Scan(&mumsAvailable); err != nil {
 		return 0, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
@@ -161,7 +161,7 @@ type UserPhaddergruppSummary struct {
 	MumsAvailable    int
 }
 
-func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccountID int64) ([]UserPhaddergruppSummary, error) {
+func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(dbtx DBTX, userAccountID int64) ([]UserPhaddergruppSummary, error) {
 	const sqlQuery = `
 		WITH GroupCounts AS (
 			SELECT
@@ -195,7 +195,7 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 			pg.created_at DESC;
 	`
 
-	rows, err := q.Query(sqlQuery, userAccountID)
+	rows, err := dbtx.Query(sqlQuery, userAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -224,12 +224,12 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 		return nil, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
@@ -253,7 +253,7 @@ type PhaddergruppUserSummaries struct {
 	Phaddrar []PhaddergruppUserSummary
 }
 
-func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
+func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
 	const sqlQuery = `
 		SELECT
 			ua.id,
@@ -274,7 +274,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 			up.name;
 	`
 
-	rows, err := q.Query(sqlQuery, phaddergruppID)
+	rows, err := dbtx.Query(sqlQuery, phaddergruppID)
 	if err != nil {
 		return PhaddergruppUserSummaries{}, err
 	}
@@ -307,17 +307,17 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 		return PhaddergruppUserSummaries{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_accounts",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBRead,
 		Data:  nil,
@@ -326,7 +326,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 	return summaries, nil
 }
 
-func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccountID int64) (int64, time.Time, error) {
+func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(dbtx DBTX, userAccountID int64) (int64, time.Time, error) {
 	const sqlQuery = `
 		SELECT
 			p.id,
@@ -341,7 +341,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 			p.created_at DESC;
 	`
 
-	row := q.QueryRow(sqlQuery, userAccountID)
+	row := dbtx.QueryRow(sqlQuery, userAccountID)
 
 	var phaddergruppID int64
 	var createdAt time.Time
@@ -349,12 +349,12 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 		return 0, time.Time{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBRead,
 		Data:  nil,
 	})
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
@@ -363,7 +363,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(q queryer, userAccoun
 	return phaddergruppID, createdAt, nil
 } // Returns zero if no rows were affected (not found = 0 as well)
 
-func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID, amount int64) (int64, error) {
+func (db *DB) UpdateAdjustMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID, amount int64) (int64, error) {
 	const sqlQuery = `
 		UPDATE
 			phaddergrupp_mappings
@@ -376,12 +376,12 @@ func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID
 	`
 
 	var mumsAvailable int64
-	row := q.QueryRow(sqlQuery, amount, userAccountID, phaddergruppID, amount)
+	row := dbtx.QueryRow(sqlQuery, amount, userAccountID, phaddergruppID, amount)
 	if err := row.Scan(&mumsAvailable); err != nil {
 		return 0, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBUpdate,
 		Data: MumsAvailableUpdate{
@@ -394,14 +394,14 @@ func (db *DB) UpdateAdjustMumsAvailable(q queryer, userAccountID, phaddergruppID
 	return mumsAvailable, nil
 }
 
-func (db *DB) DeletePhaddergruppMapping(e execer, userAccountID, phaddergruppID int64) error {
+func (db *DB) DeletePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64) error {
 	const sqlQuery = `
 		DELETE FROM
 			phaddergrupp_mappings
 		WHERE
 			user_account_id = ? AND phaddergrupp_id = ?
 	`
-	result, err := e.Exec(sqlQuery, userAccountID, phaddergruppID)
+	result, err := dbtx.Exec(sqlQuery, userAccountID, phaddergruppID)
 	if err != nil {
 		return err
 	}
@@ -414,7 +414,7 @@ func (db *DB) DeletePhaddergruppMapping(e execer, userAccountID, phaddergruppID 
 		return nil
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_mappings",
 		Type:  DBDelete,
 		Data: PhaddergruppMappingEvent{

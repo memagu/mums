@@ -116,19 +116,19 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 			})
 		}
 
-		err = db.WithTx(database, func(e db.Execer) error {
+		err = db.WithTx(database, func(dbtx db.DBTX) error {
 			if nameChanged {
-				if err := database.UpdateUserProfileName(e, userAccountID, name); err != nil {
+				if err := database.UpdateUserProfileName(dbtx, userAccountID, name); err != nil {
 					return err
 				}
 			}
 			if emailChanged {
-				if err := database.UpdateUserCredentialsEmail(e, credentials.ID, email); err != nil {
+				if err := database.UpdateUserCredentialsEmail(dbtx, credentials.ID, email); err != nil {
 					return err
 				}
 			}
 			if passwordChanged {
-				if err := database.UpdateUserCredentialsHashword(e, credentials.ID, hashword); err != nil {
+				if err := database.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword); err != nil {
 					return err
 				}
 			}
@@ -181,14 +181,14 @@ func DeleteAccount(ss *auth.SessionStore, rts *auth.PasswordResetTokenStore) ech
 		}
 
 		anonymousEmail := fmt.Sprintf("deleted-%d-%s@invalid.local", userAccountID, token.MustGenerateSecure(16))
-		err = db.WithTx(database, func(e db.Execer) error {
-			if err := database.UpdateUserCredentialsEmail(e, credentials.ID, anonymousEmail); err != nil {
+		err = db.WithTx(database, func(dbtx db.DBTX) error {
+			if err := database.UpdateUserCredentialsEmail(dbtx, credentials.ID, anonymousEmail); err != nil {
 				return err
 			}
-			if err := database.UpdateUserProfileName(e, userAccountID, "Deleted user"); err != nil {
+			if err := database.UpdateUserProfileName(dbtx, userAccountID, "Deleted user"); err != nil {
 				return err
 			}
-			return database.DeleteUserAccount(e, userAccountID)
+			return database.DeleteUserAccount(dbtx, userAccountID)
 		})
 		if err != nil {
 			return handleDBError(c, "account deletion", err)

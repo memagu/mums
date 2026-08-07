@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS phaddergrupper (
 	mums_recency_window_hours INTEGER NOT NULL
 );`
 
-func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (int64, error) {
-	res, err := e.Exec(
+func (db *DB) CreatePhaddergrupp(dbtx DBTX, name, swishRecipientNumber string) (int64, error) {
+	res, err := dbtx.Exec(
 		`INSERT INTO phaddergrupper (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity, mums_recency_window_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
 		config.Defaults.Phaddergrupp.PrimaryColor,
@@ -71,7 +71,7 @@ func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (i
 		return 0, err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBCreate,
 		Data:  nil,
@@ -80,7 +80,7 @@ func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (i
 	return id, nil
 }
 
-func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppData, error) {
+func (db *DB) ReadPhaddergrupp(dbtx DBTX, phaddergruppID int64) (PhaddergruppData, error) {
 	const sqlQuery = `
 		SELECT
 			created_at,
@@ -104,7 +104,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 			id = ? AND deleted_at IS NULL
 	`
 
-	row := q.QueryRow(sqlQuery, phaddergruppID)
+	row := dbtx.QueryRow(sqlQuery, phaddergruppID)
 
 	var pd PhaddergruppData
 	if err := row.Scan(
@@ -127,7 +127,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 		return PhaddergruppData{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBRead,
 		Data:  nil,
@@ -136,7 +136,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 	return pd, nil
 }
 
-func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
+func (db *DB) UpdatePhaddergrupp(dbtx DBTX, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
 	const sqlQuery = `
 		UPDATE phaddergrupper SET
 			name = ?,
@@ -157,7 +157,7 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 			id = ? AND deleted_at IS NULL
 	`
 
-	result, err := e.Exec(sqlQuery,
+	result, err := dbtx.Exec(sqlQuery,
 		phaddergruppData.Name,
 		phaddergruppData.LogoFilePath,
 		phaddergruppData.PrimaryColor,
@@ -187,7 +187,7 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 		return sql.ErrNoRows
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBUpdate,
 		Data:  nil,
@@ -196,14 +196,14 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 	return nil
 }
 
-func (db *DB) DeletePhaddergrupp(e execer, phaddergruppID int64) error {
+func (db *DB) DeletePhaddergrupp(dbtx DBTX, phaddergruppID int64) error {
 	const sqlQuery = `
 		UPDATE phaddergrupper
 		SET deleted_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND deleted_at IS NULL
 	`
 
-	result, err := e.Exec(sqlQuery, phaddergruppID)
+	result, err := dbtx.Exec(sqlQuery, phaddergruppID)
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (db *DB) DeletePhaddergrupp(e execer, phaddergruppID int64) error {
 		return nil
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupper",
 		Type:  DBDelete,
 		Data:  nil,

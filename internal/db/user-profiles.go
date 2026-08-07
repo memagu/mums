@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 	name TEXT NOT NULL
 );`
 
-func (db *DB) CreateUserProfile(e execer, name string) (int64, error) {
-	res, err := e.Exec(`INSERT INTO user_profiles (name) VALUES (?)`, name)
+func (db *DB) CreateUserProfile(dbtx DBTX, name string) (int64, error) {
+	res, err := dbtx.Exec(`INSERT INTO user_profiles (name) VALUES (?)`, name)
 	if err != nil {
 		return 0, err
 	}
@@ -23,7 +23,7 @@ func (db *DB) CreateUserProfile(e execer, name string) (int64, error) {
 		return 0, err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBCreate,
 		Data:  nil,
@@ -32,7 +32,7 @@ func (db *DB) CreateUserProfile(e execer, name string) (int64, error) {
 	return id, nil
 }
 
-func (db *DB) UpdateUserProfileName(e execer, userAccountID int64, name string) error {
+func (db *DB) UpdateUserProfileName(dbtx DBTX, userAccountID int64, name string) error {
 	const sqlQuery = `
 		UPDATE user_profiles
 		SET name = ?
@@ -42,7 +42,7 @@ func (db *DB) UpdateUserProfileName(e execer, userAccountID int64, name string) 
 			WHERE id = ? AND deleted_at IS NULL
 		)`
 
-	result, err := e.Exec(sqlQuery, name, userAccountID)
+	result, err := dbtx.Exec(sqlQuery, name, userAccountID)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (db *DB) UpdateUserProfileName(e execer, userAccountID int64, name string) 
 		return sql.ErrNoRows
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "user_profiles",
 		Type:  DBUpdate,
 		Data:  nil,

@@ -15,18 +15,17 @@ func PostPhaddergruppLeave(c echo.Context) error {
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	err := db.WithTx(database, func(e db.Execer) error {
-		q := e.(db.Queryer)
-		err := database.DeletePhaddergruppMapping(e, userAccountID, phaddergruppID)
+	err := db.WithTx(database, func(dbtx db.DBTX) error {
+		err := database.DeletePhaddergruppMapping(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err
 		}
-		phaddergruppIsEmpty, err := database.ReadPhaddergruppIsEmpty(q, phaddergruppID)
+		phaddergruppIsEmpty, err := database.ReadPhaddergruppIsEmpty(dbtx, phaddergruppID)
 		if err != nil {
 			return err
 		}
 		if phaddergruppIsEmpty {
-			return database.DeletePhaddergrupp(e, phaddergruppID)
+			return database.DeletePhaddergrupp(dbtx, phaddergruppID)
 		}
 		return nil
 	})

@@ -16,13 +16,12 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	err := db.WithTx(database, func(e db.Execer) error {
-		q := e.(db.Queryer)
-		_, err := database.UpdateAdjustMumsAvailable(q, userAccountID, phaddergruppID, -1)
+	err := db.WithTx(database, func(dbtx db.DBTX) error {
+		_, err := database.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, -1)
 		if err != nil {
 			return err
 		}
-		_, err = database.CreateMums(e, userAccountID, phaddergruppID, 1, db.Consumption)
+		_, err = database.CreateMums(dbtx, userAccountID, phaddergruppID, 1, db.Consumption)
 		return err
 	})
 	if err != nil {

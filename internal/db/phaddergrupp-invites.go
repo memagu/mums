@@ -26,7 +26,7 @@ ON
 	phaddergrupp_invites(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
+func (db *DB) CreatePhaddergruppInvite(dbtx DBTX, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	sqlQuery := `
 		INSERT INTO phaddergrupp_invites
 			(token, phaddergrupp_id, phaddergrupp_role)
@@ -34,12 +34,12 @@ func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID in
 			(?, ?, ?)
 	`
 
-	_, err := e.Exec(sqlQuery, token, phaddergruppID, phaddergruppRole)
+	_, err := dbtx.Exec(sqlQuery, token, phaddergruppID, phaddergruppRole)
 	if err != nil {
 		return err
 	}
 
-	e.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBCreate,
 		Data:  nil,
@@ -48,7 +48,7 @@ func (db *DB) CreatePhaddergruppInvite(e execer, token string, phaddergruppID in
 	return nil
 }
 
-func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInviteData, error) {
+func (db *DB) ReadPhaddergruppInvite(dbtx DBTX, token string) (PhaddergruppInviteData, error) {
 	sqlQuery := `
 		SELECT
 			pi.phaddergrupp_id,
@@ -61,7 +61,7 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 			pi.token = ?
 	`
 
-	row := q.QueryRow(sqlQuery, token)
+	row := dbtx.QueryRow(sqlQuery, token)
 
 	var pid PhaddergruppInviteData
 	if err := row.Scan(
@@ -71,7 +71,7 @@ func (db *DB) ReadPhaddergruppInvite(q queryer, token string) (PhaddergruppInvit
 		return PhaddergruppInviteData{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBRead,
 		Data:  nil,
@@ -85,7 +85,7 @@ type PhaddergruppInviteTokens struct {
 	Phadder string
 }
 
-func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergruppID int64) (PhaddergruppInviteTokens, error) {
+func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppInviteTokens, error) {
 	sqlQuery := `
 		SELECT
 			pi.token, pi.phaddergrupp_role
@@ -97,7 +97,7 @@ func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergru
 			pi.phaddergrupp_id = ?
 	`
 
-	rows, err := q.Query(sqlQuery, phaddergruppID)
+	rows, err := dbtx.Query(sqlQuery, phaddergruppID)
 	if err != nil {
 		return PhaddergruppInviteTokens{}, err
 	}
@@ -126,7 +126,7 @@ func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(q queryer, phaddergru
 		return PhaddergruppInviteTokens{}, err
 	}
 
-	q.Emit(DBEvent{
+	dbtx.Emit(DBEvent{
 		Table: "phaddergrupp_invites",
 		Type:  DBRead,
 		Data:  nil,
