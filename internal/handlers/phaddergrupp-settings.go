@@ -15,10 +15,23 @@ import (
 
 var hexColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3,8}$`)
 
+type formSelectOption struct {
+	Value string
+	Label string
+}
+
+var recencyWindowOptions = []formSelectOption{
+	{Value: "1", Label: "1h"},
+	{Value: "2", Label: "2h"},
+	{Value: "3", Label: "3h"},
+	{Value: "4", Label: "4h"},
+}
+
 type phaddergruppSettingsTemplateData struct {
 	basePageData
 	PhaddergruppID int64
 	db.PhaddergruppData
+	RecencyWindowOptions        []formSelectOption
 	SwishRecipientNumberPattern string
 	Errors                      map[string][]string
 }
@@ -32,6 +45,7 @@ func GetPhaddergruppSettings(c echo.Context) error {
 		},
 		PhaddergruppID:              auth.GetPhaddergruppID(c),
 		PhaddergruppData:            loaders.GetPhaddergrupp(c),
+		RecencyWindowOptions:        recencyWindowOptions,
 		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 	}
 
@@ -126,6 +140,14 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 			updatedPhaddergruppData.MumsDefaultPurchaseQuantity = val
 		}
 	}
+	if strVal := c.FormValue("mums-recency-window-hours"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsRecencyWindowHours"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsRecencyWindowHours = val
+		}
+	}
 
 	if updatedPhaddergruppData.MumsMinPurchaseQuantity < 1 {
 		formErrors["MumsMinPurchaseQuantity"] = []string{"Must be at least 1"}
@@ -145,9 +167,13 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 			(d-updatedPhaddergruppData.MumsMinPurchaseQuantity)%updatedPhaddergruppData.MumsPurchaseQuantityStep != 0) {
 		formErrors["MumsDefaultPurchaseQuantity"] = []string{"Must be within min-max and on the step size"}
 	}
+	if updatedPhaddergruppData.MumsRecencyWindowHours < 1 || updatedPhaddergruppData.MumsRecencyWindowHours > 4 {
+		formErrors["MumsRecencyWindowHours"] = []string{"Must be between 1 and 4 hours"}
+	}
 
 	templateData := phaddergruppSettingsTemplateData{
 		PhaddergruppData:            updatedPhaddergruppData,
+		RecencyWindowOptions:        recencyWindowOptions,
 		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 		Errors:                      formErrors,
 	}

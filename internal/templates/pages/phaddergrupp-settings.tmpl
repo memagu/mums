@@ -180,6 +180,15 @@
             "Value" .MumsCapacityPerUser
             "Errors" .Errors.MumsCapacityPerUser
         }}
+        {{ template "component-form-select-field" dict
+            "ID" "mums-recency-window-hours-field"
+            "Label" "Mums recency window"
+            "InfoLabel" "How far back member-card counts look"
+            "Name" "mums-recency-window-hours"
+            "Options" .RecencyWindowOptions
+            "Selected" (.MumsRecencyWindowHours | printf "%d")
+            "Errors" .Errors.MumsRecencyWindowHours
+        }}
         {{ template "component-generic-errors" . }}
     </div>
 {{ end }}

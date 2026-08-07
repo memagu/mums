@@ -22,6 +22,7 @@ type PhaddergruppData struct {
 	MumsMaxPurchaseQuantity     int64
 	MumsPurchaseQuantityStep    int64
 	MumsDefaultPurchaseQuantity int64
+	MumsRecencyWindowHours      int64
 }
 
 const SchemaPhaddergrupper = `
@@ -41,12 +42,13 @@ CREATE TABLE IF NOT EXISTS phaddergrupper (
 	mums_min_purchase_quantity INTEGER NOT NULL,
 	mums_max_purchase_quantity INTEGER NOT NULL,
 	mums_purchase_quantity_step INTEGER NOT NULL,
-	mums_default_purchase_quantity INTEGER NOT NULL
+	mums_default_purchase_quantity INTEGER NOT NULL,
+	mums_recency_window_hours INTEGER NOT NULL
 );`
 
 func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (int64, error) {
 	res, err := e.Exec(
-		`INSERT INTO phaddergrupper (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO phaddergrupper (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity, mums_recency_window_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
 		config.Defaults.Phaddergrupp.PrimaryColor,
 		config.Defaults.Phaddergrupp.SecondaryColor,
@@ -59,6 +61,7 @@ func (db *DB) CreatePhaddergrupp(e execer, name, swishRecipientNumber string) (i
 		config.Defaults.Mums.MaxPurchaseQuantity,
 		config.Defaults.Mums.StepPurchaseQuantity,
 		config.Defaults.Mums.DefaultPurchaseQuantity,
+		config.Defaults.Mums.RecencyWindowHours,
 	)
 	if err != nil {
 		return 0, err
@@ -93,7 +96,8 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 			mums_min_purchase_quantity,
 			mums_max_purchase_quantity,
 			mums_purchase_quantity_step,
-			mums_default_purchase_quantity
+			mums_default_purchase_quantity,
+			mums_recency_window_hours
 		FROM
 			phaddergrupper
 		WHERE
@@ -118,6 +122,7 @@ func (db *DB) ReadPhaddergrupp(q queryer, phaddergruppID int64) (PhaddergruppDat
 		&pd.MumsMaxPurchaseQuantity,
 		&pd.MumsPurchaseQuantityStep,
 		&pd.MumsDefaultPurchaseQuantity,
+		&pd.MumsRecencyWindowHours,
 	); err != nil {
 		return PhaddergruppData{}, err
 	}
@@ -146,7 +151,8 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 			mums_min_purchase_quantity = ?,
 			mums_max_purchase_quantity = ?,
 			mums_purchase_quantity_step = ?,
-			mums_default_purchase_quantity = ?
+			mums_default_purchase_quantity = ?,
+			mums_recency_window_hours = ?
 		WHERE
 			id = ? AND deleted_at IS NULL
 	`
@@ -165,6 +171,7 @@ func (db *DB) UpdatePhaddergrupp(e execer, phaddergruppID int64, phaddergruppDat
 		phaddergruppData.MumsMaxPurchaseQuantity,
 		phaddergruppData.MumsPurchaseQuantityStep,
 		phaddergruppData.MumsDefaultPurchaseQuantity,
+		phaddergruppData.MumsRecencyWindowHours,
 		phaddergruppID,
 	)
 

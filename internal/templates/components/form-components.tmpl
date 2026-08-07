@@ -23,6 +23,27 @@
     </div>
 {{ end }}
 
+{{ define "component-form-select-field" }}
+        <div class="flex flex-col gap-1">
+        {{ if or .Label .InfoLabel }}
+            <label for="{{ .ID }}" class="block font-medium">
+                {{ if .Label }} <p class="text-sm text-backdrop-content-muted">{{ .Label }}</p> {{ end }}
+                {{ if .InfoLabel }} <p class="text-xs text-backdrop-content-muted">{{ .InfoLabel }}</p> {{ end }}
+            </label>
+        {{ end }}
+        <select
+            id="{{ .ID }}"
+            name="{{ .Name }}"
+            class="w-full rounded-md border-2 border-input-border-muted bg-input px-3 py-2 shadow-sm placeholder-input-content-muted focus:border-input-border focus:outline-none"
+        >
+            {{ range .Options }}
+                <option value="{{ .Value }}" {{ if eq .Value $.Selected }}selected{{ end }}>{{ .Label }}</option>
+            {{ end }}
+        </select>
+        {{ template "component-form-errors" . }}
+    </div>
+{{ end }}
+
 {{ define "component-form-errors" }}
     {{ if .Errors }}
         <ul role="alert" class="flex flex-col gap-1">
