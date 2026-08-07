@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 	name TEXT NOT NULL
 );`
 
-func (db *DB) CreateUserProfile(dbtx DBTX, name string) (int64, error) {
+func CreateUserProfile(dbtx DBTX, name string) (int64, error) {
 	res, err := dbtx.Exec(`INSERT INTO user_profiles (name) VALUES (?)`, name)
 	if err != nil {
 		return 0, err
@@ -32,7 +32,7 @@ func (db *DB) CreateUserProfile(dbtx DBTX, name string) (int64, error) {
 	return id, nil
 }
 
-func (db *DB) UpdateUserProfileName(dbtx DBTX, userAccountID int64, name string) error {
+func UpdateUserProfileName(dbtx DBTX, userAccountID int64, name string) error {
 	const sqlQuery = `
 		UPDATE user_profiles
 		SET name = ?

@@ -58,7 +58,7 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 
 		database := db.GetDB(c)
 
-		emailExists, err := database.ReadUserCredentialsExistsByEmail(database, userEmail)
+		emailExists, err := db.ReadUserCredentialsExistsByEmail(database, userEmail)
 		if err != nil {
 			c.Logger().Errorf("Database error during email conflict check for email %s: %v", userEmail, err)
 			return unexpectedError()
@@ -84,15 +84,15 @@ func PostRegister(ss *auth.SessionStore) echo.HandlerFunc {
 
 		var userAccountID int64
 		err = db.WithTx(database, func(dbtx db.DBTX) error {
-			userCredentialsID, err := database.CreateUserCredentials(dbtx, userEmail, hashword)
+			userCredentialsID, err := db.CreateUserCredentials(dbtx, userEmail, hashword)
 			if err != nil {
 				return err
 			}
-			userProfileID, err := database.CreateUserProfile(dbtx, userName)
+			userProfileID, err := db.CreateUserProfile(dbtx, userName)
 			if err != nil {
 				return err
 			}
-			userAccountID, err = database.CreateUserAccount(dbtx, userCredentialsID, userProfileID)
+			userAccountID, err = db.CreateUserAccount(dbtx, userCredentialsID, userProfileID)
 			return err
 		})
 		if err != nil {

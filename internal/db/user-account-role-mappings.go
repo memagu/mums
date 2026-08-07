@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS user_account_role_mappings (
 	UNIQUE (user_account_id, user_account_role)
 );`
 
-func (db *DB) CreateUserAccountRoleMapping(dbtx DBTX, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
+func CreateUserAccountRoleMapping(dbtx DBTX, userAccountID int64, userAccountRole roles.UserAccountRole) (int64, error) {
 	res, err := dbtx.Exec(
 		`INSERT INTO user_account_role_mappings (user_account_id, user_account_role) VALUES (?, ?)`,
 		userAccountID,
@@ -36,7 +36,7 @@ func (db *DB) CreateUserAccountRoleMapping(dbtx DBTX, userAccountID int64, userA
 	return id, nil
 }
 
-func (db *DB) ReadUserAccountRoles(dbtx DBTX, userAccountID int64) ([]roles.UserAccountRole, error) {
+func ReadUserAccountRoles(dbtx DBTX, userAccountID int64) ([]roles.UserAccountRole, error) {
 	rows, err := dbtx.Query(`
 		SELECT uarm.user_account_role
 		FROM user_account_role_mappings AS uarm

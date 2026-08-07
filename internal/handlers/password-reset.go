@@ -63,7 +63,7 @@ func PostPasswordReset(rts *auth.PasswordResetTokenStore, sender email.Sender) e
 		database := db.GetDB(c)
 		logger := c.Logger()
 
-		userAccountID, err := database.ReadActiveUserAccountIDByEmail(database, userEmail)
+		userAccountID, err := db.ReadActiveUserAccountIDByEmail(database, userEmail)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 		case err != nil:
@@ -163,7 +163,7 @@ func PostPasswordResetConfirm(ss *auth.SessionStore, rts *auth.PasswordResetToke
 
 		database := db.GetDB(c)
 
-		credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
 		if errors.Is(err, sql.ErrNoRows) {
 			return invalidToken()
 		}
@@ -172,7 +172,7 @@ func PostPasswordResetConfirm(ss *auth.SessionStore, rts *auth.PasswordResetToke
 		}
 
 		err = db.WithTx(database, func(dbtx db.DBTX) error {
-			return database.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword)
+			return db.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword)
 		})
 		if err != nil {
 			return handleDBError(c, "password reset update", err)

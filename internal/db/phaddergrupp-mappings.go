@@ -25,7 +25,7 @@ ON
 	phaddergrupp_mappings(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
+func CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	_, err := dbtx.Exec(
 		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role) VALUES (?, ?, ?)`,
 		userAccountID,
@@ -48,7 +48,7 @@ func (db *DB) CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID
 	return nil
 }
 
-func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(dbtx DBTX, userAccountID, phaddergruppID int64) (bool, error) {
+func ReadUserAccountIsMemberOfPhaddergrupp(dbtx DBTX, userAccountID, phaddergruppID int64) (bool, error) {
 	const sqlQuery = `
 		SELECT
 			EXISTS (
@@ -79,7 +79,7 @@ func (db *DB) ReadUserAccountIsMemberOfPhaddergrupp(dbtx DBTX, userAccountID, ph
 	return exists, nil
 }
 
-func (db *DB) ReadPhaddergruppIsEmpty(dbtx DBTX, phaddergruppID int64) (bool, error) {
+func ReadPhaddergruppIsEmpty(dbtx DBTX, phaddergruppID int64) (bool, error) {
 	const sqlQuery = `
 		SELECT NOT EXISTS (
 			SELECT 1
@@ -105,7 +105,7 @@ func (db *DB) ReadPhaddergruppIsEmpty(dbtx DBTX, phaddergruppID int64) (bool, er
 	return isEmpty, nil
 }
 
-func (db *DB) ReadPhaddergruppRole(dbtx DBTX, userAccountID, phaddergruppID int64) (roles.PhaddergruppRole, error) {
+func ReadPhaddergruppRole(dbtx DBTX, userAccountID, phaddergruppID int64) (roles.PhaddergruppRole, error) {
 	row := dbtx.QueryRow(`
 		SELECT pm.phaddergrupp_role
 		FROM phaddergrupp_mappings AS pm
@@ -127,7 +127,7 @@ func (db *DB) ReadPhaddergruppRole(dbtx DBTX, userAccountID, phaddergruppID int6
 	return phaddergruppRole, nil
 }
 
-func (db *DB) ReadMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID int64) (int64, error) {
+func ReadMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID int64) (int64, error) {
 	sqlQuery := `
 		SELECT mums_available
 		FROM phaddergrupp_mappings
@@ -161,7 +161,7 @@ type UserPhaddergruppSummary struct {
 	MumsAvailable    int
 }
 
-func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(dbtx DBTX, userAccountID int64) ([]UserPhaddergruppSummary, error) {
+func ReadUserPhaddergruppSummariesByUserAccountID(dbtx DBTX, userAccountID int64) ([]UserPhaddergruppSummary, error) {
 	const sqlQuery = `
 		WITH GroupCounts AS (
 			SELECT
@@ -253,7 +253,7 @@ type PhaddergruppUserSummaries struct {
 	Phaddrar []PhaddergruppUserSummary
 }
 
-func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
+func ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppUserSummaries, error) {
 	const sqlQuery = `
 		SELECT
 			ua.id,
@@ -326,7 +326,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergr
 	return summaries, nil
 }
 
-func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(dbtx DBTX, userAccountID int64) (int64, time.Time, error) {
+func ReadLastCreatedPhaddergruppIDByUserAccountID(dbtx DBTX, userAccountID int64) (int64, time.Time, error) {
 	const sqlQuery = `
 		SELECT
 			p.id,
@@ -363,7 +363,7 @@ func (db *DB) ReadLastCreatedPhaddergruppIDByUserAccountID(dbtx DBTX, userAccoun
 	return phaddergruppID, createdAt, nil
 } // Returns zero if no rows were affected (not found = 0 as well)
 
-func (db *DB) UpdateAdjustMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID, amount int64) (int64, error) {
+func UpdateAdjustMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID, amount int64) (int64, error) {
 	const sqlQuery = `
 		UPDATE
 			phaddergrupp_mappings
@@ -394,7 +394,7 @@ func (db *DB) UpdateAdjustMumsAvailable(dbtx DBTX, userAccountID, phaddergruppID
 	return mumsAvailable, nil
 }
 
-func (db *DB) DeletePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64) error {
+func DeletePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64) error {
 	const sqlQuery = `
 		DELETE FROM
 			phaddergrupp_mappings

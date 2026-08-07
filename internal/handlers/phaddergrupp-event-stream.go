@@ -28,7 +28,7 @@ type templateDataMumsAvailableWidget struct {
 func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpdate) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
-	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	phaddergruppData, err := db.ReadPhaddergrupp(database, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
 		return nil
@@ -67,14 +67,14 @@ type mumsAvailableBadgeTemplateData struct {
 func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpdate) {
 	database := db.GetDB(c)
 
-	phaddergruppData, err := database.ReadPhaddergrupp(database, eventData.PhaddergruppID)
+	phaddergruppData, err := db.ReadPhaddergrupp(database, eventData.PhaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
 		return
 	}
 
 	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
-	mumsaTimes, err := database.ReadMemberMumsaTimesSince(database, eventData.UserAccountID, eventData.PhaddergruppID, since)
+	mumsaTimes, err := db.ReadMemberMumsaTimesSince(database, eventData.UserAccountID, eventData.PhaddergruppID, since)
 	if err != nil {
 		c.Logger().Errorf("Database error during member mumsa times read: %v", err)
 		return
@@ -106,12 +106,12 @@ func emitPhaddergruppMemberListsUpdate(c echo.Context) {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	phaddergruppData, err := db.ReadPhaddergrupp(database, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
 		return
 	}
-	summaries, err := database.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
+	summaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp user summary read: %v", err)
 		return
@@ -136,7 +136,7 @@ func emitPhaddergruppHeaderUpdate(c echo.Context) {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+	phaddergruppData, err := db.ReadPhaddergrupp(database, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
 		return
@@ -171,7 +171,7 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 			return
 		}
 		database := db.GetDB(c)
-		mumsAvailable, err := database.ReadMumsAvailable(database, auth.GetUserAccountID(c), phaddergruppID)
+		mumsAvailable, err := db.ReadMumsAvailable(database, auth.GetUserAccountID(c), phaddergruppID)
 		if err != nil {
 			c.Logger().Errorf("Database error during mums available read: %v", err)
 			return

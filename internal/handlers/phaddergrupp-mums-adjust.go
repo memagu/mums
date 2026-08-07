@@ -33,18 +33,18 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 	}
 
 	err = db.WithTx(database, func(dbtx db.DBTX) error {
-		isMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, phaddergruppID)
+		isMember, err := db.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err
 		}
 		if !isMember {
 			return errUserNotPhaddergruppMember
 		}
-		_, err = database.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, delta)
+		_, err = db.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, delta)
 		if err != nil {
 			return err
 		}
-		_, err = database.CreateMums(dbtx, userAccountID, phaddergruppID, delta, db.Purchase)
+		_, err = db.CreateMums(dbtx, userAccountID, phaddergruppID, delta, db.Purchase)
 		return err
 	})
 	if err != nil {

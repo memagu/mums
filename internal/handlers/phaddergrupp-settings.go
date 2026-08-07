@@ -182,7 +182,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "phaddergrupp-settings#fragment-form-fields", templateData)
 	}
 
-	if err := database.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData); err != nil {
+	if err := db.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData); err != nil {
 		return handleDBError(c, "phaddergrupp update", err)
 	}
 

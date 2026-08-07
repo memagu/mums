@@ -18,7 +18,7 @@ type UserCredentialsData struct {
 	Hashword string
 }
 
-func (db *DB) CreateUserCredentials(dbtx DBTX, email string, hashword string) (int64, error) {
+func CreateUserCredentials(dbtx DBTX, email string, hashword string) (int64, error) {
 	res, err := dbtx.Exec(
 		`INSERT INTO user_credentials (email, hashword) VALUES (?, ?)`,
 		email,
@@ -41,7 +41,7 @@ func (db *DB) CreateUserCredentials(dbtx DBTX, email string, hashword string) (i
 	return id, nil
 }
 
-func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(dbtx DBTX, email string) (int64, string, error) {
+func ReadUserCredentialsIDAndHashwordByEmail(dbtx DBTX, email string) (int64, string, error) {
 	row := dbtx.QueryRow(
 		`SELECT id, hashword FROM user_credentials WHERE email = ?`,
 		email,
@@ -62,7 +62,7 @@ func (db *DB) ReadUserCredentialsIDAndHashwordByEmail(dbtx DBTX, email string) (
 	return userCredentialsID, hashword, nil
 }
 
-func (db *DB) ReadUserCredentialsExistsByEmail(dbtx DBTX, email string) (bool, error) {
+func ReadUserCredentialsExistsByEmail(dbtx DBTX, email string) (bool, error) {
 	row := dbtx.QueryRow(
 		`SELECT 1 FROM user_credentials WHERE email = ?`,
 		email,
@@ -86,7 +86,7 @@ func (db *DB) ReadUserCredentialsExistsByEmail(dbtx DBTX, email string) (bool, e
 	return true, nil
 }
 
-func (db *DB) UpdateUserCredentialsEmail(dbtx DBTX, userCredentialsID int64, email string) error {
+func UpdateUserCredentialsEmail(dbtx DBTX, userCredentialsID int64, email string) error {
 	const sqlQuery = `
 		UPDATE user_credentials
 		SET email = ?
@@ -114,7 +114,7 @@ func (db *DB) UpdateUserCredentialsEmail(dbtx DBTX, userCredentialsID int64, ema
 	return nil
 }
 
-func (db *DB) UpdateUserCredentialsHashword(dbtx DBTX, userCredentialsID int64, hashword string) error {
+func UpdateUserCredentialsHashword(dbtx DBTX, userCredentialsID int64, hashword string) error {
 	const sqlQuery = `
 		UPDATE user_credentials
 		SET hashword = ?

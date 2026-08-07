@@ -53,7 +53,7 @@ func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error
 	}
 
 	var redirectURL string
-	switch phaddergruppID, createdAt, err := database.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {
+	switch phaddergruppID, createdAt, err := db.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {
 	case nil:
 		if time.Since(createdAt) < config.Auth.LoginRedirectMaxAge {
 			redirectURL = fmt.Sprintf("/phaddergrupp/%d", phaddergruppID)
@@ -94,7 +94,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 
 		database := db.GetDB(c)
 
-		userCredentialsID, hashword, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
+		userCredentialsID, hashword, err := db.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			password.Check(userPassword, dummyLoginHash)
@@ -106,7 +106,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 			return invalidCredentials()
 		}
 
-		userAccountID, err := database.ReadUserAccountIDByUserCredentialsID(database, userCredentialsID)
+		userAccountID, err := db.ReadUserAccountIDByUserCredentialsID(database, userCredentialsID)
 		if err != nil {
 			c.Logger().Errorf("CRITICAL: Credentials found (ID: %d) but no matching user account.", userCredentialsID)
 			return unexpectedError()

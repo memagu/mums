@@ -20,16 +20,16 @@ func PostPhaddergruppKick(c echo.Context) error {
 	}
 
 	err = db.WithTx(database, func(dbtx db.DBTX) error {
-		err := database.DeletePhaddergruppMapping(dbtx, userAccountID, phaddergruppID)
+		err := db.DeletePhaddergruppMapping(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err
 		}
-		phaddergruppIsEmpty, err := database.ReadPhaddergruppIsEmpty(dbtx, phaddergruppID)
+		phaddergruppIsEmpty, err := db.ReadPhaddergruppIsEmpty(dbtx, phaddergruppID)
 		if err != nil {
 			return err
 		}
 		if phaddergruppIsEmpty {
-			return database.DeletePhaddergrupp(dbtx, phaddergruppID)
+			return db.DeletePhaddergrupp(dbtx, phaddergruppID)
 		}
 		return nil
 	})

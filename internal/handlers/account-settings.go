@@ -28,7 +28,7 @@ func GetAccountSettings(c echo.Context) error {
 	database := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+	credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
 	if err != nil {
 		return handleDBError(c, "account settings read", err)
 	}
@@ -68,7 +68,7 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 		database := db.GetDB(c)
 		userAccountID := auth.GetUserAccountID(c)
 
-		credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
 		if err != nil {
 			return handleDBError(c, "account settings read", err)
 		}
@@ -87,7 +87,7 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 		}
 
 		if emailChanged {
-			_, _, err := database.ReadUserCredentialsIDAndHashwordByEmail(database, email)
+			_, _, err := db.ReadUserCredentialsIDAndHashwordByEmail(database, email)
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 			case err != nil:
@@ -118,17 +118,17 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 
 		err = db.WithTx(database, func(dbtx db.DBTX) error {
 			if nameChanged {
-				if err := database.UpdateUserProfileName(dbtx, userAccountID, name); err != nil {
+				if err := db.UpdateUserProfileName(dbtx, userAccountID, name); err != nil {
 					return err
 				}
 			}
 			if emailChanged {
-				if err := database.UpdateUserCredentialsEmail(dbtx, credentials.ID, email); err != nil {
+				if err := db.UpdateUserCredentialsEmail(dbtx, credentials.ID, email); err != nil {
 					return err
 				}
 			}
 			if passwordChanged {
-				if err := database.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword); err != nil {
+				if err := db.UpdateUserCredentialsHashword(dbtx, credentials.ID, hashword); err != nil {
 					return err
 				}
 			}
@@ -160,7 +160,7 @@ func DeleteAccount(ss *auth.SessionStore, rts *auth.PasswordResetTokenStore) ech
 		database := db.GetDB(c)
 		userAccountID := auth.GetUserAccountID(c)
 
-		credentials, err := database.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
 		if err != nil {
 			return handleDBError(c, "account read for deletion", err)
 		}
@@ -182,13 +182,13 @@ func DeleteAccount(ss *auth.SessionStore, rts *auth.PasswordResetTokenStore) ech
 
 		anonymousEmail := fmt.Sprintf("deleted-%d-%s@invalid.local", userAccountID, token.MustGenerateSecure(16))
 		err = db.WithTx(database, func(dbtx db.DBTX) error {
-			if err := database.UpdateUserCredentialsEmail(dbtx, credentials.ID, anonymousEmail); err != nil {
+			if err := db.UpdateUserCredentialsEmail(dbtx, credentials.ID, anonymousEmail); err != nil {
 				return err
 			}
-			if err := database.UpdateUserProfileName(dbtx, userAccountID, "Deleted user"); err != nil {
+			if err := db.UpdateUserProfileName(dbtx, userAccountID, "Deleted user"); err != nil {
 				return err
 			}
-			return database.DeleteUserAccount(dbtx, userAccountID)
+			return db.DeleteUserAccount(dbtx, userAccountID)
 		})
 		if err != nil {
 			return handleDBError(c, "account deletion", err)

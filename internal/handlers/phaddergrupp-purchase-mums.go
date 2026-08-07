@@ -35,7 +35,7 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 	phaddergruppRole := auth.GetPhaddergruppRole(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
 
-	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID)
+	mumsAvailable, err := db.ReadMumsAvailable(database, userAccountID, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "mums available read", err)
 	}

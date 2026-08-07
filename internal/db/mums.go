@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_mums_phaddergrupp_id ON mums(phaddergrupp_id);`
 const IndexMumsOnUserAccountID = `
 CREATE INDEX IF NOT EXISTS idx_mums_user_account_id ON mums(user_account_id);`
 
-func (db *DB) CreateMums(dbtx DBTX, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
+func CreateMums(dbtx DBTX, userAccountID, phaddergruppID, mumsQuantity int64, mumsType MumsType) (int64, error) {
 	res, err := dbtx.Exec(
 		`INSERT INTO mums (user_account_id, phaddergrupp_id, mums_quantity, mums_type) VALUES (?, ?, ?, ?)`,
 		userAccountID,
@@ -65,7 +65,7 @@ type MumsTransaction struct {
 	CreatedAt       time.Time
 }
 
-func (db *DB) ReadPhaddergruppTransactions(dbtx DBTX, phaddergruppID, memberID int64, role roles.PhaddergruppRole, mumsType MumsType) ([]MumsTransaction, error) {
+func ReadPhaddergruppTransactions(dbtx DBTX, phaddergruppID, memberID int64, role roles.PhaddergruppRole, mumsType MumsType) ([]MumsTransaction, error) {
 	query := `
 		SELECT
 			m.user_account_id,
@@ -156,7 +156,7 @@ type MemberMumsaTime struct {
 	CreatedAt     time.Time
 }
 
-func (db *DB) ReadPhaddergruppStats(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
+func ReadPhaddergruppStats(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
 	conditions := []string{"pm.phaddergrupp_id = ?"}
 	args := []any{phaddergruppID}
 	if role != "" {
@@ -221,7 +221,7 @@ func (db *DB) ReadPhaddergruppStats(dbtx DBTX, phaddergruppID int64, role roles.
 	return stats, nil
 }
 
-func (db *DB) ReadPhaddergruppConsumptionEvents(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) ([]ConsumptionEvent, error) {
+func ReadPhaddergruppConsumptionEvents(dbtx DBTX, phaddergruppID int64, role roles.PhaddergruppRole) ([]ConsumptionEvent, error) {
 	conditions := []string{"m.phaddergrupp_id = ?", "(mums_type = 'consumption' OR mums_quantity < 0)"}
 	args := []any{phaddergruppID}
 	if role != "" {
@@ -289,7 +289,7 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(dbtx DBTX, phaddergruppID int64,
 	return events, nil
 }
 
-func (db *DB) ReadPhaddergruppMumsaTimesSince(dbtx DBTX, phaddergruppID int64, since time.Time) ([]MemberMumsaTime, error) {
+func ReadPhaddergruppMumsaTimesSince(dbtx DBTX, phaddergruppID int64, since time.Time) ([]MemberMumsaTime, error) {
 	const sqlQuery = `
 		SELECT
 			m.user_account_id,
@@ -330,7 +330,7 @@ func (db *DB) ReadPhaddergruppMumsaTimesSince(dbtx DBTX, phaddergruppID int64, s
 	return times, nil
 }
 
-func (db *DB) ReadMemberMumsaTimesSince(dbtx DBTX, userAccountID, phaddergruppID int64, since time.Time) ([]time.Time, error) {
+func ReadMemberMumsaTimesSince(dbtx DBTX, userAccountID, phaddergruppID int64, since time.Time) ([]time.Time, error) {
 	const sqlQuery = `
 		SELECT
 			m.created_at

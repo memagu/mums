@@ -17,11 +17,11 @@ func PostPhaddergruppMumsa(c echo.Context) error {
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
 	err := db.WithTx(database, func(dbtx db.DBTX) error {
-		_, err := database.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, -1)
+		_, err := db.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, -1)
 		if err != nil {
 			return err
 		}
-		_, err = database.CreateMums(dbtx, userAccountID, phaddergruppID, 1, db.Consumption)
+		_, err = db.CreateMums(dbtx, userAccountID, phaddergruppID, 1, db.Consumption)
 		return err
 	})
 	if err != nil {

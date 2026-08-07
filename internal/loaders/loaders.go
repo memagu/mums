@@ -23,7 +23,7 @@ func UserProfileMiddleware() echo.MiddlewareFunc {
 			userAccountID := auth.GetUserAccountID(c)
 			database := db.GetDB(c)
 
-			userProfileData, err := database.ReadUserProfileByUserAccountID(database, userAccountID)
+			userProfileData, err := db.ReadUserProfileByUserAccountID(database, userAccountID)
 			if err != nil {
 				c.Logger().Errorf("Database error during user profile read: %v", err)
 				return echo.NewHTTPError(http.StatusInternalServerError, "An unexpected error occurred. Please try again.")
@@ -45,7 +45,7 @@ func PhaddergruppMiddleware() echo.MiddlewareFunc {
 			phaddergruppID := auth.GetPhaddergruppID(c)
 			database := db.GetDB(c)
 
-			phaddergruppData, err := database.ReadPhaddergrupp(database, phaddergruppID)
+			phaddergruppData, err := db.ReadPhaddergrupp(database, phaddergruppID)
 			if errors.Is(err, sql.ErrNoRows) {
 				return echo.NewHTTPError(http.StatusNotFound, "Phaddergrupp not found")
 			}

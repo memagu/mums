@@ -64,7 +64,7 @@ func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64
 }
 
 func phaddergruppPreviewRuns(database *db.DB, phaddergruppID int64) ([]transactionLogEntry, error) {
-	rows, err := database.ReadPhaddergruppTransactions(database, phaddergruppID, 0, roles.N0lla, "")
+	rows, err := db.ReadPhaddergruppTransactions(database, phaddergruppID, 0, roles.N0lla, "")
 	if err != nil {
 		return nil, err
 	}
@@ -106,18 +106,18 @@ func GetPhaddergrupp(c echo.Context) error {
 	phaddergruppRole := auth.GetPhaddergruppRole(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
 
-	mumsAvailable, err := database.ReadMumsAvailable(database, userAccountID, phaddergruppID)
+	mumsAvailable, err := db.ReadMumsAvailable(database, userAccountID, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "mums available read", err)
 	}
 
-	phaddergruppUserSummaries, err := database.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
+	phaddergruppUserSummaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
 	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
-	mumsaTimes, err := database.ReadPhaddergruppMumsaTimesSince(database, phaddergruppID, since)
+	mumsaTimes, err := db.ReadPhaddergruppMumsaTimesSince(database, phaddergruppID, since)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp mumsa times read", err)
 	}
@@ -148,7 +148,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		recentTransactions = runs
 	}
 
-	inviteTokens, err := database.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
+	inviteTokens, err := db.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "invite tokens read", err)
 	}
@@ -186,7 +186,7 @@ func DeletePhaddergrupp(c echo.Context) error {
 	database := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	err := database.DeletePhaddergrupp(database, phaddergruppID)
+	err := db.DeletePhaddergrupp(database, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp deletion", err)
 	}

@@ -26,7 +26,7 @@ ON
 	phaddergrupp_invites(phaddergrupp_id)
 ;`
 
-func (db *DB) CreatePhaddergruppInvite(dbtx DBTX, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
+func CreatePhaddergruppInvite(dbtx DBTX, token string, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	sqlQuery := `
 		INSERT INTO phaddergrupp_invites
 			(token, phaddergrupp_id, phaddergrupp_role)
@@ -48,7 +48,7 @@ func (db *DB) CreatePhaddergruppInvite(dbtx DBTX, token string, phaddergruppID i
 	return nil
 }
 
-func (db *DB) ReadPhaddergruppInvite(dbtx DBTX, token string) (PhaddergruppInviteData, error) {
+func ReadPhaddergruppInvite(dbtx DBTX, token string) (PhaddergruppInviteData, error) {
 	sqlQuery := `
 		SELECT
 			pi.phaddergrupp_id,
@@ -85,7 +85,7 @@ type PhaddergruppInviteTokens struct {
 	Phadder string
 }
 
-func (db *DB) ReadPhaddergruppInviteTokensByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppInviteTokens, error) {
+func ReadPhaddergruppInviteTokensByPhaddergruppID(dbtx DBTX, phaddergruppID int64) (PhaddergruppInviteTokens, error) {
 	sqlQuery := `
 		SELECT
 			pi.token, pi.phaddergrupp_role

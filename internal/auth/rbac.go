@@ -25,7 +25,7 @@ func UserAccountRBACMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			database := db.GetDB(c)
-			userAccountRoles, err := database.ReadUserAccountRoles(database, GetUserAccountID(c))
+			userAccountRoles, err := db.ReadUserAccountRoles(database, GetUserAccountID(c))
 			if err != nil {
 				c.Logger().Errorf("Database error during user account roles read: %v", err)
 				return echo.NewHTTPError(http.StatusInternalServerError, "An unexpected error occurred. Please try again.")
@@ -78,7 +78,7 @@ func PhaddergruppRBACMiddleware() echo.MiddlewareFunc {
 				return echo.NewHTTPError(http.StatusBadRequest, "Invalid phaddergrupp-id")
 			}
 			database := db.GetDB(c)
-			phaddergruppRole, err := database.ReadPhaddergruppRole(database, GetUserAccountID(c), phaddergruppID)
+			phaddergruppRole, err := db.ReadPhaddergruppRole(database, GetUserAccountID(c), phaddergruppID)
 			if errors.Is(err, sql.ErrNoRows) {
 				return echo.NewHTTPError(http.StatusForbidden, "User account does not have access to this phaddergrupp")
 			}

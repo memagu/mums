@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS user_accounts (
 	FOREIGN KEY (user_profile_id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );`
 
-func (db *DB) CreateUserAccount(dbtx DBTX, userCredentialsID, userProfileID int64) (int64, error) {
+func CreateUserAccount(dbtx DBTX, userCredentialsID, userProfileID int64) (int64, error) {
 	res, err := dbtx.Exec(
 		`INSERT INTO user_accounts (user_credentials_id, user_profile_id) VALUES (?, ?)`,
 		userCredentialsID,
@@ -34,7 +34,7 @@ func (db *DB) CreateUserAccount(dbtx DBTX, userCredentialsID, userProfileID int6
 	return id, nil
 }
 
-func (db *DB) ReadUserAccountIDByUserCredentialsID(dbtx DBTX, userCredentialsID int64) (int64, error) {
+func ReadUserAccountIDByUserCredentialsID(dbtx DBTX, userCredentialsID int64) (int64, error) {
 	row := dbtx.QueryRow(
 		`SELECT id FROM user_accounts WHERE user_credentials_id = ? AND deleted_at IS NULL`,
 		userCredentialsID,
@@ -54,7 +54,7 @@ func (db *DB) ReadUserAccountIDByUserCredentialsID(dbtx DBTX, userCredentialsID 
 	return userAccountID, nil
 }
 
-func (db *DB) ReadActiveUserAccountIDByEmail(dbtx DBTX, email string) (int64, error) {
+func ReadActiveUserAccountIDByEmail(dbtx DBTX, email string) (int64, error) {
 	row := dbtx.QueryRow(`
 		SELECT a.id
 		FROM user_accounts AS a
@@ -77,7 +77,7 @@ func (db *DB) ReadActiveUserAccountIDByEmail(dbtx DBTX, email string) (int64, er
 	return userAccountID, nil
 }
 
-func (db *DB) ReadUserProfileByUserAccountID(dbtx DBTX, userAccountID int64) (UserProfileData, error) {
+func ReadUserProfileByUserAccountID(dbtx DBTX, userAccountID int64) (UserProfileData, error) {
 	row := dbtx.QueryRow(`
 		SELECT p.name
 		FROM user_profiles AS p
@@ -102,7 +102,7 @@ func (db *DB) ReadUserProfileByUserAccountID(dbtx DBTX, userAccountID int64) (Us
 	return upd, nil
 }
 
-func (db *DB) ReadUserCredentialsByUserAccountID(dbtx DBTX, userAccountID int64) (UserCredentialsData, error) {
+func ReadUserCredentialsByUserAccountID(dbtx DBTX, userAccountID int64) (UserCredentialsData, error) {
 	row := dbtx.QueryRow(`
 		SELECT c.id, c.email, c.hashword
 		FROM user_credentials AS c
@@ -129,7 +129,7 @@ func (db *DB) ReadUserCredentialsByUserAccountID(dbtx DBTX, userAccountID int64)
 	return ucd, nil
 }
 
-func (db *DB) DeleteUserAccount(dbtx DBTX, userAccountID int64) error {
+func DeleteUserAccount(dbtx DBTX, userAccountID int64) error {
 	const sqlQuery = `
 		UPDATE user_accounts
 		SET deleted_at = CURRENT_TIMESTAMP

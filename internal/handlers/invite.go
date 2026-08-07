@@ -28,18 +28,18 @@ func joinPhaddergruppInvite(database *db.DB, userAccountID int64, token string) 
 	var invite db.PhaddergruppInviteData
 	err := db.WithTx(database, func(dbtx db.DBTX) error {
 		var err error
-		invite, err = database.ReadPhaddergruppInvite(dbtx, token)
+		invite, err = db.ReadPhaddergruppInvite(dbtx, token)
 		if err != nil {
 			return err
 		}
-		userIsAlreadyPhaddergruppMember, err := database.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, invite.PhaddergruppID)
+		userIsAlreadyPhaddergruppMember, err := db.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, invite.PhaddergruppID)
 		if err != nil {
 			return err
 		}
 		if userIsAlreadyPhaddergruppMember {
 			return errUserAlreadyPhaddergruppMember
 		}
-		return database.CreatePhaddergruppMapping(dbtx, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
+		return db.CreatePhaddergruppMapping(dbtx, userAccountID, invite.PhaddergruppID, invite.PhaddergruppRole)
 	})
 	if err != nil && !errors.Is(err, errUserAlreadyPhaddergruppMember) {
 		return "", err
@@ -64,7 +64,7 @@ func GetInvite(c echo.Context) error {
 	database := db.GetDB(c)
 
 	if !auth.GetIsLoggedIn(c) {
-		if _, err := database.ReadPhaddergruppInvite(database, token); err != nil {
+		if _, err := db.ReadPhaddergruppInvite(database, token); err != nil {
 			return handleInviteError(c, err)
 		}
 		setPendingInviteCookie(c, token)

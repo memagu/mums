@@ -31,7 +31,7 @@ func GetHome(c echo.Context) error {
 	userAccountID := auth.GetUserAccountID(c)
 	userProfile := loaders.GetUserProfile(c)
 
-	userPhaddergruppSummaries, err := database.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
+	userPhaddergruppSummaries, err := db.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
 	if err != nil {
 		return handleDBError(c, "user phaddergrupp summaries read", err)
 	}
@@ -88,19 +88,19 @@ func PostHome(c echo.Context) error {
 	var phaddergruppID int64
 	err := db.WithTx(database, func(dbtx db.DBTX) error {
 		var err error
-		phaddergruppID, err = database.CreatePhaddergrupp(dbtx, phaddergruppName, swishRecipientNumber)
+		phaddergruppID, err = db.CreatePhaddergrupp(dbtx, phaddergruppName, swishRecipientNumber)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppMapping(dbtx, userAccountID, phaddergruppID, roles.Phadder)
+		err = db.CreatePhaddergruppMapping(dbtx, userAccountID, phaddergruppID, roles.Phadder)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.N0lla)
+		err = db.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.N0lla)
 		if err != nil {
 			return err
 		}
-		err = database.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.Phadder)
+		err = db.CreatePhaddergruppInvite(dbtx, token.MustGenerateSecure(config.Auth.InviteTokenSize), phaddergruppID, roles.Phadder)
 		return err
 	})
 	if err != nil {

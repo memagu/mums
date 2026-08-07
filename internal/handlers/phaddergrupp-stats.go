@@ -198,11 +198,11 @@ func readTitleCards(events []db.ConsumptionEvent, members []db.MemberMumsStats, 
 }
 
 func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID int64, role roles.PhaddergruppRole, base basePageData) (phaddergruppStatsTemplateData, error) {
-	stats, err := database.ReadPhaddergruppStats(database, phaddergruppID, role)
+	stats, err := db.ReadPhaddergruppStats(database, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}
-	events, err := database.ReadPhaddergruppConsumptionEvents(database, phaddergruppID, role)
+	events, err := db.ReadPhaddergruppConsumptionEvents(database, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}

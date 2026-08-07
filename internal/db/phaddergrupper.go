@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupper (
 	mums_recency_window_hours INTEGER NOT NULL
 );`
 
-func (db *DB) CreatePhaddergrupp(dbtx DBTX, name, swishRecipientNumber string) (int64, error) {
+func CreatePhaddergrupp(dbtx DBTX, name, swishRecipientNumber string) (int64, error) {
 	res, err := dbtx.Exec(
 		`INSERT INTO phaddergrupper (name, primary_color, secondary_color, mums_price_n0lla, mums_price_phadder, mums_currency, swish_recipient_number, mums_capacity_per_user, mums_min_purchase_quantity, mums_max_purchase_quantity, mums_purchase_quantity_step, mums_default_purchase_quantity, mums_recency_window_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		name,
@@ -80,7 +80,7 @@ func (db *DB) CreatePhaddergrupp(dbtx DBTX, name, swishRecipientNumber string) (
 	return id, nil
 }
 
-func (db *DB) ReadPhaddergrupp(dbtx DBTX, phaddergruppID int64) (PhaddergruppData, error) {
+func ReadPhaddergrupp(dbtx DBTX, phaddergruppID int64) (PhaddergruppData, error) {
 	const sqlQuery = `
 		SELECT
 			created_at,
@@ -136,7 +136,7 @@ func (db *DB) ReadPhaddergrupp(dbtx DBTX, phaddergruppID int64) (PhaddergruppDat
 	return pd, nil
 }
 
-func (db *DB) UpdatePhaddergrupp(dbtx DBTX, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
+func UpdatePhaddergrupp(dbtx DBTX, phaddergruppID int64, phaddergruppData PhaddergruppData) error {
 	const sqlQuery = `
 		UPDATE phaddergrupper SET
 			name = ?,
@@ -196,7 +196,7 @@ func (db *DB) UpdatePhaddergrupp(dbtx DBTX, phaddergruppID int64, phaddergruppDa
 	return nil
 }
 
-func (db *DB) DeletePhaddergrupp(dbtx DBTX, phaddergruppID int64) error {
+func DeletePhaddergrupp(dbtx DBTX, phaddergruppID int64) error {
 	const sqlQuery = `
 		UPDATE phaddergrupper
 		SET deleted_at = CURRENT_TIMESTAMP
