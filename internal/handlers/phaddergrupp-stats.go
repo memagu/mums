@@ -197,12 +197,12 @@ func readTitleCards(events []db.ConsumptionEvent, members []db.MemberMumsStats, 
 	return cards
 }
 
-func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID int64, role roles.PhaddergruppRole, base basePageData) (phaddergruppStatsTemplateData, error) {
-	stats, err := db.ReadPhaddergruppStats(database, phaddergruppID, role)
+func loadPhaddergruppStatsData(c echo.Context, conn *db.DB, phaddergruppID int64, role roles.PhaddergruppRole, base basePageData) (phaddergruppStatsTemplateData, error) {
+	stats, err := db.ReadPhaddergruppStats(conn, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}
-	events, err := db.ReadPhaddergruppConsumptionEvents(database, phaddergruppID, role)
+	events, err := db.ReadPhaddergruppConsumptionEvents(conn, phaddergruppID, role)
 	if err != nil {
 		return phaddergruppStatsTemplateData{}, err
 	}
@@ -223,11 +223,11 @@ func loadPhaddergruppStatsData(c echo.Context, database *db.DB, phaddergruppID i
 }
 
 func GetPhaddergruppStats(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	role := resolveStatsRole(c)
 
-	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, role, basePageData{
+	templateData, err := loadPhaddergruppStatsData(c, conn, phaddergruppID, role, basePageData{
 		IsLoggedIn:        auth.GetIsLoggedIn(c),
 		AllowedErrorCodes: []int{http.StatusInternalServerError},
 		CSRFToken:         csrfToken(c),
@@ -239,11 +239,11 @@ func GetPhaddergruppStats(c echo.Context) error {
 }
 
 func emitPhaddergruppStatsUpdate(c echo.Context) {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	role := resolveStatsRole(c)
 
-	templateData, err := loadPhaddergruppStatsData(c, database, phaddergruppID, role, basePageData{})
+	templateData, err := loadPhaddergruppStatsData(c, conn, phaddergruppID, role, basePageData{})
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp stats read: %v", err)
 		return

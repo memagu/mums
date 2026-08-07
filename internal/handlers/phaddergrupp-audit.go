@@ -22,10 +22,10 @@ type phaddergruppAuditTemplateData struct {
 }
 
 func GetPhaddergruppAuditLog(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	rows, err := db.ReadPhaddergruppTransactions(database, phaddergruppID, 0, "", "")
+	rows, err := db.ReadPhaddergruppTransactions(conn, phaddergruppID, 0, "", "")
 	if err != nil {
 		return handleDBError(c, "phaddergrupp transaction read", err)
 	}
@@ -45,10 +45,10 @@ func GetPhaddergruppAuditLog(c echo.Context) error {
 }
 
 func emitPhaddergruppAuditUpdate(c echo.Context) {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	rows, err := db.ReadPhaddergruppTransactions(database, phaddergruppID, 0, "", "")
+	rows, err := db.ReadPhaddergruppTransactions(conn, phaddergruppID, 0, "", "")
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp transaction read: %v", err)
 		return

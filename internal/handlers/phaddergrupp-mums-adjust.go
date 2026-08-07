@@ -16,7 +16,7 @@ import (
 var errUserNotPhaddergruppMember = errors.New("user is not a member of phaddergrupp")
 
 func PostPhaddergruppMumsAdjust(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
 	userAccountID, err := httpx.QueryParamInt64(c, "user-account-id")
@@ -32,7 +32,7 @@ func PostPhaddergruppMumsAdjust(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "delta must be non-zero")
 	}
 
-	err = db.WithTx(database, func(dbtx db.DBTX) error {
+	err = db.WithTx(conn, func(dbtx db.DBTX) error {
 		isMember, err := db.ReadUserAccountIsMemberOfPhaddergrupp(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err

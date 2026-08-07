@@ -24,9 +24,9 @@ func clearPendingInviteCookie(c echo.Context) {
 	httpx.ClearCookie(c, config.Auth.PendingInviteCookie, config.Server.CookieSecure)
 }
 
-func joinPhaddergruppInvite(database *db.DB, userAccountID int64, token string) (string, error) {
+func joinPhaddergruppInvite(conn *db.DB, userAccountID int64, token string) (string, error) {
 	var invite db.PhaddergruppInviteData
-	err := db.WithTx(database, func(dbtx db.DBTX) error {
+	err := db.WithTx(conn, func(dbtx db.DBTX) error {
 		var err error
 		invite, err = db.ReadPhaddergruppInvite(dbtx, token)
 		if err != nil {
@@ -61,17 +61,17 @@ func GetInvite(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "token is required")
 	}
 
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 
 	if !auth.GetIsLoggedIn(c) {
-		if _, err := db.ReadPhaddergruppInvite(database, token); err != nil {
+		if _, err := db.ReadPhaddergruppInvite(conn, token); err != nil {
 			return handleInviteError(c, err)
 		}
 		setPendingInviteCookie(c, token)
 		return httpx.Redirect(c, http.StatusSeeOther, "/register")
 	}
 
-	redirectURL, err := joinPhaddergruppInvite(database, auth.GetUserAccountID(c), token)
+	redirectURL, err := joinPhaddergruppInvite(conn, auth.GetUserAccountID(c), token)
 	if err != nil {
 		return handleInviteError(c, err)
 	}

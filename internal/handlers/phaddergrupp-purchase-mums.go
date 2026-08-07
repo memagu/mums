@@ -29,13 +29,13 @@ func PostPhaddergruppPurchaseMums(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "mums-purchase-quantity must be a positive integer")
 	}
 
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	phaddergruppRole := auth.GetPhaddergruppRole(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
 
-	mumsAvailable, err := db.ReadMumsAvailable(database, userAccountID, phaddergruppID)
+	mumsAvailable, err := db.ReadMumsAvailable(conn, userAccountID, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "mums available read", err)
 	}

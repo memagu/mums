@@ -109,8 +109,8 @@ func NewDB(dbFilePath string) (*DB, error) {
 	return db, nil
 }
 
-func WithTx(db *DB, fn func(dbtx DBTX) error) error {
-	tx, err := db.DB.Begin()
+func WithTx(conn *DB, fn func(dbtx DBTX) error) error {
+	tx, err := conn.Begin()
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
@@ -126,7 +126,7 @@ func WithTx(db *DB, fn func(dbtx DBTX) error) error {
 	}
 
 	for _, event := range tw.events {
-		db.Emit(event)
+		conn.Emit(event)
 	}
 
 	return nil

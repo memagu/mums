@@ -11,11 +11,11 @@ import (
 )
 
 func PostPhaddergruppLeave(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	err := db.WithTx(database, func(dbtx db.DBTX) error {
+	err := db.WithTx(conn, func(dbtx db.DBTX) error {
 		err := db.DeletePhaddergruppMapping(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err

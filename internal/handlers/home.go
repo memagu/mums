@@ -27,11 +27,11 @@ type homePageData struct {
 }
 
 func GetHome(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 	userProfile := loaders.GetUserProfile(c)
 
-	userPhaddergruppSummaries, err := db.ReadUserPhaddergruppSummariesByUserAccountID(database, userAccountID)
+	userPhaddergruppSummaries, err := db.ReadUserPhaddergruppSummariesByUserAccountID(conn, userAccountID)
 	if err != nil {
 		return handleDBError(c, "user phaddergrupp summaries read", err)
 	}
@@ -82,11 +82,11 @@ func PostHome(c echo.Context) error {
 		return c.Render(http.StatusInternalServerError, "home#fragment-form-fields", pageData)
 	}
 
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 
 	var phaddergruppID int64
-	err := db.WithTx(database, func(dbtx db.DBTX) error {
+	err := db.WithTx(conn, func(dbtx db.DBTX) error {
 		var err error
 		phaddergruppID, err = db.CreatePhaddergrupp(dbtx, phaddergruppName, swishRecipientNumber)
 		if err != nil {

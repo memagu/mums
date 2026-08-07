@@ -25,10 +25,10 @@ type accountSettingsPageData struct {
 }
 
 func GetAccountSettings(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 
-	credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
+	credentials, err := db.ReadUserCredentialsByUserAccountID(conn, userAccountID)
 	if err != nil {
 		return handleDBError(c, "account settings read", err)
 	}
@@ -65,10 +65,10 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 			formErrors["PasswordConfirm"] = []string{"Passwords do not match."}
 		}
 
-		database := db.GetDB(c)
+		conn := db.GetDB(c)
 		userAccountID := auth.GetUserAccountID(c)
 
-		credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		credentials, err := db.ReadUserCredentialsByUserAccountID(conn, userAccountID)
 		if err != nil {
 			return handleDBError(c, "account settings read", err)
 		}
@@ -87,7 +87,7 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 		}
 
 		if emailChanged {
-			_, _, err := db.ReadUserCredentialsIDAndHashwordByEmail(database, email)
+			_, _, err := db.ReadUserCredentialsIDAndHashwordByEmail(conn, email)
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 			case err != nil:
@@ -116,7 +116,7 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 			})
 		}
 
-		err = db.WithTx(database, func(dbtx db.DBTX) error {
+		err = db.WithTx(conn, func(dbtx db.DBTX) error {
 			if nameChanged {
 				if err := db.UpdateUserProfileName(dbtx, userAccountID, name); err != nil {
 					return err
@@ -157,10 +157,10 @@ func PatchAccountSettings(rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 
 func DeleteAccount(ss *auth.SessionStore, rts *auth.PasswordResetTokenStore) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		database := db.GetDB(c)
+		conn := db.GetDB(c)
 		userAccountID := auth.GetUserAccountID(c)
 
-		credentials, err := db.ReadUserCredentialsByUserAccountID(database, userAccountID)
+		credentials, err := db.ReadUserCredentialsByUserAccountID(conn, userAccountID)
 		if err != nil {
 			return handleDBError(c, "account read for deletion", err)
 		}
@@ -181,7 +181,7 @@ func DeleteAccount(ss *auth.SessionStore, rts *auth.PasswordResetTokenStore) ech
 		}
 
 		anonymousEmail := fmt.Sprintf("deleted-%d-%s@invalid.local", userAccountID, token.MustGenerateSecure(16))
-		err = db.WithTx(database, func(dbtx db.DBTX) error {
+		err = db.WithTx(conn, func(dbtx db.DBTX) error {
 			if err := db.UpdateUserCredentialsEmail(dbtx, credentials.ID, anonymousEmail); err != nil {
 				return err
 			}

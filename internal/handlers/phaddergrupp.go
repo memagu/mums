@@ -63,8 +63,8 @@ func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64
 	return purchaseQuantities
 }
 
-func phaddergruppPreviewRuns(database *db.DB, phaddergruppID int64) ([]transactionLogEntry, error) {
-	rows, err := db.ReadPhaddergruppTransactions(database, phaddergruppID, 0, roles.N0lla, "")
+func phaddergruppPreviewRuns(conn *db.DB, phaddergruppID int64) ([]transactionLogEntry, error) {
+	rows, err := db.ReadPhaddergruppTransactions(conn, phaddergruppID, 0, roles.N0lla, "")
 	if err != nil {
 		return nil, err
 	}
@@ -76,10 +76,10 @@ func phaddergruppPreviewRuns(database *db.DB, phaddergruppID int64) ([]transacti
 }
 
 func emitPhaddergruppPreviewUpdate(c echo.Context) {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	runs, err := phaddergruppPreviewRuns(database, phaddergruppID)
+	runs, err := phaddergruppPreviewRuns(conn, phaddergruppID)
 	if err != nil {
 		c.Logger().Errorf("Database error during phaddergrupp transaction read: %v", err)
 		return
@@ -100,24 +100,24 @@ func emitPhaddergruppPreviewUpdate(c echo.Context) {
 }
 
 func GetPhaddergrupp(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	phaddergruppRole := auth.GetPhaddergruppRole(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
 
-	mumsAvailable, err := db.ReadMumsAvailable(database, userAccountID, phaddergruppID)
+	mumsAvailable, err := db.ReadMumsAvailable(conn, userAccountID, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "mums available read", err)
 	}
 
-	phaddergruppUserSummaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(database, phaddergruppID)
+	phaddergruppUserSummaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(conn, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
 	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
-	mumsaTimes, err := db.ReadPhaddergruppMumsaTimesSince(database, phaddergruppID, since)
+	mumsaTimes, err := db.ReadPhaddergruppMumsaTimesSince(conn, phaddergruppID, since)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp mumsa times read", err)
 	}
@@ -141,14 +141,14 @@ func GetPhaddergrupp(c echo.Context) error {
 
 	recentTransactions := []transactionLogEntry{}
 	if phaddergruppRole == roles.Phadder {
-		runs, err := phaddergruppPreviewRuns(database, phaddergruppID)
+		runs, err := phaddergruppPreviewRuns(conn, phaddergruppID)
 		if err != nil {
 			return handleDBError(c, "phaddergrupp transaction read", err)
 		}
 		recentTransactions = runs
 	}
 
-	inviteTokens, err := db.ReadPhaddergruppInviteTokensByPhaddergruppID(database, phaddergruppID)
+	inviteTokens, err := db.ReadPhaddergruppInviteTokensByPhaddergruppID(conn, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "invite tokens read", err)
 	}
@@ -183,10 +183,10 @@ func GetPhaddergrupp(c echo.Context) error {
 }
 
 func DeletePhaddergrupp(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	err := db.DeletePhaddergrupp(database, phaddergruppID)
+	err := db.DeletePhaddergrupp(conn, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp deletion", err)
 	}

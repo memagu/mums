@@ -11,7 +11,7 @@ import (
 )
 
 func PostPhaddergruppKick(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
 	userAccountID, err := httpx.QueryParamInt64(c, "user-account-id")
@@ -19,7 +19,7 @@ func PostPhaddergruppKick(c echo.Context) error {
 		return err
 	}
 
-	err = db.WithTx(database, func(dbtx db.DBTX) error {
+	err = db.WithTx(conn, func(dbtx db.DBTX) error {
 		err := db.DeletePhaddergruppMapping(dbtx, userAccountID, phaddergruppID)
 		if err != nil {
 			return err

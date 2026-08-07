@@ -39,10 +39,10 @@ func GetLogin(c echo.Context) error {
 func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error {
 	auth.LoginUser(c, ss, userAccountID)
 
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 
 	if pendingInvite, err := c.Cookie(config.Auth.PendingInviteCookie); err == nil {
-		redirectURL, joinErr := joinPhaddergruppInvite(database, userAccountID, pendingInvite.Value)
+		redirectURL, joinErr := joinPhaddergruppInvite(conn, userAccountID, pendingInvite.Value)
 		if joinErr != nil && !errors.Is(joinErr, sql.ErrNoRows) {
 			return handleDBError(c, "phaddergrupp invite", joinErr)
 		}
@@ -53,7 +53,7 @@ func loginUser(c echo.Context, ss *auth.SessionStore, userAccountID int64) error
 	}
 
 	var redirectURL string
-	switch phaddergruppID, createdAt, err := db.ReadLastCreatedPhaddergruppIDByUserAccountID(database, userAccountID); err {
+	switch phaddergruppID, createdAt, err := db.ReadLastCreatedPhaddergruppIDByUserAccountID(conn, userAccountID); err {
 	case nil:
 		if time.Since(createdAt) < config.Auth.LoginRedirectMaxAge {
 			redirectURL = fmt.Sprintf("/phaddergrupp/%d", phaddergruppID)
@@ -92,9 +92,9 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 			return c.Render(http.StatusUnauthorized, "login#fragment-form-fields", pageData)
 		}
 
-		database := db.GetDB(c)
+		conn := db.GetDB(c)
 
-		userCredentialsID, hashword, err := db.ReadUserCredentialsIDAndHashwordByEmail(database, userEmail)
+		userCredentialsID, hashword, err := db.ReadUserCredentialsIDAndHashwordByEmail(conn, userEmail)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			password.Check(userPassword, dummyLoginHash)
@@ -106,7 +106,7 @@ func PostLogin(ss *auth.SessionStore) echo.HandlerFunc {
 			return invalidCredentials()
 		}
 
-		userAccountID, err := db.ReadUserAccountIDByUserCredentialsID(database, userCredentialsID)
+		userAccountID, err := db.ReadUserAccountIDByUserCredentialsID(conn, userCredentialsID)
 		if err != nil {
 			c.Logger().Errorf("CRITICAL: Credentials found (ID: %d) but no matching user account.", userCredentialsID)
 			return unexpectedError()

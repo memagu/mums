@@ -53,7 +53,7 @@ func GetPhaddergruppSettings(c echo.Context) error {
 }
 
 func PatchPhaddergruppSettings(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 	phaddergruppData := loaders.GetPhaddergrupp(c)
 
@@ -182,7 +182,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		return c.Render(http.StatusBadRequest, "phaddergrupp-settings#fragment-form-fields", templateData)
 	}
 
-	if err := db.UpdatePhaddergrupp(database, phaddergruppID, updatedPhaddergruppData); err != nil {
+	if err := db.UpdatePhaddergrupp(conn, phaddergruppID, updatedPhaddergruppData); err != nil {
 		return handleDBError(c, "phaddergrupp update", err)
 	}
 

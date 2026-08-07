@@ -12,11 +12,11 @@ import (
 )
 
 func PostPhaddergruppMumsa(c echo.Context) error {
-	database := db.GetDB(c)
+	conn := db.GetDB(c)
 	userAccountID := auth.GetUserAccountID(c)
 	phaddergruppID := auth.GetPhaddergruppID(c)
 
-	err := db.WithTx(database, func(dbtx db.DBTX) error {
+	err := db.WithTx(conn, func(dbtx db.DBTX) error {
 		_, err := db.UpdateAdjustMumsAvailable(dbtx, userAccountID, phaddergruppID, -1)
 		if err != nil {
 			return err
