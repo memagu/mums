@@ -30,21 +30,34 @@
                     "Href" "https://htmx.org/"
                     "Class" "font-semibold text-backdrop-content-highlight"
                     "Text" "HTMX"
+                }} and {{ template "component-external-link" dict
+                    "Href" "https://tailwindcss.com/"
+                    "Class" "font-semibold text-backdrop-content-highlight"
+                    "Text" "Tailwind CSS"
                 }} on the frontend with
                 {{ template "component-external-link" dict
                     "Href" "https://echo.labstack.com/"
                     "Class" "font-semibold text-backdrop-content-highlight"
                     "Text" "Echo"
-                }} on the backend to create a lightweight
-                server-driven architecture. Core features like authentication, session
-                management, and routing are implemented from scratch, giving full control while
-                keeping complexity to a minimum. All data is stored in a lightweight
-                {{ template "component-external-link" dict
+                }} and {{ template "component-external-link" dict
                     "Href" "https://www.sqlite.org/"
                     "Class" "font-semibold text-backdrop-content-highlight"
                     "Text" "SQLite"
-                }} database, making the setup easy to run and
-                maintain.
+                }} on the backend to create a lightweight
+                server-driven architecture.
+            </p>
+
+            <p>
+                Nearly everything above the framework is built in-house: session management with
+                sliding expiry, role-based access control for both user accounts and per-group
+                roles, password-reset and invite tokens, the database access layer (plain SQL, no
+                ORM), and a database event bus that streams live page updates over SSE.
+            </p>
+
+            <p>
+                The dependencies are intentionally kept few and minimal, with no scaffolding or
+                code generation, so every layer stays small and readable, making the setup easy to
+                run and maintain.
             </p>
         </div>
 
