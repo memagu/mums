@@ -15,10 +15,10 @@ import (
 func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordResetTokenStore, sender email.Sender) {
 	e.Use(auth.SessionMiddleware(ss))
 
-	e.GET("/login", handlers.GetLogin)
-	e.POST("/login", handlers.PostLogin(ss))
-	e.GET("/register", handlers.GetRegister)
-	e.POST("/register", handlers.PostRegister(ss))
+	e.GET("/login", handlers.GetLogin, auth.RedirectLoggedIn())
+	e.POST("/login", handlers.PostLogin(ss), auth.RedirectLoggedIn())
+	e.GET("/register", handlers.GetRegister, auth.RedirectLoggedIn())
+	e.POST("/register", handlers.PostRegister(ss), auth.RedirectLoggedIn())
 	e.GET("/about", handlers.GetAbout)
 	e.GET("/password-reset", handlers.GetPasswordReset)
 	e.POST("/password-reset", handlers.PostPasswordReset(rts, sender))
