@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"strings"
 	"time"
 
@@ -152,6 +151,11 @@ type ConsumptionEvent struct {
 	CreatedAt       time.Time
 }
 
+type MemberMumsaTime struct {
+	UserAccountID int64
+	CreatedAt     time.Time
+}
+
 func (db *DB) ReadPhaddergruppStats(q queryer, phaddergruppID int64, role roles.PhaddergruppRole) (PhaddergruppStats, error) {
 	conditions := []string{"pm.phaddergrupp_id = ?"}
 	args := []any{phaddergruppID}
@@ -285,38 +289,36 @@ func (db *DB) ReadPhaddergruppConsumptionEvents(q queryer, phaddergruppID int64,
 	return events, nil
 }
 
-func parseSQLiteTime(src sql.NullString) (sql.NullTime, error) {
-	if !src.Valid {
-		return sql.NullTime{}, nil
-	}
-	t, err := time.Parse(time.DateTime, src.String)
-	if err != nil {
-		return sql.NullTime{}, err
-	}
-	return sql.NullTime{Time: t, Valid: true}, nil
-}
-
-func (db *DB) ReadMemberLastMumsaAt(q queryer, userAccountID, phaddergruppID int64) (sql.NullTime, error) {
-	row := q.QueryRow(`
+func (db *DB) ReadPhaddergruppMumsaTimesSince(q queryer, phaddergruppID int64, since time.Time) ([]MemberMumsaTime, error) {
+	const sqlQuery = `
 		SELECT
-			MAX(created_at)
+			m.user_account_id,
+			m.created_at
 		FROM
-			mums
+			mums AS m
 		WHERE
-			user_account_id = ? AND phaddergrupp_id = ?
-			AND (mums_type = 'consumption' OR mums_quantity < 0)`,
-		userAccountID,
-		phaddergruppID,
-	)
+			m.phaddergrupp_id = ? AND (m.mums_type = 'consumption' OR m.mums_quantity < 0)
+			AND m.created_at >= ?
+		ORDER BY
+			m.created_at ASC, m.id ASC
+	`
 
-	var lastMumsaAtStr sql.NullString
-	if err := row.Scan(&lastMumsaAtStr); err != nil {
-		return sql.NullTime{}, err
-	}
-
-	lastMumsaAt, err := parseSQLiteTime(lastMumsaAtStr)
+	rows, err := q.Query(sqlQuery, phaddergruppID, since.UTC().Format(time.DateTime))
 	if err != nil {
-		return sql.NullTime{}, err
+		return nil, err
+	}
+	defer rows.Close()
+
+	var times []MemberMumsaTime
+	for rows.Next() {
+		var memberTime MemberMumsaTime
+		if err := rows.Scan(&memberTime.UserAccountID, &memberTime.CreatedAt); err != nil {
+			return nil, err
+		}
+		times = append(times, memberTime)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	q.Emit(DBEvent{
@@ -325,5 +327,45 @@ func (db *DB) ReadMemberLastMumsaAt(q queryer, userAccountID, phaddergruppID int
 		Data:  nil,
 	})
 
-	return lastMumsaAt, nil
+	return times, nil
+}
+
+func (db *DB) ReadMemberMumsaTimesSince(q queryer, userAccountID, phaddergruppID int64, since time.Time) ([]time.Time, error) {
+	const sqlQuery = `
+		SELECT
+			m.created_at
+		FROM
+			mums AS m
+		WHERE
+			m.user_account_id = ? AND m.phaddergrupp_id = ? AND (m.mums_type = 'consumption' OR m.mums_quantity < 0)
+			AND m.created_at >= ?
+		ORDER BY
+			m.created_at ASC, m.id ASC
+	`
+
+	rows, err := q.Query(sqlQuery, userAccountID, phaddergruppID, since.UTC().Format(time.DateTime))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var times []time.Time
+	for rows.Next() {
+		var createdAt time.Time
+		if err := rows.Scan(&createdAt); err != nil {
+			return nil, err
+		}
+		times = append(times, createdAt)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	q.Emit(DBEvent{
+		Table: "mums",
+		Type:  DBRead,
+		Data:  nil,
+	})
+
+	return times, nil
 }

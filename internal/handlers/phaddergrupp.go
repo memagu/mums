@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -30,6 +32,16 @@ type phaddergruppPageData struct {
 	MumsPurchaseQuantities    []int64
 	InviteURLN0lla            string
 	InviteURLPhadder          string
+	RecencyWindowMs           int64
+	RecencyWindowLabel        string
+}
+
+func mumsaTimesAttr(times []time.Time) string {
+	parts := make([]string, len(times))
+	for i, t := range times {
+		parts[i] = t.UTC().Format(time.RFC3339)
+	}
+	return strings.Join(parts, ",")
 }
 
 func mumsPurchaseQuantities(mumsAvailable int64, pd db.PhaddergruppData) []int64 {
@@ -104,6 +116,27 @@ func GetPhaddergrupp(c echo.Context) error {
 		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
+	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
+	mumsaTimes, err := database.ReadPhaddergruppMumsaTimesSince(database, phaddergruppID, since)
+	if err != nil {
+		return handleDBError(c, "phaddergrupp mumsa times read", err)
+	}
+	timesByUser := make(map[int64][]time.Time, len(mumsaTimes))
+	for _, memberTime := range mumsaTimes {
+		timesByUser[memberTime.UserAccountID] = append(timesByUser[memberTime.UserAccountID], memberTime.CreatedAt)
+	}
+	recencyWindowLabel := fmt.Sprintf("%dh", phaddergruppData.MumsRecencyWindowHours)
+	attachMumsaCounts := func(summaries []db.PhaddergruppUserSummary) {
+		for i := range summaries {
+			times := timesByUser[summaries[i].UserAccountID]
+			summaries[i].MumsaCount = len(times)
+			summaries[i].MumsaTimesAttr = mumsaTimesAttr(times)
+			summaries[i].MumsRecencyWindowLabel = recencyWindowLabel
+		}
+	}
+	attachMumsaCounts(phaddergruppUserSummaries.N0llor)
+	attachMumsaCounts(phaddergruppUserSummaries.Phaddrar)
+
 	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData)
 
 	recentTransactions := []transactionLogEntry{}
@@ -143,6 +176,8 @@ func GetPhaddergrupp(c echo.Context) error {
 		MumsPurchaseQuantities:    purchaseQuantities,
 		InviteURLN0lla:            inviteURLN0lla,
 		InviteURLPhadder:          inviteURLPhadder,
+		RecencyWindowMs:           phaddergruppData.MumsRecencyWindowHours * 3_600_000,
+		RecencyWindowLabel:        recencyWindowLabel,
 	}
 	return c.Render(http.StatusOK, "phaddergrupp", pageData)
 }

@@ -19,7 +19,16 @@
                 if (seconds < 31536000) return Math.floor(seconds / 86400) + "d";
                 return Math.floor(seconds / 31536000) + "y";
             };
+            const recencyWindowMs = {{ .RecencyWindowMs }};
+            const recencyWindowLabel = "{{ .RecencyWindowLabel }}";
             setInterval(() => {
+                document.querySelectorAll(".mums-recency[data-mums-at]").forEach((el) => {
+                    const now = Date.now();
+                    const count = el.getAttribute("data-mums-at").split(",")
+                        .filter((iso) => iso && now - new Date(iso).getTime() <= recencyWindowMs)
+                        .length;
+                    el.textContent = count + "/" + recencyWindowLabel;
+                });
                 document.querySelectorAll(".mums-recency[data-last-mumsa]").forEach((el) => {
                     el.textContent = relTime(el.getAttribute("data-last-mumsa"));
                 });
@@ -204,7 +213,9 @@
                     {{ template "fragment-mums-recency" dict
                         "UserAccountID" .MemberSummary.UserAccountID
                         "DoOOB" false
-                        "LastMumsaAt" .MemberSummary.LastMumsaAt
+                        "MumsaCount" .MemberSummary.MumsaCount
+                        "MumsaTimesAttr" .MemberSummary.MumsaTimesAttr
+                        "MumsRecencyWindowLabel" .MemberSummary.MumsRecencyWindowLabel
                     }}
                 </span>
             </div>
@@ -278,9 +289,10 @@
     <span
         id="mums-recency-{{ .UserAccountID }}"
         {{ if .DoOOB -}} hx-swap-oob="true" {{- end }}
-        class="mums-recency w-[3ch] text-center text-[10px] leading-none text-card-content-muted"
-        {{ if .LastMumsaAt.Valid }}data-last-mumsa="{{ rfc3339 .LastMumsaAt.Time }}"{{ end }}
-    >{{ if .LastMumsaAt.Valid }}{{ relTime .LastMumsaAt.Time }}{{ else }}∞{{ end }}</span>
+        class="mums-recency min-w-[5ch] text-center text-[10px] leading-none text-card-content-muted"
+        data-mums-at="{{ .MumsaTimesAttr }}"
+        title="Mums in the last {{ .MumsRecencyWindowLabel }}"
+    >{{ .MumsaCount }}/{{ .MumsRecencyWindowLabel }}</span>
 {{ end }}
 
 {{ define "fragment-mums-available-widget" }}

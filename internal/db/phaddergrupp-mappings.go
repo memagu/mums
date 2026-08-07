@@ -239,11 +239,13 @@ func (db *DB) ReadUserPhaddergruppSummariesByUserAccountID(q queryer, userAccoun
 }
 
 type PhaddergruppUserSummary struct {
-	UserAccountID    int64
-	UserProfileName  string
-	PhaddergruppRole roles.PhaddergruppRole
-	MumsAvailable    int
-	LastMumsaAt      sql.NullTime
+	UserAccountID          int64
+	UserProfileName        string
+	PhaddergruppRole       roles.PhaddergruppRole
+	MumsAvailable          int
+	MumsaCount             int
+	MumsaTimesAttr         string
+	MumsRecencyWindowLabel string
 }
 
 type PhaddergruppUserSummaries struct {
@@ -257,13 +259,7 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 			ua.id,
 			up.name,
 			pm.phaddergrupp_role,
-			pm.mums_available,
-			(
-				SELECT MAX(m2.created_at)
-				FROM mums AS m2
-				WHERE m2.user_account_id = ua.id AND m2.phaddergrupp_id = pm.phaddergrupp_id
-					AND (m2.mums_type = 'consumption' OR m2.mums_quantity < 0)
-			) AS last_mumsa_at
+			pm.mums_available
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
@@ -288,21 +284,14 @@ func (db *DB) ReadPhaddergruppUserSummariesByPhaddergruppID(q queryer, phaddergr
 
 	for rows.Next() {
 		var summary PhaddergruppUserSummary
-		var lastMumsaAtStr sql.NullString
 		if err := rows.Scan(
 			&summary.UserAccountID,
 			&summary.UserProfileName,
 			&summary.PhaddergruppRole,
 			&summary.MumsAvailable,
-			&lastMumsaAtStr,
 		); err != nil {
 			return PhaddergruppUserSummaries{}, err
 		}
-		lastMumsaAt, err := parseSQLiteTime(lastMumsaAtStr)
-		if err != nil {
-			return PhaddergruppUserSummaries{}, err
-		}
-		summary.LastMumsaAt = lastMumsaAt
 
 		switch summary.PhaddergruppRole {
 		case roles.N0lla:

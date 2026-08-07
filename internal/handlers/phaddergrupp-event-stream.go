@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -56,26 +56,37 @@ func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpd
 }
 
 type mumsAvailableBadgeTemplateData struct {
-	UserAccountID int64
-	DoOOB         bool
-	MumsAvailable int64
-	LastMumsaAt   sql.NullTime
+	UserAccountID          int64
+	DoOOB                  bool
+	MumsAvailable          int64
+	MumsaCount             int
+	MumsaTimesAttr         string
+	MumsRecencyWindowLabel string
 }
 
 func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpdate) {
 	database := db.GetDB(c)
 
-	lastMumsaAt, err := database.ReadMemberLastMumsaAt(database, eventData.UserAccountID, eventData.PhaddergruppID)
+	phaddergruppData, err := database.ReadPhaddergrupp(database, eventData.PhaddergruppID)
 	if err != nil {
-		c.Logger().Errorf("Database error during last mumsa read: %v", err)
+		c.Logger().Errorf("Database error during phaddergrupp read: %v", err)
+		return
+	}
+
+	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
+	mumsaTimes, err := database.ReadMemberMumsaTimesSince(database, eventData.UserAccountID, eventData.PhaddergruppID, since)
+	if err != nil {
+		c.Logger().Errorf("Database error during member mumsa times read: %v", err)
 		return
 	}
 
 	templateData := mumsAvailableBadgeTemplateData{
-		UserAccountID: eventData.UserAccountID,
-		DoOOB:         true,
-		MumsAvailable: eventData.MumsAvailable,
-		LastMumsaAt:   lastMumsaAt,
+		UserAccountID:          eventData.UserAccountID,
+		DoOOB:                  true,
+		MumsAvailable:          eventData.MumsAvailable,
+		MumsaCount:             len(mumsaTimes),
+		MumsaTimesAttr:         mumsaTimesAttr(mumsaTimes),
+		MumsRecencyWindowLabel: fmt.Sprintf("%dh", phaddergruppData.MumsRecencyWindowHours),
 	}
 
 	var sb strings.Builder
