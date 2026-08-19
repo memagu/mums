@@ -96,6 +96,61 @@
                     </p>
                 </div>
             </footer>
+            <dialog id="confirm-modal" class="bg-card rounded-xl shadow-lg mx-auto px-8 py-6 max-w-sm top-1/2 -translate-y-1/2 backdrop:bg-black/50 backdrop:backdrop-blur-sm">
+                <div class="flex flex-col gap-6">
+                <p id="confirm-modal-message" class="text-center text-card-content"></p>
+                <div class="flex gap-3">
+                    <button
+                        id="confirm-modal-cancel"
+                        class="flex-1 py-2 rounded-md text-lg font-semibold text-card-content-muted border-2 border-card-border hover:text-card-content active:text-card-content"
+                    >Cancel</button>
+                    <button
+                        id="confirm-modal-confirm"
+                        class="flex-1 py-2 rounded-md text-lg font-semibold text-error-content bg-error border-2 border-dashed border-error-border hover:bg-error-highlight active:bg-error-highlight"
+                    >Confirm</button>
+                </div>
+            </dialog>
+            <script type="text/javascript">
+                document.addEventListener("DOMContentLoaded", function () {
+                    var dialog = document.getElementById("confirm-modal");
+                    var message = document.getElementById("confirm-modal-message");
+                    var cancelBtn = document.getElementById("confirm-modal-cancel");
+                    var confirmBtn = document.getElementById("confirm-modal-confirm");
+                    var pendingRequest = null;
+
+                    cancelBtn.addEventListener("click", function () {
+                        dialog.close();
+                        pendingRequest = null;
+                    });
+
+                    confirmBtn.addEventListener("click", function () {
+                        dialog.close();
+                        if (pendingRequest) {
+                            pendingRequest();
+                            pendingRequest = null;
+                        }
+                    });
+
+                    dialog.addEventListener("click", function (e) {
+                        if (e.target === dialog) {
+                            dialog.close();
+                            pendingRequest = null;
+                        }
+                    });
+
+                    document.body.addEventListener("htmx:confirm", function (evt) {
+                        if (!evt.detail.target.hasAttribute("hx-confirm")) return;
+
+                        evt.preventDefault();
+
+                        message.textContent = evt.detail.question;
+                        pendingRequest = function () {
+                            evt.detail.issueRequest(true);
+                        };
+                        dialog.showModal();
+                    });
+                });
+            </script>
             <script type="text/javascript">
                 if ("serviceWorker" in navigator) {
                     navigator.serviceWorker.register("/sw.js");
