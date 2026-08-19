@@ -332,7 +332,7 @@
             {{ if and (not .IsPhadder) .HasMumsAvailable }}
                 <button
                     hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
-                    hx-confirm="Are you sure you want to consume one mums?"
+                    hx-confirm="Are you sure you want to consume one mums? Don't forget to show a phadder!"
                     class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
                            p-4 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
                            active:bg-[{{ .SecondaryColor }}] shadow-md"
