@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -145,7 +146,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 		if err != nil {
 			formErrors["MumsRecencyWindowHours"] = []string{"Invalid integer"}
 		} else {
-			updatedPhaddergruppData.MumsRecencyWindowHours = val
+			updatedPhaddergruppData.MumsRecencyWindowDuration = time.Duration(val) * time.Hour
 		}
 	}
 
@@ -167,7 +168,7 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 			(d-updatedPhaddergruppData.MumsMinPurchaseQuantity)%updatedPhaddergruppData.MumsPurchaseQuantityStep != 0) {
 		formErrors["MumsDefaultPurchaseQuantity"] = []string{"Must be within min-max and on the step size"}
 	}
-	if updatedPhaddergruppData.MumsRecencyWindowHours < 1 || updatedPhaddergruppData.MumsRecencyWindowHours > 4 {
+	if updatedPhaddergruppData.MumsRecencyWindowDuration < time.Hour || updatedPhaddergruppData.MumsRecencyWindowDuration > 4*time.Hour {
 		formErrors["MumsRecencyWindowHours"] = []string{"Must be between 1 and 4 hours"}
 	}
 

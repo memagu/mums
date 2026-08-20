@@ -73,7 +73,7 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 		return
 	}
 
-	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
+	since := time.Now().UTC().Add(-phaddergruppData.MumsRecencyWindowDuration)
 	mumsaTimes, err := db.ReadMemberMumsaTimesSince(conn, eventData.UserAccountID, eventData.PhaddergruppID, since)
 	if err != nil {
 		c.Logger().Errorf("Database error during member mumsa times read: %v", err)
@@ -86,7 +86,7 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 		MumsAvailable:          eventData.MumsAvailable,
 		MumsaCount:             len(mumsaTimes),
 		MumsaTimesAttr:         mumsaTimesAttr(mumsaTimes),
-		MumsRecencyWindowLabel: fmt.Sprintf("%dh", phaddergruppData.MumsRecencyWindowHours),
+		MumsRecencyWindowLabel: fmt.Sprintf("%dh", int(phaddergruppData.MumsRecencyWindowDuration.Hours())),
 	}
 
 	var sb strings.Builder

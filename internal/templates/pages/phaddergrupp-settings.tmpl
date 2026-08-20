@@ -186,7 +186,7 @@
             "InfoLabel" "How far back member-card counts look"
             "Name" "mums-recency-window-hours"
             "Options" .RecencyWindowOptions
-            "Selected" (.MumsRecencyWindowHours | printf "%d")
+            "Selected" (.MumsRecencyWindowDuration.Hours | printf "%.0f")
             "Errors" .Errors.MumsRecencyWindowHours
         }}
         {{ template "component-generic-errors" . }}

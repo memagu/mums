@@ -116,7 +116,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		return handleDBError(c, "phaddergrupp user summary read", err)
 	}
 
-	since := time.Now().UTC().Add(-time.Duration(phaddergruppData.MumsRecencyWindowHours) * time.Hour)
+	since := time.Now().UTC().Add(-phaddergruppData.MumsRecencyWindowDuration)
 	mumsaTimes, err := db.ReadPhaddergruppMumsaTimesSince(conn, phaddergruppID, since)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp mumsa times read", err)
@@ -125,7 +125,7 @@ func GetPhaddergrupp(c echo.Context) error {
 	for _, memberTime := range mumsaTimes {
 		timesByUser[memberTime.UserAccountID] = append(timesByUser[memberTime.UserAccountID], memberTime.CreatedAt)
 	}
-	recencyWindowLabel := fmt.Sprintf("%dh", phaddergruppData.MumsRecencyWindowHours)
+	recencyWindowLabel := fmt.Sprintf("%dh", int(phaddergruppData.MumsRecencyWindowDuration.Hours()))
 	attachMumsaCounts := func(summaries []db.PhaddergruppUserSummary) {
 		for i := range summaries {
 			times := timesByUser[summaries[i].UserAccountID]
@@ -176,7 +176,7 @@ func GetPhaddergrupp(c echo.Context) error {
 		MumsPurchaseQuantities:    purchaseQuantities,
 		InviteURLN0lla:            inviteURLN0lla,
 		InviteURLPhadder:          inviteURLPhadder,
-		RecencyWindowMs:           phaddergruppData.MumsRecencyWindowHours * 3_600_000,
+		RecencyWindowMs:           phaddergruppData.MumsRecencyWindowDuration.Milliseconds(),
 		RecencyWindowLabel:        recencyWindowLabel,
 	}
 	return c.Render(http.StatusOK, "phaddergrupp", pageData)

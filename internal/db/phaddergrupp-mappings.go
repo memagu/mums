@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupp_mappings (
 	user_account_id INTEGER NOT NULL,
 	phaddergrupp_id INTEGER NOT NULL,
 	phaddergrupp_role TEXT NOT NULL,
-	mums_available INTEGER NOT NULL DEFAULT 0,
+	mums_available INTEGER NOT NULL,
 	PRIMARY KEY (user_account_id, phaddergrupp_id),
 	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
 	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupper(id) ON DELETE CASCADE
@@ -27,10 +27,11 @@ ON
 
 func CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	_, err := dbtx.Exec(
-		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role) VALUES (?, ?, ?)`,
+		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role, mums_available) VALUES (?, ?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
 		string(phaddergruppRole),
+		0,
 	)
 	if err != nil {
 		return err
