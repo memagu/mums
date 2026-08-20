@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/memagu/mums/internal/config"
+	"github.com/memagu/mums/pkg/timeformats"
 )
 
 //go:embed **/*.tmpl
@@ -44,19 +45,7 @@ func hasKey(m map[string]any, key string) bool {
 }
 
 func relTime(t time.Time) string {
-	elapsed := time.Since(t)
-	switch {
-	case elapsed < time.Minute:
-		return fmt.Sprintf("%ds", int(elapsed.Seconds()))
-	case elapsed < time.Hour:
-		return fmt.Sprintf("%dm", int(elapsed.Minutes()))
-	case elapsed < 24*time.Hour:
-		return fmt.Sprintf("%dh", int(elapsed.Hours()))
-	case elapsed < 365*24*time.Hour:
-		return fmt.Sprintf("%dd", int(elapsed.Hours()/24))
-	default:
-		return fmt.Sprintf("%dy", int(elapsed.Hours()/(24*365)))
-	}
+	return timeformats.FormatDuration(time.Since(t))
 }
 
 func rfc3339(t time.Time) string {

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/memagu/mums/internal/db"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
+	"github.com/memagu/mums/pkg/timeformats"
 )
 
 type templateDataMumsAvailableWidget struct {
@@ -86,7 +86,7 @@ func emitMumsAvailableBadgeUpdate(c echo.Context, eventData db.MumsAvailableUpda
 		MumsAvailable:          eventData.MumsAvailable,
 		MumsaCount:             len(mumsaTimes),
 		MumsaTimesAttr:         mumsaTimesAttr(mumsaTimes),
-		MumsRecencyWindowLabel: fmt.Sprintf("%dh", int(phaddergruppData.MumsRecencyWindowDuration.Hours())),
+		MumsRecencyWindowLabel: timeformats.FormatDuration(phaddergruppData.MumsRecencyWindowDuration),
 	}
 
 	var sb strings.Builder

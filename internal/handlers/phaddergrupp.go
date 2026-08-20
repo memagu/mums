@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/memagu/mums/internal/loaders"
 	"github.com/memagu/mums/internal/roles"
 	"github.com/memagu/mums/pkg/httpx"
+	"github.com/memagu/mums/pkg/timeformats"
 )
 
 type phaddergruppPageData struct {
@@ -125,7 +125,7 @@ func GetPhaddergrupp(c echo.Context) error {
 	for _, memberTime := range mumsaTimes {
 		timesByUser[memberTime.UserAccountID] = append(timesByUser[memberTime.UserAccountID], memberTime.CreatedAt)
 	}
-	recencyWindowLabel := fmt.Sprintf("%dh", int(phaddergruppData.MumsRecencyWindowDuration.Hours()))
+	recencyWindowLabel := timeformats.FormatDuration(phaddergruppData.MumsRecencyWindowDuration)
 	attachMumsaCounts := func(summaries []db.PhaddergruppUserSummary) {
 		for i := range summaries {
 			times := timesByUser[summaries[i].UserAccountID]
