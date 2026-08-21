@@ -52,7 +52,7 @@ func RegisterRoutes(e *echo.Echo, ss *auth.SessionStore, rts *auth.PasswordReset
 	)
 
 	phaddergrupp.GET("", handlers.GetPhaddergrupp)
-	phaddergrupp.DELETE("", handlers.DeletePhaddergrupp)
+	phaddergrupp.DELETE("", handlers.DeletePhaddergrupp, auth.RequirePhaddergruppRole(roles.Phadder))
 	phaddergrupp.GET("/event-stream", handlers.GetPhaddergruppEventStream)
 	phaddergrupp.POST("/purchase-mums", handlers.PostPhaddergruppPurchaseMums)
 	phaddergrupp.POST("/mumsa", handlers.PostPhaddergruppMumsa)
