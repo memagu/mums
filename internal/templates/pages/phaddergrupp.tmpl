@@ -431,7 +431,10 @@
         hx-swap="outerHTML"
         class="w-full flex flex-col gap-1"
     >
-        <h2 class="text-center text-xl font-semibold text-backdrop-content">Latest slurps n' burps (n0llor)</h2>
+        <hgroup>
+            <h2 class="text-center text-xl font-semibold text-backdrop-content">Latest slurps n' burps (n0llor)</h2>
+            <p class="text-center text-sm text-backdrop-content-muted">Not sure if a mums went through? Cumulative recent runs at a glance.</p>
+        </hgroup>
         {{ if .HasRecentTransactions }}
             <table class="w-full text-sm">
                 <thead>
