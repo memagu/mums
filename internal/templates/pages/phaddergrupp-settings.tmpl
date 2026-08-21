@@ -38,6 +38,47 @@
             <button type="submit" class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content py-2 rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}] active:bg-[{{ .SecondaryColor }}]">Save</button>
         </form>
 
+        <a
+            href="/phaddergrupp/{{ .PhaddergruppID }}"
+            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
+                   rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
+                   active:bg-[{{ .SecondaryColor }}] truncate"
+        >󰌑 Return to {{ .Name }}</a>
+
+        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
+        <h2 class="text-center text-xl font-semibold text-backdrop-content">Members</h2>
+        <ul class="flex flex-col gap-2 w-full">
+            {{ range .Members }}
+                <li
+                    id="settings-member-row-{{ .UserAccountID }}"
+                    class="flex items-center justify-between p-3 bg-card rounded-xl text-card-content"
+                >
+                    <div class="flex items-center gap-2 min-w-0">
+                        {{ if eq (printf "%v" .PhaddergruppRole) "phadder" }}
+                            <img src="/static/icons/student-cap.svg" alt="" aria-hidden="true" class="size-4 shrink-0" />
+                        {{ else }}
+                            <img src="/static/icons/cap.svg" alt="" aria-hidden="true" class="size-4 shrink-0" />
+                        {{ end }}
+                        <span class="truncate">{{ .UserProfileName }}</span>
+                    </div>
+                    <button
+                        hx-post="/phaddergrupp/{{ $.PhaddergruppID }}/kick?user-account-id={{ .UserAccountID }}"
+                        hx-confirm="Are you sure you want to kick {{ .UserProfileName }}?"
+                        hx-swap="delete"
+                        hx-target="#settings-member-row-{{ .UserAccountID }}"
+                        class="shrink-0 rounded-full px-4 py-1 bg-error border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight active:bg-error-highlight"
+                        title="Kick user from phaddergrupp"
+                        aria-label="Kick {{ .UserProfileName }} from phaddergrupp"
+                    >
+                        <img src="/static/icons/kick.svg" alt="Kick user" class="size-5 invert" />
+                    </button>
+                </li>
+            {{ end }}
+        </ul>
+
+        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
+
         <button
             hx-delete="/phaddergrupp/{{ .PhaddergruppID }}"
             hx-confirm="Are you sure you want to delete {{ .Name }}?"
@@ -45,19 +86,11 @@
                    border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight
                    active:bg-error-highlight"
         >Delete phaddergrupp</button>
-
-        {{ template "component-divider" dict "Class" (printf "border-[%s]" .PrimaryColor) }}
-        <a
-            href="/phaddergrupp/{{ .PhaddergruppID }}"
-            class="w-full bg-[{{ .PrimaryColor }}] text-brand-primary-content text-center px-6 py-2
-                   rounded-md text-lg font-semibold hover:bg-[{{ .SecondaryColor }}]
-                   active:bg-[{{ .SecondaryColor }}] truncate"
-        >󰌑 Return to {{ .Name }}</a>
     </div>
 {{ end }}
 
 {{ define "fragment-form-fields" }}
-    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col sm:grid-rows-6 sm:gap-x-6 gap-y-6">
+    <div id="form-fields" class="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col sm:grid-rows-7 sm:gap-x-6 gap-y-6">
         {{ template "component-form-input-field" dict
             "ID" "name-field"
             "Label" "Phaddergrupp name"
@@ -126,6 +159,17 @@
             "Errors" .Errors.MumsPricePhadder
         }}
         {{ template "component-form-input-field" dict
+            "ID" "mums-capacity-per-user-field"
+            "Label" "Mums capacity per user"
+            "InfoLabel" "Mums a member can hold at once"
+            "Name" "mums-capacity-per-user"
+            "Type" "number"
+            "Min" 0
+            "Required" true
+            "Value" .MumsCapacityPerUser
+            "Errors" .Errors.MumsCapacityPerUser
+        }}
+        {{ template "component-form-input-field" dict
             "ID" "mums-min-purchase-quantity-field"
             "Label" "Mums min purchase quantity"
             "InfoLabel" "Lowest amount a member can buy"
@@ -169,17 +213,6 @@
             "Value" .MumsDefaultPurchaseQuantity
             "Errors" .Errors.MumsDefaultPurchaseQuantity
         }}
-        {{ template "component-form-input-field" dict
-            "ID" "mums-capacity-per-user-field"
-            "Label" "Mums capacity per user"
-            "InfoLabel" "Mums a member can hold at once"
-            "Name" "mums-capacity-per-user"
-            "Type" "number"
-            "Min" 0
-            "Required" true
-            "Value" .MumsCapacityPerUser
-            "Errors" .Errors.MumsCapacityPerUser
-        }}
         {{ template "component-form-select-field" dict
             "ID" "mums-recency-window-hours-field"
             "Label" "Mums recency window"
@@ -188,6 +221,15 @@
             "Options" .RecencyWindowOptions
             "Selected" (.MumsRecencyWindowDuration.Hours | printf "%.0f")
             "Errors" .Errors.MumsRecencyWindowHours
+        }}
+        {{ template "component-form-select-field" dict
+            "ID" "mums-pause-duration-field"
+            "Label" "Mums pause duration"
+            "InfoLabel" "How long a n0lla is paused for"
+            "Name" "mums-pause-duration"
+            "Options" .PauseDurationOptions
+            "Selected" (.MumsPauseDuration.Minutes | printf "%.0f")
+            "Errors" .Errors.MumsPauseDuration
         }}
         {{ template "component-generic-errors" . }}
     </div>

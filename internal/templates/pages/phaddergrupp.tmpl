@@ -6,12 +6,10 @@
 
 {{ define "head" }}
     {{ template "import-htmx-sse" . }}
+
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", (_) => {
-            if (!document.querySelector(".mums-recency")) {
-                return;
-            }
-            const relTime = (iso) => {
+            const relTimeSince = (iso) => {
                 const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
                 if (seconds < 60) return seconds + "s";
                 if (seconds < 3600) return Math.floor(seconds / 60) + "m";
@@ -19,20 +17,33 @@
                 if (seconds < 31536000) return Math.floor(seconds / 86400) + "d";
                 return Math.floor(seconds / 31536000) + "y";
             };
+            const relTimeUntil = (iso) => {
+                const secs = Math.floor((new Date(iso).getTime() - Date.now()) / 1000);
+                if (secs <= 0) return "0s";
+                if (secs < 60) return secs + "s";
+                if (secs < 3600) return Math.floor(secs / 60) + "m";
+                if (secs < 86400) return Math.floor(secs / 3600) + "h";
+                return Math.floor(secs / 86400) + "d";
+            };
             const recencyWindowMs = {{ .RecencyWindowMs }};
             const recencyWindowLabel = "{{ .RecencyWindowLabel }}";
-            setInterval(() => {
+            const updateCounts = () => {
+                const now = Date.now();
                 document.querySelectorAll(".mums-recency[data-mums-at]").forEach((el) => {
-                    const now = Date.now();
                     const count = el.getAttribute("data-mums-at").split(",")
                         .filter((iso) => iso && now - new Date(iso).getTime() <= recencyWindowMs)
                         .length;
                     el.textContent = count + "/" + recencyWindowLabel;
                 });
                 document.querySelectorAll(".mums-recency[data-last-mumsa]").forEach((el) => {
-                    el.textContent = relTime(el.getAttribute("data-last-mumsa"));
+                    el.textContent = relTimeSince(el.getAttribute("data-last-mumsa"));
                 });
-            }, 1000);
+                document.querySelectorAll("[data-paused-until]").forEach((el) => {
+                    el.textContent = relTimeUntil(el.getAttribute("data-paused-until"));
+                });
+            };
+            updateCounts();
+            setInterval(updateCounts, 1000);
         });
     </script>
 {{ end }}
@@ -221,16 +232,31 @@
             </div>
 
             <div class="flex items-center justify-between flex-wrap gap-1">
-                <button
-                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/kick?user-account-id={{ .MemberSummary.UserAccountID }}"
-                    hx-confirm="Are you sure you want to kick {{ .MemberSummary.UserProfileName }} from this phaddergrupp?"
-                    hx-swap="delete"
-                    hx-target="#member-summary-card-{{ .MemberSummary.UserAccountID }}"
-                    class="rounded-full px-4 py-1 bg-error border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight active:bg-error-highlight"
-                    title="Kick user from phaddergrupp"
-                >
-                    <img src="/static/icons/kick.svg" alt="Kick user" class="size-5 invert" />
-                </button>
+                {{ if eq (printf "%v" .MemberSummary.PhaddergruppRole) "n0lla" }}
+                    {{ if .MemberSummary.IsPaused }}
+                        <button
+                            hx-post="/phaddergrupp/{{ .PhaddergruppID }}/unpause?user-account-id={{ .MemberSummary.UserAccountID }}"
+                            hx-swap="none"
+                            class="flex justify-center items-center rounded-full box-content min-w-[3ch] px-4 py-1 bg-warning text-warning-content shadow-md shadow-black/25 hover:bg-warning-highlight active:bg-warning-highlight"
+                            title="Unpause n0lla"
+                            aria-label="Unpause {{ .MemberSummary.UserProfileName }}"
+                        >
+                            <span class="pause-countdown" data-paused-until="{{ .MemberSummary.PausedUntilAttr }}">{{ .MemberSummary.PausedUntilRemaining }}</span>
+                        </button>
+                    {{ else }}
+                        <button
+                            hx-post="/phaddergrupp/{{ .PhaddergruppID }}/pause?user-account-id={{ .MemberSummary.UserAccountID }}"
+                            hx-swap="none"
+                            class="flex justify-center items-center rounded-full box-content min-w-[3ch] px-4 py-1 bg-info text-info-content shadow-md shadow-black/25 hover:bg-info-highlight active:bg-info-highlight"
+                            title="Pause user"
+                            aria-label="Pause {{ .MemberSummary.UserProfileName }}"
+                        >
+                            <img src="/static/icons/no-drink.svg" alt="Pause n0lla" class="size-6 invert" />
+                        </button>
+                    {{ end }}
+                {{ else }}
+                    <div></div>
+                {{ end }}
 
                 {{ template "fragment-mums-available-badge" dict
                     "UserAccountID" .MemberSummary.UserAccountID
@@ -302,47 +328,58 @@
         hx-swap="outerHTML"
         class="flex flex-col items-center gap-6"
     >
-        {{ if not .IsPhadder }}
-            <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
-                {{- .MumsAvailable -}}
-            </output>
-        {{ end }}
+        {{ if .IsPaused }}
+            {{ if not .IsPhadder }}
+                <img src="/static/icons/stop.svg" alt="Stop" class="size-[clamp(6rem,50vw,12rem)] mx-auto" />
+                <hgroup class="text-center">
+                    <h2 class="text-3xl font-bold text-backdrop-content">Whoa there buddy!</h2>
+                    <p class="text-lg text-backdrop-content-muted">Time for a lil break.</p>
+                </hgroup>
+                <p class="text-lg text-backdrop-content-muted"><span class="pause-countdown" data-paused-until="{{ .PausedUntilAttr }}">{{ .PausedUntilRemaining }}</span> remaining</p>
+            {{ end }}
+        {{ else }}
+            {{ if not .IsPhadder }}
+                <output id="mums-available" class="block text-center text-[clamp(6rem,50vw,12rem)] leading-tight {{ if .MumsCapacityReached }} text-warning {{ else }} text-backdrop-content {{ end }}">
+                    {{- .MumsAvailable -}}
+                </output>
+            {{ end }}
 
-        <div class="flex flex-wrap justify-center gap-4">
-            {{ if .HasMumsPurchaseQuantities }}
-                <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content">
-                    <button type="submit" class="flex justify-center items-center
-                               gap-2 bg-[{{ .PrimaryColor }}] p-4 rounded-l-md
-                               text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
-                               active:bg-[{{ .SecondaryColor }}]"
+            <div class="flex flex-wrap justify-center gap-4">
+                {{ if .HasMumsPurchaseQuantities }}
+                    <form hx-post="/phaddergrupp/{{ .PhaddergruppID }}/purchase-mums" hx-swap="none" class="flex flex-row text-brand-primary-content">
+                        <button type="submit" class="flex justify-center items-center
+                                   gap-2 bg-[{{ .PrimaryColor }}] p-4 rounded-l-md
+                                   text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
+                                   active:bg-[{{ .SecondaryColor }}]"
+                        >
+                            <img src="/static/icons/cart.svg" class="size-6 invert" alt=""/>
+                            <span>Buy</span>
+                        </button>
+
+                        <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
+                        <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-r-md p-4 text-xl">
+                            {{ range .MumsPurchaseQuantities }}
+                                <option {{ if eq . $.MumsDefaultPurchaseQuantity }}selected{{ end }}>{{ . }}</option>
+                            {{ end }}
+                        </select>
+                    </form>
+                {{ end }}
+
+                {{ if and (not .IsPhadder) .HasMumsAvailable }}
+                    <button
+                        hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
+                        hx-confirm="Are you sure you want to consume one mums? Don't forget to show a phadder!"
+                        class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
+                               p-4 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
+                               active:bg-[{{ .SecondaryColor }}] shadow-md"
                     >
-                        <img src="/static/icons/cart.svg" class="size-6 invert" alt=""/>
-                        <span>Buy</span>
+                        <img src="/static/icons/drink.svg" class="size-6 invert" alt=""/>
+                        <span>Mumsa</span>
                     </button>
+                {{ end }}
 
-                    <label for="mums-purchase-quantity" class="sr-only">Quantity</label>
-                    <select id="mums-purchase-quantity" name="mums-purchase-quantity" class="text-center bg-[{{ .SecondaryColor }}] rounded-r-md p-4 text-xl">
-                        {{ range .MumsPurchaseQuantities }}
-                            <option {{ if eq . $.MumsDefaultPurchaseQuantity }}selected{{ end }}>{{ . }}</option>
-                        {{ end }}
-                    </select>
-                </form>
-            {{ end }}
-
-            {{ if and (not .IsPhadder) .HasMumsAvailable }}
-                <button
-                    hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mumsa"
-                    hx-confirm="Are you sure you want to consume one mums? Don't forget to show a phadder!"
-                    class="touch-manipulation flex justify-center items-center gap-3 bg-[{{ .PrimaryColor }}] text-brand-primary-content
-                           p-4 rounded-md text-2xl font-semibold hover:bg-[{{ .SecondaryColor }}]
-                           active:bg-[{{ .SecondaryColor }}] shadow-md"
-                >
-                    <img src="/static/icons/drink.svg" class="size-6 invert" alt=""/>
-                    <span>Mumsa</span>
-                </button>
-            {{ end }}
-
-        </div>
+            </div>
+        {{ end }}
     </div>
 {{ end }}
 

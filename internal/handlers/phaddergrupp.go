@@ -20,6 +20,10 @@ type phaddergruppPageData struct {
 	basePageData
 	PhaddergruppID            int64
 	IsPhadder                 bool
+	IsPaused                  bool
+	PausedUntil               time.Time
+	PausedUntilAttr           string
+	PausedUntilRemaining      string
 	MumsAvailable             int64
 	HasMumsPurchaseQuantities bool
 	RecentTransactions        []transactionLogEntry
@@ -111,6 +115,12 @@ func GetPhaddergrupp(c echo.Context) error {
 		return handleDBError(c, "mums available read", err)
 	}
 
+	pausedUntil, err := db.ReadPauseStatus(conn, userAccountID, phaddergruppID)
+	if err != nil {
+		return handleDBError(c, "pause status read", err)
+	}
+	isPaused := pausedUntil.After(time.Now().UTC())
+
 	phaddergruppUserSummaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(conn, phaddergruppID)
 	if err != nil {
 		return handleDBError(c, "phaddergrupp user summary read", err)
@@ -136,6 +146,16 @@ func GetPhaddergrupp(c echo.Context) error {
 	}
 	attachMumsaCounts(phaddergruppUserSummaries.N0llor)
 	attachMumsaCounts(phaddergruppUserSummaries.Phaddrar)
+
+	attachPauseStatus := func(summaries []db.PhaddergruppUserSummary) {
+		for i := range summaries {
+			summaries[i].IsPaused = summaries[i].PausedUntil.After(time.Now().UTC())
+			summaries[i].PausedUntilAttr = summaries[i].PausedUntil.UTC().Format(time.RFC3339)
+			summaries[i].PausedUntilRemaining = timeformats.FormatDuration(time.Until(summaries[i].PausedUntil))
+		}
+	}
+	attachPauseStatus(phaddergruppUserSummaries.N0llor)
+	attachPauseStatus(phaddergruppUserSummaries.Phaddrar)
 
 	purchaseQuantities := mumsPurchaseQuantities(mumsAvailable, phaddergruppData)
 
@@ -164,6 +184,10 @@ func GetPhaddergrupp(c echo.Context) error {
 		},
 		PhaddergruppID:            phaddergruppID,
 		IsPhadder:                 phaddergruppRole == roles.Phadder,
+		IsPaused:                  isPaused,
+		PausedUntil:               pausedUntil,
+		PausedUntilAttr:           pausedUntil.UTC().Format(time.RFC3339),
+		PausedUntilRemaining:      timeformats.FormatDuration(time.Until(pausedUntil)),
 		MumsAvailable:             mumsAvailable,
 		HasMumsPurchaseQuantities: len(purchaseQuantities) > 0,
 		RecentTransactions:        recentTransactions,

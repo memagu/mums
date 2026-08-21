@@ -28,16 +28,37 @@ var recencyWindowOptions = []formSelectOption{
 	{Value: "4", Label: "4h"},
 }
 
+var pauseDurationOptions = []formSelectOption{
+	{Value: "15", Label: "15m"},
+	{Value: "30", Label: "30m"},
+	{Value: "45", Label: "45m"},
+	{Value: "60", Label: "1h"},
+}
+
 type phaddergruppSettingsTemplateData struct {
 	basePageData
 	PhaddergruppID int64
 	db.PhaddergruppData
 	RecencyWindowOptions        []formSelectOption
+	PauseDurationOptions        []formSelectOption
+	Members                     []db.PhaddergruppUserSummary
 	SwishRecipientNumberPattern string
 	Errors                      map[string][]string
 }
 
 func GetPhaddergruppSettings(c echo.Context) error {
+	conn := db.GetDB(c)
+	phaddergruppID := auth.GetPhaddergruppID(c)
+
+	summaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(conn, phaddergruppID)
+	if err != nil {
+		return handleDBError(c, "phaddergrupp user summary read", err)
+	}
+
+	var members []db.PhaddergruppUserSummary
+	members = append(members, summaries.N0llor...)
+	members = append(members, summaries.Phaddrar...)
+
 	templateData := phaddergruppSettingsTemplateData{
 		basePageData: basePageData{
 			IsLoggedIn:        auth.GetIsLoggedIn(c),
@@ -47,6 +68,8 @@ func GetPhaddergruppSettings(c echo.Context) error {
 		PhaddergruppID:              auth.GetPhaddergruppID(c),
 		PhaddergruppData:            loaders.GetPhaddergrupp(c),
 		RecencyWindowOptions:        recencyWindowOptions,
+		PauseDurationOptions:        pauseDurationOptions,
+		Members:                     members,
 		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 	}
 
@@ -149,6 +172,14 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 			updatedPhaddergruppData.MumsRecencyWindowDuration = time.Duration(val) * time.Hour
 		}
 	}
+	if strVal := c.FormValue("mums-pause-duration"); strVal != "" {
+		val, err := strconv.ParseInt(strVal, 10, 64)
+		if err != nil {
+			formErrors["MumsPauseDuration"] = []string{"Invalid integer"}
+		} else {
+			updatedPhaddergruppData.MumsPauseDuration = time.Duration(val) * time.Minute
+		}
+	}
 
 	if updatedPhaddergruppData.MumsMinPurchaseQuantity < 1 {
 		formErrors["MumsMinPurchaseQuantity"] = []string{"Must be at least 1"}
@@ -171,10 +202,23 @@ func PatchPhaddergruppSettings(c echo.Context) error {
 	if updatedPhaddergruppData.MumsRecencyWindowDuration < time.Hour || updatedPhaddergruppData.MumsRecencyWindowDuration > 4*time.Hour {
 		formErrors["MumsRecencyWindowHours"] = []string{"Must be between 1 and 4 hours"}
 	}
+	if updatedPhaddergruppData.MumsPauseDuration < 15*time.Minute || updatedPhaddergruppData.MumsPauseDuration > 60*time.Minute {
+		formErrors["MumsPauseDuration"] = []string{"Must be between 15 and 60 minutes"}
+	}
+
+	summaries, err := db.ReadPhaddergruppUserSummariesByPhaddergruppID(conn, phaddergruppID)
+	if err != nil {
+		return handleDBError(c, "phaddergrupp user summary read", err)
+	}
+	var members []db.PhaddergruppUserSummary
+	members = append(members, summaries.N0llor...)
+	members = append(members, summaries.Phaddrar...)
 
 	templateData := phaddergruppSettingsTemplateData{
 		PhaddergruppData:            updatedPhaddergruppData,
 		RecencyWindowOptions:        recencyWindowOptions,
+		PauseDurationOptions:        pauseDurationOptions,
+		Members:                     members,
 		SwishRecipientNumberPattern: config.Swish.NumberPattern,
 		Errors:                      formErrors,
 	}

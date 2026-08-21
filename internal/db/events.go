@@ -1,6 +1,9 @@
 package db
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 type DBEventType string
 
@@ -26,6 +29,12 @@ type MumsAvailableUpdate struct {
 type PhaddergruppMappingEvent struct {
 	UserAccountID  int64
 	PhaddergruppID int64
+}
+
+type PhaddergruppPauseEvent struct {
+	UserAccountID  int64
+	PhaddergruppID int64
+	PausedUntil    time.Time
 }
 
 func (db *DB) Subscribe(bufferSize int) (int64, <-chan DBEvent) {

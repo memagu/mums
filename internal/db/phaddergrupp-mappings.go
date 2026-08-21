@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS phaddergrupp_mappings (
 	phaddergrupp_id INTEGER NOT NULL,
 	phaddergrupp_role TEXT NOT NULL,
 	mums_available INTEGER NOT NULL,
+	paused_until DATETIME NOT NULL,
 	PRIMARY KEY (user_account_id, phaddergrupp_id),
 	FOREIGN KEY (user_account_id) REFERENCES user_accounts(id) ON DELETE CASCADE,
 	FOREIGN KEY (phaddergrupp_id) REFERENCES phaddergrupper(id) ON DELETE CASCADE
@@ -27,11 +28,12 @@ ON
 
 func CreatePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64, phaddergruppRole roles.PhaddergruppRole) error {
 	_, err := dbtx.Exec(
-		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role, mums_available) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO phaddergrupp_mappings (user_account_id, phaddergrupp_id, phaddergrupp_role, mums_available, paused_until) VALUES (?, ?, ?, ?, ?)`,
 		userAccountID,
 		phaddergruppID,
 		string(phaddergruppRole),
 		0,
+		time.Time{},
 	)
 	if err != nil {
 		return err
@@ -244,6 +246,10 @@ type PhaddergruppUserSummary struct {
 	UserProfileName        string
 	PhaddergruppRole       roles.PhaddergruppRole
 	MumsAvailable          int
+	PausedUntil            time.Time
+	IsPaused               bool
+	PausedUntilAttr        string
+	PausedUntilRemaining   string
 	MumsaCount             int
 	MumsaTimesAttr         string
 	MumsRecencyWindowLabel string
@@ -260,7 +266,8 @@ func ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergruppID int
 			ua.id,
 			up.name,
 			pm.phaddergrupp_role,
-			pm.mums_available
+			pm.mums_available,
+			pm.paused_until
 		FROM
 			phaddergrupp_mappings AS pm
 		JOIN
@@ -290,6 +297,7 @@ func ReadPhaddergruppUserSummariesByPhaddergruppID(dbtx DBTX, phaddergruppID int
 			&summary.UserProfileName,
 			&summary.PhaddergruppRole,
 			&summary.MumsAvailable,
+			&summary.PausedUntil,
 		); err != nil {
 			return PhaddergruppUserSummaries{}, err
 		}
@@ -421,6 +429,92 @@ func DeletePhaddergruppMapping(dbtx DBTX, userAccountID, phaddergruppID int64) e
 		Data: PhaddergruppMappingEvent{
 			UserAccountID:  userAccountID,
 			PhaddergruppID: phaddergruppID,
+		},
+	})
+
+	return nil
+}
+
+func ReadPauseStatus(dbtx DBTX, userAccountID, phaddergruppID int64) (time.Time, error) {
+	const sqlQuery = `
+		SELECT paused_until
+		FROM phaddergrupp_mappings
+		WHERE user_account_id = ? AND phaddergrupp_id = ?
+	`
+	row := dbtx.QueryRow(sqlQuery, userAccountID, phaddergruppID)
+
+	var pausedUntil time.Time
+	if err := row.Scan(&pausedUntil); err != nil {
+		return time.Time{}, err
+	}
+
+	dbtx.Emit(DBEvent{
+		Table: "phaddergrupp_mappings",
+		Type:  DBRead,
+		Data:  nil,
+	})
+
+	return pausedUntil, nil
+}
+
+func PauseUser(dbtx DBTX, userAccountID, phaddergruppID int64, pausedUntil time.Time) error {
+	const sqlQuery = `
+		UPDATE phaddergrupp_mappings
+		SET paused_until = ?
+		WHERE user_account_id = ? AND phaddergrupp_id = ?
+	`
+	result, err := dbtx.Exec(sqlQuery, pausedUntil, userAccountID, phaddergruppID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return nil
+	}
+
+	dbtx.Emit(DBEvent{
+		Table: "phaddergrupp_mappings",
+		Type:  DBUpdate,
+		Data: PhaddergruppPauseEvent{
+			UserAccountID:  userAccountID,
+			PhaddergruppID: phaddergruppID,
+			PausedUntil:    pausedUntil,
+		},
+	})
+
+	return nil
+}
+
+func UnpauseUser(dbtx DBTX, userAccountID, phaddergruppID int64) error {
+	const sqlQuery = `
+		UPDATE phaddergrupp_mappings
+		SET paused_until = ?
+		WHERE user_account_id = ? AND phaddergrupp_id = ?
+	`
+	result, err := dbtx.Exec(sqlQuery, time.Time{}, userAccountID, phaddergruppID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return nil
+	}
+
+	dbtx.Emit(DBEvent{
+		Table: "phaddergrupp_mappings",
+		Type:  DBUpdate,
+		Data: PhaddergruppPauseEvent{
+			UserAccountID:  userAccountID,
+			PhaddergruppID: phaddergruppID,
+			PausedUntil:    time.Time{},
 		},
 	})
 

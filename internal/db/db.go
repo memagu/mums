@@ -3,7 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	_ "modernc.org/sqlite"
@@ -106,6 +108,8 @@ func NewDB(dbFilePath string) (*DB, error) {
 		subscribers: make(map[int64]chan DBEvent),
 	}
 
+	go startAutoUnpauseLoop(db)
+
 	return db, nil
 }
 
@@ -148,4 +152,33 @@ func GetDB(c echo.Context) *DB {
 		panic("ctxKeyDB is not set in context, was DBMiddleware not applied?")
 	}
 	return db
+}
+
+func startAutoUnpauseLoop(db *DB) {
+	for range time.Tick(1 * time.Second) {
+		zero := time.Time{}
+		rows, err := db.Query(
+			`UPDATE phaddergrupp_mappings
+			SET paused_until = ?
+			WHERE paused_until > ? AND paused_until <= CURRENT_TIMESTAMP
+			RETURNING user_account_id, phaddergrupp_id, paused_until`,
+			zero, zero)
+		if err != nil {
+			log.Printf("[db] auto-unpause query error: %v", err)
+			continue
+		}
+		for rows.Next() {
+			var event PhaddergruppPauseEvent
+			if err := rows.Scan(&event.UserAccountID, &event.PhaddergruppID, &event.PausedUntil); err != nil {
+				log.Printf("[db] auto-unpause scan error: %v", err)
+				continue
+			}
+			db.Emit(DBEvent{
+				Table: "phaddergrupp_mappings",
+				Type:  DBUpdate,
+				Data:  event,
+			})
+		}
+		rows.Close()
+	}
 }

@@ -15,8 +15,12 @@ import (
 )
 
 type templateDataMumsAvailableWidget struct {
-	PhaddergruppID int64
-	IsPhadder      bool
+	PhaddergruppID       int64
+	IsPhadder            bool
+	IsPaused             bool
+	PausedUntil          time.Time
+	PausedUntilAttr      string
+	PausedUntilRemaining string
 	db.PhaddergruppData
 	MumsAvailable             int64
 	HasMumsAvailable          bool
@@ -35,9 +39,19 @@ func emitMumsAvailableWidgetUpdate(c echo.Context, eventData db.MumsAvailableUpd
 	}
 	purchaseQuantities := mumsPurchaseQuantities(eventData.MumsAvailable, phaddergruppData)
 
+	pausedUntil, err := db.ReadPauseStatus(conn, eventData.UserAccountID, eventData.PhaddergruppID)
+	if err != nil {
+		c.Logger().Errorf("Database error during pause status read: %v", err)
+		return nil
+	}
+
 	templateData := templateDataMumsAvailableWidget{
 		PhaddergruppID:            phaddergruppID,
 		IsPhadder:                 auth.GetPhaddergruppRole(c) == roles.Phadder,
+		IsPaused:                  pausedUntil.After(time.Now().UTC()),
+		PausedUntil:               pausedUntil,
+		PausedUntilAttr:           pausedUntil.UTC().Format(time.RFC3339),
+		PausedUntilRemaining:      timeformats.FormatDuration(time.Until(pausedUntil)),
 		PhaddergruppData:          phaddergruppData,
 		MumsAvailable:             eventData.MumsAvailable,
 		HasMumsAvailable:          eventData.MumsAvailable > 0,
@@ -139,6 +153,16 @@ func emitPhaddergruppMemberListsUpdate(c echo.Context) {
 	attachMumsaCounts(summaries.N0llor)
 	attachMumsaCounts(summaries.Phaddrar)
 
+	attachPauseStatus := func(s []db.PhaddergruppUserSummary) {
+		for i := range s {
+			s[i].IsPaused = s[i].PausedUntil.After(time.Now().UTC())
+			s[i].PausedUntilAttr = s[i].PausedUntil.UTC().Format(time.RFC3339)
+			s[i].PausedUntilRemaining = timeformats.FormatDuration(time.Until(s[i].PausedUntil))
+		}
+	}
+	attachPauseStatus(summaries.N0llor)
+	attachPauseStatus(summaries.Phaddrar)
+
 	templateData := phaddergruppPageData{
 		PhaddergruppID:            phaddergruppID,
 		PhaddergruppData:          phaddergruppData,
@@ -235,6 +259,29 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 	}
 
 	if event.Type != db.DBUpdate || event.Table != "phaddergrupp_mappings" {
+		return
+	}
+
+	if pauseEvent, ok := event.Data.(db.PhaddergruppPauseEvent); ok {
+		if pauseEvent.PhaddergruppID != phaddergruppID {
+			return
+		}
+		if pauseEvent.UserAccountID == auth.GetUserAccountID(c) {
+			conn := db.GetDB(c)
+			mumsAvailable, err := db.ReadMumsAvailable(conn, pauseEvent.UserAccountID, pauseEvent.PhaddergruppID)
+			if err != nil {
+				c.Logger().Errorf("Database error during mums available read: %v", err)
+				return
+			}
+			emitMumsAvailableWidgetUpdate(c, db.MumsAvailableUpdate{
+				UserAccountID:  pauseEvent.UserAccountID,
+				PhaddergruppID: pauseEvent.PhaddergruppID,
+				MumsAvailable:  mumsAvailable,
+			})
+		}
+		if auth.GetPhaddergruppRole(c) == roles.Phadder {
+			emitPhaddergruppMemberListsUpdate(c)
+		}
 		return
 	}
 
