@@ -139,7 +139,7 @@
                     });
 
                     document.body.addEventListener("htmx:confirm", function (evt) {
-                        if (!evt.detail.target.hasAttribute("hx-confirm")) return;
+                        if (!evt.detail.elt.hasAttribute("hx-confirm")) return;
 
                         evt.preventDefault();
 
