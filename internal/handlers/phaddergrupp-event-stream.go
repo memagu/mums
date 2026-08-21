@@ -262,7 +262,10 @@ func handlePhaddergruppEvent(c echo.Context, event db.DBEvent) {
 func GetPhaddergruppEventStream(c echo.Context) error {
 	conn := db.GetDB(c)
 
-	httpx.SetupSSE(c)
+	if err := httpx.SetupSSE(c); err != nil {
+		c.Logger().Errorf("failed to setup SSE: %v", err)
+		return nil
+	}
 
 	subID, events := conn.Subscribe(16)
 	defer conn.Unsubscribe(subID)
