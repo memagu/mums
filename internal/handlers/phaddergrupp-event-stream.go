@@ -117,6 +117,28 @@ func emitPhaddergruppMemberListsUpdate(c echo.Context) {
 		return
 	}
 
+	since := time.Now().UTC().Add(-phaddergruppData.MumsRecencyWindowDuration)
+	mumsaTimes, err := db.ReadPhaddergruppMumsaTimesSince(conn, phaddergruppID, since)
+	if err != nil {
+		c.Logger().Errorf("Database error during phaddergrupp mumsa times read: %v", err)
+		return
+	}
+	timesByUser := make(map[int64][]time.Time, len(mumsaTimes))
+	for _, memberTime := range mumsaTimes {
+		timesByUser[memberTime.UserAccountID] = append(timesByUser[memberTime.UserAccountID], memberTime.CreatedAt)
+	}
+	recencyWindowLabel := timeformats.FormatDuration(phaddergruppData.MumsRecencyWindowDuration)
+	attachMumsaCounts := func(s []db.PhaddergruppUserSummary) {
+		for i := range s {
+			times := timesByUser[s[i].UserAccountID]
+			s[i].MumsaCount = len(times)
+			s[i].MumsaTimesAttr = mumsaTimesAttr(times)
+			s[i].MumsRecencyWindowLabel = recencyWindowLabel
+		}
+	}
+	attachMumsaCounts(summaries.N0llor)
+	attachMumsaCounts(summaries.Phaddrar)
+
 	templateData := phaddergruppPageData{
 		PhaddergruppID:            phaddergruppID,
 		PhaddergruppData:          phaddergruppData,
