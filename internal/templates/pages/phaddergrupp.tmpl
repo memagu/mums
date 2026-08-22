@@ -293,7 +293,7 @@
     <button
         hx-post="/phaddergrupp/{{ .PhaddergruppID }}/mums/adjust?user-account-id={{ .UserAccountID }}&delta={{ .Delta }}"
         hx-swap="none"
-        class="touch-manipulation rounded-full shadow-md hover:bg-gray-100 active:bg-gray-100 p-2"
+        class="touch-manipulation rounded-full shadow-md hover:bg-input-highlight active:bg-input-highlight p-2"
         title="{{ .AltText }}"
     >
         <img src="{{ .IconPath }}" alt="{{ .AltText }}" class="size-12" />
