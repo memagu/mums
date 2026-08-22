@@ -6,6 +6,36 @@
 
 {{ define "head" }}
     {{ template "import-htmx-sse" . }}
+    {{ template "import-qrcode-generator" . }}
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", () => {
+            const dialog = document.getElementById("qr-modal");
+            const caption = document.getElementById("qr-modal-caption");
+            const code = document.getElementById("qr-modal-code");
+
+            const showQrModal = (url, label) => {
+                caption.textContent = label;
+                code.innerHTML = "";
+                const qr = qrcode(0, "M");
+                qr.addData(url);
+                qr.make();
+                code.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+                dialog.showModal();
+            };
+
+            document.querySelectorAll("button[data-qr-url]").forEach((button) => {
+                button.addEventListener("click", () =>
+                    showQrModal(button.dataset.qrUrl, button.dataset.qrLabel)
+                );
+            });
+
+            document.getElementById("qr-modal-close").addEventListener("click", () => dialog.close());
+            dialog.addEventListener("click", (e) => {
+                if (e.target === dialog) dialog.close();
+            });
+        });
+    </script>
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", (_) => {
@@ -100,11 +130,13 @@
                         "ID" "invite-phadder"
                         "Label" "Invite Phaddrar"
                         "URL" .InviteURLPhadder
+                        "InteractiveBorderColor" .SecondaryColor
                     }}
                     {{ template "fragment-invite-link" dict
                         "ID" "invite-n0lla"
                         "Label" "Invite N0llor"
                         "URL" .InviteURLN0lla
+                        "InteractiveBorderColor" .SecondaryColor
                     }}
                 </div>
 
@@ -138,6 +170,21 @@
                        border-2 border-dashed border-error-border shadow-lg hover:bg-error-highlight
                        active:bg-error-highlight"
             >Leave phaddergrupp</button>
+
+            <dialog
+                id="qr-modal"
+                aria-labelledby="qr-modal-caption"
+                class="bg-card rounded-xl shadow-lg mx-auto px-6 py-6 top-1/2 -translate-y-1/2 backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+            >
+                <div class="flex flex-col items-center gap-4">
+                    <p id="qr-modal-caption" class="text-center font-semibold text-card-content"></p>
+                    <div id="qr-modal-code" class="bg-white p-3 rounded-md w-64 h-64 [&_svg]:w-full [&_svg]:h-full"></div>
+                    <button
+                        id="qr-modal-close"
+                        class="px-4 py-1 rounded-full bg-info text-info-content font-semibold shadow-lg shadow-black/25 hover:bg-info-highlight active:bg-info-highlight cursor-pointer focus:outline-none"
+                    >Close</button>
+                </div>
+            </dialog>
         </div>
     </div>
 {{ end }}
@@ -388,39 +435,54 @@
         <label for="{{ .ID }}" class="block text-sm font-medium text-backdrop-content-muted">
             {{ .Label }}
         </label>
-        <input
-            id="{{ .ID }}"
-            type="text"
-            data-url="{{ .URL }}"
-            value="{{ .URL }}"
-            readonly
-            hx-on:click="
-                navigator.clipboard.writeText(this.dataset.url)
-                    .then(() => {
-                        this.value = '- Copied -';
-                        const copyStyleAdd = [
-                            'text-center',
-                            'text-success',
-                            'font-semibold',
-                            'border-success'
-                        ];
-                        const copyStyleRemove = [
-                            'text-input-content',
-                            'border-input-border-muted'
-                        ];
-                        this.classList.add(...copyStyleAdd);
-                        this.classList.remove(...copyStyleRemove);
-                        setTimeout(() => {
-                            this.value = this.dataset.url;
-                            this.classList.remove(...copyStyleAdd);
-                            this.classList.add(...copyStyleRemove);
-                        }, 1000);
-                    })
-                    .catch(err => console.error('Failed to copy: ', err))
-            "
-            class="w-full bg-input text-input-content rounded-md border-2 border-input-border-muted px-3 py-2 text-sm cursor-pointer caret-transparent truncate select-all focus:outline-none"
-            title="Click to copy"
-        />
+        <div class="flex gap-2 w-full">
+            <input
+                id="{{ .ID }}"
+                type="text"
+                data-url="{{ .URL }}"
+                value="{{ .URL }}"
+                readonly
+                hx-on:click="
+                    navigator.clipboard.writeText(this.dataset.url)
+                        .then(() => {
+                            this.value = '- Copied -';
+                            const copyStyleAdd = [
+                                'text-center',
+                                'text-success',
+                                'font-semibold',
+                                'border-success',
+                                'bg-input-highlight'
+                            ];
+                            const copyStyleRemove = [
+                                'text-input-content',
+                                'border-input-border-muted',
+                                'bg-input',
+                                'hover:border-[{{ .InteractiveBorderColor }}]'
+                            ];
+                            this.classList.add(...copyStyleAdd);
+                            this.classList.remove(...copyStyleRemove);
+                            setTimeout(() => {
+                                this.value = this.dataset.url;
+                                this.classList.remove(...copyStyleAdd);
+                                this.classList.add(...copyStyleRemove);
+                            }, 1000);
+                        })
+                        .catch(err => console.error('Failed to copy: ', err))
+                "
+                class="flex-1 min-w-0 bg-input hover:bg-input-highlight text-input-content rounded-md border-2 border-input-border-muted hover:border-[{{ .InteractiveBorderColor }}] px-3 py-2 text-sm cursor-pointer caret-transparent truncate select-all focus:outline-none"
+                title="Click to copy"
+            />
+            <button
+                type="button"
+                data-qr-url="{{ .URL }}"
+                data-qr-label="{{ .Label }}"
+                aria-label="Show QR code for {{ .Label }}"
+                title="Show QR code"
+                class="shrink-0 flex justify-center items-center rounded-md border-2 border-input-border-muted bg-input text-input-content px-3 hover:bg-input-highlight hover:border-[{{ .InteractiveBorderColor }}] active:bg-input-highlight active:border-[{{ .InteractiveBorderColor }}] cursor-pointer focus:outline-none"
+            >
+                <img src="/static/icons/qr.svg" alt="" aria-hidden="true" class="size-5" />
+            </button>
+        </div>
     </div>
 {{ end }}
 
